@@ -1,0 +1,13 @@
+api-version: 1.16
+name: LobbyOstrov
+main: ru.ostrov77.lobby.Main
+version: 1.0
+load: POSTWORLD
+author: Romindous,Komiss77
+
+depend: [Ostrov, serverfigure]
+
+
+commands:
+  oscom:
+    description: Коммуникатор

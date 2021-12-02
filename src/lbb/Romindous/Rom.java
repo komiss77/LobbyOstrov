@@ -14,7 +14,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -23,7 +22,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import ru.komiss77.Ostrov;
 
-public class Rom implements Listener {
+public class Rom {
 
 	private static HashMap<BaseBlockPosition, BaseBlockPosition> plts = new HashMap<BaseBlockPosition, BaseBlockPosition>();
 	private static HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();
@@ -36,7 +35,7 @@ public class Rom implements Listener {
 	public static void onEnable(final Plugin plugin) {
 		instance = plugin;
 		Ostrov.log_ok("§2Lobby вкл.!");
-		Bukkit.getServer().getPluginManager().registerEvents(new RomListener(), instance);
+		Bukkit.getServer().getPluginManager().registerEvents(new RomListener(instance), instance);
 		
 		loadCfgs();
         

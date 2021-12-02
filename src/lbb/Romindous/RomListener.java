@@ -41,7 +41,11 @@ public class RomListener implements Listener {
 	private static HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();
 	private static HashMap<Player, BaseBlockPosition> tps = new HashMap<Player, BaseBlockPosition>();
 	private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
-	private static Plugin instance;
+	private final Plugin instance;
+
+    RomListener(final Plugin instance) {
+        this.instance = instance;
+    }
         
         
         

@@ -58,40 +58,15 @@ public class ListenerOne implements Listener {
 
             try {  
                 stmt = LocalDB.GetConnection().createStatement(); 
-
                 rs = stmt.executeQuery( "SELECT * FROM `lobbyData` WHERE `name` = '"+lp.name+"' LIMIT 1" );
                 
-                final Location logoutLoc;
                 if (rs.next()) {
-                    logoutLoc = LocationUtil.LocFromString(rs.getString("logoutLoc"));
+                    lp.logoutLoc = rs.getString("logoutLoc");
                     lp.flags = rs.getInt("flags");
-                } else {
-                    logoutLoc = null;
                 }
                 
                 Ostrov.sync(()-> {
-                    
-                    if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-                        
-                        lp.setFlag(LobbyFlag.NewBieDone, true);
-                        p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
-                        
-                    } else {
-                        
-                        //очистить инв - не надо, файлы не сохр!
-                        //выдать положенные предметы
-                        if (lp.hasFlag(LobbyFlag.Elytra)) {
-                            p.getInventory().setItem(2, fw);
-                        }
-                        if (ApiOstrov.teleportSave(p, logoutLoc, false)) {
-p.sendMessage("log: тп на точку выхода");
-                        } else {
-                            p.teleport(Main.spawnLocation);
-p.sendMessage("log: точка выхода опасна, тп на спавн");
-                        }
-
-                    }
-                    
+                    onDataLoad(p, lp);
                 }, 0);
 
             } catch (SQLException ex) {
@@ -111,7 +86,43 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     }
     
     
-    
+
+    private void onDataLoad(Player p, LobbyPlayer lp) {
+
+        if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+
+            lp.setFlag(LobbyFlag.NewBieDone, true);
+            p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+
+            
+            
+            
+        } else {
+            //очистить инв - не надо, файлы не сохр!
+            //выдать положенные предметы
+            if (lp.hasFlag(LobbyFlag.Elytra)) {
+                p.getInventory().setItem(2, fw);
+            }
+            
+            final Location logoutLoc = LocationUtil.LocFromString(lp.logoutLoc);
+            if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
+p.sendMessage("log: тп на точку выхода");
+            } else {
+                p.teleport(Main.spawnLocation);
+p.sendMessage("log: точка выхода опасна, тп на спавн");
+            }
+            //поставить скореб
+        }
+    }
+
+
+
+
+
+
+
+
+
     
     @EventHandler (priority = EventPriority.MONITOR)
     public void onBungeeData(final BungeeDataRecieved e) {
@@ -127,7 +138,8 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
         final Player p = e.getPlayer();
         final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
         if (lp!=null) {
-            lp.logoutLoc = LocationUtil.StringFromLoc(p.getLocation());
+            lp.logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
+//System.out.println("onQuit logoutLoc="+lp.logoutLoc);
             LobbyPlayer.save(lp);
            /* LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc,flags) VALUES "
                         + "('"+p.getName()+"','"+LocationUtil.StringFromLoc(p.getLocation())+"','0') "
@@ -184,6 +196,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
         fw.setItemMeta(fm);
         return fw;
     }
+
 
 
     

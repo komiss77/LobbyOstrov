@@ -5,20 +5,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import ru.komiss77.ApiOstrov;
-import ru.komiss77.Ostrov;
+import ru.komiss77.utils.inventory.SmartInventory;
 
 
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbiespawn");
+    private final List <String> subCommands = Arrays.asList("newbiespawn", "flagdebug");
 
         
         
@@ -30,14 +29,10 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             
             case 1:
                 //0- пустой (то,что уже введено)
-                if (ApiOstrov.isLocalBuilder(cs, false)){
-                    for (final String s : subCommands) {
-                        if (s.startsWith(args[0])) sugg.add(s);
-                    }
-                    for (final Ostrov.Module m : Ostrov.Module.values()) {
-                        if (m.name().toLowerCase().startsWith(args[0].toLowerCase())) sugg.add(m.name());
-                    }
+                for (final String s : subCommands) {
+                    if (s.startsWith(args[0])) sugg.add(s);
                 }
+
                 break;
 
 
@@ -59,6 +54,19 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             switch (arg[0]) {
                 case "newbiespawn":
                     p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+                    return true;
+                    
+                case "flagdebug":
+                    if (ApiOstrov.isLocalBuilder(cs, true)) {
+                        SmartInventory
+                            .builder()
+                            .id("flags"+p.getName())
+                            .provider(new FlagsDebug())
+                            .size(6, 9)
+                            .title("флаги лобби")
+                            .build()
+                            .open(p);
+                    }
                     return true;
             }
         }

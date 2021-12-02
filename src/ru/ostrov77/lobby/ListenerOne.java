@@ -1,5 +1,8 @@
 package ru.ostrov77.lobby;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
@@ -15,16 +18,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import ru.komiss77.ApiOstrov;
+import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
-import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.BungeeDataRecieved;
-import ru.komiss77.events.MysqlDataLoaded;
-import ru.komiss77.modules.player.Oplayer;
-import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.utils.LocationUtil;
 
 
 
@@ -45,8 +47,67 @@ public class ListenerOne implements Listener {
     
     @EventHandler (priority = EventPriority.MONITOR)
     public void onJoin(final PlayerJoinEvent e) {
-        //final Player p = e.getPlayer();
+        final Player p = e.getPlayer();
+        final LobbyPlayer lp = new LobbyPlayer(p.getName());
+        Main.lobbyPlayers.put(p.getName(), lp);
         
+        Ostrov.async( () -> {
+
+            Statement stmt = null;
+            ResultSet rs = null;
+
+            try {  
+                stmt = LocalDB.GetConnection().createStatement(); 
+
+                rs = stmt.executeQuery( "SELECT * FROM `lobbyData` WHERE `name` = '"+lp.name+"' LIMIT 1" );
+                
+                final Location logoutLoc;
+                if (rs.next()) {
+                    logoutLoc = LocationUtil.LocFromString(rs.getString("logoutLoc"));
+                    lp.flags = rs.getInt("flags");
+                } else {
+                    logoutLoc = null;
+                }
+                
+                Ostrov.sync(()-> {
+                    
+                    if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+                        
+                        lp.setFlag(LobbyFlag.NewBieDone, true);
+                        p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+                        
+                    } else {
+                        
+                        //очистить инв - не надо, файлы не сохр!
+                        //выдать положенные предметы
+                        if (lp.hasFlag(LobbyFlag.Elytra)) {
+                            p.getInventory().setItem(2, fw);
+                        }
+                        if (ApiOstrov.teleportSave(p, logoutLoc, false)) {
+p.sendMessage("log: тп на точку выхода");
+                        } else {
+                            p.teleport(Main.spawnLocation);
+p.sendMessage("log: точка выхода опасна, тп на спавн");
+                        }
+
+                    }
+                    
+                }, 0);
+
+            } catch (SQLException ex) {
+
+                Ostrov.log_err("ListenerOne error  "+lp.name+" -> "+ex.getMessage());
+
+            } finally {
+                try{
+                    if (rs!=null && !rs.isClosed()) rs.close();
+                    if (stmt!=null) stmt.close();
+                } catch (SQLException ex) {
+                    Ostrov.log_err("ListenerOne close error - "+ex.getMessage());
+                }
+            }
+
+        }, 0);
     }
     
     
@@ -55,38 +116,44 @@ public class ListenerOne implements Listener {
     @EventHandler (priority = EventPriority.MONITOR)
     public void onBungeeData(final BungeeDataRecieved e) {
         final Player p = e.getPlayer();
-        final Oplayer op = PM.getOplayer(p);
-        if (!op.hasFlag(StatFlag.NewBieDone)) {
-            op.setFlag(StatFlag.NewBieDone, true);
-            p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
-        } else {
-            //очистить инв - не надо, файлы не сохр!
-            //выдать положенные предметы
-            if (op.hasFlag(StatFlag.Elytra)) {
-                p.getInventory().setItem(2, fw);
-            }
-            //тп на точку выхода
-        }
-        
-        
+        //final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
     }
     
     
     
     @EventHandler (priority = EventPriority.NORMAL)
-    public void onLocalDataLoad(final MysqlDataLoaded e) {
-        e.setCancelled(true); //чтобы не ставило режим пвп, скорость ходьбы,полёта, погоду и прочее ненужное для лобби
+    public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
-        final Oplayer op = PM.getOplayer(p);
-        if (op!=null && op.world_positions.containsKey("world")) {
-            final Location logoutLoc = op.world_positions.get("world");
-            if (logoutLoc!=null && ApiOstrov.isLocationSave(p, logoutLoc)) {
-                p.teleport(logoutLoc);
-p.sendMessage("log: тп на точку выхода");
-            }
+        final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
+        if (lp!=null) {
+            lp.logoutLoc = LocationUtil.StringFromLoc(p.getLocation());
+            LobbyPlayer.save(lp);
+           /* LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc,flags) VALUES "
+                        + "('"+p.getName()+"','"+LocationUtil.StringFromLoc(p.getLocation())+"','0') "
+                        + "ON DUPLICATE KEY UPDATE "
+                        + "`logoutLoc`='"+LocationUtil.StringFromLoc(p.getLocation())+"', "
+                        + "`flags`='"+lp.flags+"' ;");*/
         }
     }    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

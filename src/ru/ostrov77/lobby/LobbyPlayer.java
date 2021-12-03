@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import ru.komiss77.LocalDB;
 
 
-class LobbyPlayer {
+public class LobbyPlayer {
     
     protected final String name;
     protected int flags;

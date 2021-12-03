@@ -40,7 +40,7 @@ public class FlagsDebug implements InventoryProvider {
         
         final ArrayList<ClickableItem> menuEntry = new ArrayList<>();
         
-        final LobbyPlayer lp = Main.lobbyPlayers.get(p.getName());
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
         
         

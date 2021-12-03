@@ -9,6 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 
@@ -17,7 +18,7 @@ import ru.komiss77.utils.inventory.SmartInventory;
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbiespawn", "flagdebug");
+    private final List <String> subCommands = Arrays.asList("newbie", "menu", "flagdebug");
 
         
         
@@ -51,9 +52,28 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         final Player p = (Player) cs;
         
         if (arg.length==1) {
+            
             switch (arg[0]) {
-                case "newbiespawn":
-                    p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+                
+                case "newbie":
+                    if (NewBie.hasNewBieTask(p)) {
+                        p.sendMessage("§cВы уже в процессе!");
+                        return true;
+                    }
+                    if (arg.length==2) {
+                        p.sendMessage("§cУкажите стадию от 1 до 3!");
+                        int stage = ApiOstrov.getInteger(arg[1]);
+                        if (stage<1 || stage>3) {
+                            p.sendMessage("§cCтадия - число от 1 до 3!");
+                            return true;
+                        }
+                        NewBie.start(p, stage);
+                        return true;
+                    } else {
+                        NewBie.start(p, 0);
+                    }
+                    
+                    //p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
                     return true;
                     
                 case "flagdebug":
@@ -67,6 +87,18 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                             .build()
                             .open(p);
                     }
+                    return true;
+                    
+                case "menu":
+                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    SmartInventory.builder()
+                        .type(InventoryType.HOPPER)
+                        .id("oscom"+p.getName()) 
+                        .provider(new OsComMenu())
+                        .title("§aОсКом")
+                        .build()
+                        .open(p);
+                        //}
                     return true;
             }
         }

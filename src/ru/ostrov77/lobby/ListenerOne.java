@@ -3,6 +3,8 @@ package ru.ostrov77.lobby;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
@@ -24,7 +26,6 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
-import ru.komiss77.events.BungeeDataRecieved;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.LocationUtil;
 
@@ -35,13 +36,14 @@ import ru.komiss77.utils.LocationUtil;
 public class ListenerOne implements Listener {
     
     
-    final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
+    private static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
                 .setName("§7Топливо для §bКрыльев")
                 .lore("§7Осторожно,")
                 .lore("§7иногда взрывается!")
                 .build()
     );
     
+    protected static Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();;
     
     
     
@@ -49,7 +51,7 @@ public class ListenerOne implements Listener {
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
         final LobbyPlayer lp = new LobbyPlayer(p.getName());
-        Main.lobbyPlayers.put(p.getName(), lp);
+        lobbyPlayers.put(p.getName(), lp);
         
         Ostrov.async( () -> {
 
@@ -90,20 +92,10 @@ public class ListenerOne implements Listener {
     private void onDataLoad(Player p, LobbyPlayer lp) {
 
         if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-
             lp.setFlag(LobbyFlag.NewBieDone, true);
-            p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
-
-            
-            
-            
+            NewBie.start(p, 0);
         } else {
-            //очистить инв - не надо, файлы не сохр!
-            //выдать положенные предметы
-            if (lp.hasFlag(LobbyFlag.Elytra)) {
-                p.getInventory().setItem(2, fw);
-            }
-            
+            giveItems(p);
             final Location logoutLoc = LocationUtil.LocFromString(lp.logoutLoc);
             if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
 p.sendMessage("log: тп на точку выхода");
@@ -111,32 +103,44 @@ p.sendMessage("log: тп на точку выхода");
                 p.teleport(Main.spawnLocation);
 p.sendMessage("log: точка выхода опасна, тп на спавн");
             }
-            //поставить скореб
         }
     }
 
 
 
-
+    
+    
+    protected static void giveItems(final Player p) {
+        p.getInventory().clear();
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        if (lp.hasFlag(LobbyFlag.Elytra)) {
+            p.getInventory().setItem(2, fw); //2
+            ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+        }
+        ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
+        ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+        p.updateInventory();
+    }
 
 
 
 
 
     
-    @EventHandler (priority = EventPriority.MONITOR)
-    public void onBungeeData(final BungeeDataRecieved e) {
-        final Player p = e.getPlayer();
+   // @EventHandler (priority = EventPriority.MONITOR)
+   // public void onBungeeData(final BungeeDataRecieved e) {
+       // final Player p = e.getPlayer();
         //final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
-    }
+   // }
     
     
     
     @EventHandler (priority = EventPriority.NORMAL)
     public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
-        final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
+        NewBie.stop(p);
+        final LobbyPlayer lp = lobbyPlayers.remove(p.getName());
         if (lp!=null) {
             lp.logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
 //System.out.println("onQuit logoutLoc="+lp.logoutLoc);
@@ -196,6 +200,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
         fw.setItemMeta(fm);
         return fw;
     }
+
 
 
 

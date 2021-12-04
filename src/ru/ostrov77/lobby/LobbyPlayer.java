@@ -9,6 +9,7 @@ public class LobbyPlayer {
     protected final String name;
     protected int flags;
     protected String logoutLoc;
+    public int lastCuboidId;
 
     LobbyPlayer(final String name) {
         this.name = name;

@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import ru.ostrov77.lobby.newbie.NewBie;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,18 +19,20 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ItemDespawnEvent;
+import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -37,6 +40,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -146,6 +150,16 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     
     
+    @EventHandler (ignoreCancelled = true)
+    public void onPlayerChat(AsyncChatEvent e) {
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
+        if (NewBie.hasNewBieTask(e.getPlayer())) {
+            
+        }
+        //e.setCancelled(true);
+        //e.viewers().clear();
+        //e.getPlayer().sendMessage("§6Для пропуска интро просто перезайдите.");
+    }      
     
     
     
@@ -153,14 +167,14 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onPlace(BlockPlaceEvent e) {
-        //PM.getOplayer(e.getPlayer().getName()).last_breack=Timer.Единое_время();
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         //else if (!clear_stats) PM.Addbplace(e.getPlayer().getName());
     }
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onBreak(BlockBreakEvent e) {
-      //  PM.getOplayer(e.getPlayer().getName()).last_breack=Timer.Единое_время();
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         //else if (!clear_stats) PM.get(e.getPlayer().getName());
     }
@@ -168,7 +182,8 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onHangingBreakByEntityEvent(HangingBreakByEntityEvent e) {
-        if ( e.getRemover().getType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
+        if (  e.getRemover()!=null && e.getRemover().getType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
                 if (!ApiOstrov.isLocalBuilder((Player) e.getRemover()) ) e.setCancelled(true);
         } 
 
@@ -176,7 +191,8 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
        
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onHangingBreakEvent(HangingBreakEvent e) {
-        if ( e.getEntity() instanceof Player) {
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
+        if ( e.getEntity().getType()==EntityType.PLAYER) {
                 if (!ApiOstrov.isLocalBuilder((Player) e.getEntity()) ) e.setCancelled(true);
         } 
     }
@@ -191,9 +207,9 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onPlayerInteractAtEntityEvent(PlayerInteractAtEntityEvent e)
-    {
-        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !e.getPlayer().isOp() ) e.setCancelled(true);
+    public void onPlayerInteractAtEntityEvent(PlayerInteractAtEntityEvent e) {
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
+        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
     }
 
 
@@ -201,21 +217,22 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void PlayerArmorStandManipulateEvent(PlayerArmorStandManipulateEvent e){
-        if (!e.getPlayer().isOp()) e.setCancelled(true);
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
+        if (!ApiOstrov.isLocalBuilder(e.getPlayer())) e.setCancelled(true);
     }        
     
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onPlayerRespawn(PlayerRespawnEvent e) {
-         
+         if (!e.getPlayer().getWorld().getName().equals("world")) return;
     }
     
     
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void ProjectileHitEvent(final ProjectileHitEvent e) {
-        
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
     }    
 
 
@@ -224,7 +241,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent e) { 
-        
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
     }
 
 
@@ -234,19 +251,20 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 
     @EventHandler (ignoreCancelled = true)
     public void onPlayerPickUpItem(EntityPickupItemEvent e) {
-
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
     }
 
 
-    @EventHandler(ignoreCancelled = true)
-    public void onPlayerSwapoffHand(PlayerSwapHandItemsEvent e) {
-        if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        e.setCancelled(true);
-    }
+   // @EventHandler(ignoreCancelled = true)
+   // public void onPlayerSwapoffHand(PlayerSwapHandItemsEvent e) {
+   //     if (!e.getPlayer().getWorld().getName().equals("world")) return;
+   //     e.setCancelled(true);
+  //  }
    
   
     @EventHandler  (ignoreCancelled = true)
     public void onHungerChange(FoodLevelChangeEvent e) {
+        if (!e.getEntity().getWorld().getName().equals("world")) return;
         e.setCancelled(true); 
         ((Player)e.getEntity()).setFoodLevel(20);
     }
@@ -269,11 +287,29 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     
     
-    
+
+    //@EventHandler (priority = EventPriority.NORMAL, ignoreCancelled = true)
+   // public void onMerge(final ItemMergeEvent e) {
+    //    if (!e.getEntity().getWorld().getName().equals("world")) return;
+    //    e.setCancelled(true);
+   // }
+
+   
+  //  @EventHandler (priority = EventPriority.NORMAL, ignoreCancelled = true)
+   // public void onDespawn(final ItemDespawnEvent e) {
+//log("onDespawn nb?"+e.getEntity().getWorld().getName().startsWith("newbie"));
+        //if (!e.getEntity().getWorld().getName().equals("world")) return;
+        //if (e.getEntity().getItemStack().getType()==Material.NETHER_STAR) {
+        //    e.setCancelled(true);
+        //}
+   // }
+
+   
 
 
     @EventHandler (ignoreCancelled = true)
     public void onBlockFade(BlockFadeEvent e) {
+        if (!e.getBlock().getWorld().getName().equals("world")) return;
         if( e.getBlock().getType() == Material.ICE || e.getBlock().getType() == Material.PACKED_ICE || e.getBlock().getType() == Material.SNOW || e.getBlock().getType() == Material.SNOW_BLOCK) 
         e.setCancelled(true);
     }
@@ -289,10 +325,30 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
   
     
     @EventHandler (ignoreCancelled = true)
-    public void onWeatherChange(WeatherChangeEvent e)
-    {if (e.toWeatherState()) {e.setCancelled(true);}}
+    public void onWeatherChange(WeatherChangeEvent e) {
+        if (!e.getWorld().getName().equals("world")) return;
+        if (e.toWeatherState()) e.setCancelled(true);
+    }
 
 
+          
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockSpread(BlockSpreadEvent e) {
+        if (!e.getBlock().getWorld().getName().equals("world")) return;
+        e.setCancelled(true);
+    }  
+        
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockGrowth(BlockGrowEvent e) { 
+        if (!e.getBlock().getWorld().getName().equals("world")) return;
+        e.setCancelled(true);
+    }    
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStructureGrow(StructureGrowEvent e) { 
+        if (!e.getLocation().getWorld().getName().equals("world")) return;
+        e.setCancelled(true);
+    }    
 
 
 

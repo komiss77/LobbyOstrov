@@ -22,6 +22,7 @@ import ru.komiss77.OstrovDB;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.utils.ItemBuilder;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 
@@ -31,6 +32,8 @@ public class Main extends JavaPlugin {
     public static Location newBieSpawnLocation;
     public static Location spawnLocation;
     public static AreaManager areaManager;
+    public static QuestManager questManager;
+    
     protected static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
                 .setName("§7Топливо для §bКрыльев")
                 .lore("§7Осторожно,")
@@ -69,6 +72,7 @@ public class Main extends JavaPlugin {
         
         Rom.onEnable(this);
         areaManager = new AreaManager();
+        questManager = new QuestManager();
         
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
             .setName("§bКрылья Островитянина")

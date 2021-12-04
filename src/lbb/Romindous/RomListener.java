@@ -2,7 +2,7 @@ package lbb.Romindous;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.bukkit.Axis;
@@ -32,32 +32,20 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 import net.kyori.adventure.text.TextComponent;
 import net.minecraft.core.BaseBlockPosition;
-import org.bukkit.plugin.Plugin;
+import ru.komiss77.ApiOstrov;
 import ru.komiss77.Timer;
 
 public class RomListener implements Listener {
-
-	private static HashMap<BaseBlockPosition, BaseBlockPosition> plts = new HashMap<BaseBlockPosition, BaseBlockPosition>();
-	private static HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();
-	private static HashMap<Player, BaseBlockPosition> tps = new HashMap<Player, BaseBlockPosition>();
+	
 	private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
-	private final Plugin instance;
-
-    RomListener(final Plugin instance) {
-        this.instance = instance;
-    }
-        
-        
-        
-
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-		public void onPrtl(final EntityPortalEnterEvent e) {
-		if (e.getEntityType() == EntityType.PLAYER && !prts.isEmpty()) {
+	public void onPrtl(final EntityPortalEnterEvent e) {
+		if (e.getEntityType() == EntityType.PLAYER && !Rom.prts.isEmpty()) {
 			final Location loc = e.getLocation();
 			int d = Integer.MAX_VALUE;
 			String n = "";
-			for (final Entry<BaseBlockPosition, String> en : prts.entrySet()) {
+			for (final Entry<BaseBlockPosition, String> en : Rom.prts.entrySet()) {
 				final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
 				if (dd < d) {
 					d = dd;
@@ -67,21 +55,21 @@ public class RomListener implements Listener {
 			final Player p = (Player) e.getEntity();
 			if (Timer.has(p, "portal")) {
 				return;
-	        }
-	        Timer.add(p, "portal", 5);
+		    }
+		    Timer.add(p, "portal", 5);
 			p.performCommand("server " + n);
 		}
 	}
-	
+
 	@EventHandler
 	public void onBrk(final BlockBreakEvent e) {
-		final FileConfiguration cfg = instance.getConfig();
+		final FileConfiguration cfg = Rom.instance.getConfig();
 		final Location loc;
 		if (e.getBlock().getType() == Material.NETHER_PORTAL && cfg.isConfigurationSection("prtls")) {
 			loc = e.getBlock().getLocation();
 			int d = Integer.MAX_VALUE;
 			BaseBlockPosition rb = new BaseBlockPosition(0, 0, 0);
-			for (final Entry<BaseBlockPosition, String> en : prts.entrySet()) {
+			for (final Entry<BaseBlockPosition, String> en : Rom.prts.entrySet()) {
 				final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
 				if (dd < d) {
 					d = dd;
@@ -90,18 +78,18 @@ public class RomListener implements Listener {
 			}
 			
 			//убираем из HashMap
-			final String pnm = prts.remove(rb);
-
+			final String pnm = Rom.prts.remove(rb);
+		
 			//убираем из файла
-			if (prts.isEmpty()) {
+			if (Rom.prts.isEmpty()) {
 				cfg.set("prtls", null);
 			} else {
 				final StringBuffer nx = new StringBuffer("");
 				final StringBuffer ny = new StringBuffer("");
 				final StringBuffer nz = new StringBuffer("");
 				final StringBuffer ns = new StringBuffer("");
-				d = prts.size();
-				for (final Entry<BaseBlockPosition, String> en : prts.entrySet()) {
+				d = Rom.prts.size();
+				for (final Entry<BaseBlockPosition, String> en : Rom.prts.entrySet()) {
 					d--;
 					nx.append(en.getKey().getX() + (d == 0 ? "" : ":"));
 					ny.append(en.getKey().getY() + (d == 0 ? "" : ":"));
@@ -115,7 +103,7 @@ public class RomListener implements Listener {
 			}
 			
 			try {
-				cfg.save(instance.getDataFolder() + File.separator + "config.yml");
+				cfg.save(Rom.instance.getDataFolder() + File.separator + "config.yml");
 				e.getPlayer().sendMessage("§6Портал " + pnm + " убран!");
 			} catch (IOException ex) {
 				ex.printStackTrace();
@@ -124,10 +112,10 @@ public class RomListener implements Listener {
 			loc = e.getBlock().getLocation();
 			//убираем из HashMap
 			final BaseBlockPosition rb = new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-			if (plts.remove(rb) != null) {
+			if (Rom.plts.remove(rb) != null) {
 				//убираем из файла
-				if (plts.isEmpty()) {
-					cfg.set("plts", null);
+				if (Rom.plts.isEmpty()) {
+					cfg.set("Rom.plts", null);
 				} else {
 					final StringBuffer nbx = new StringBuffer("");
 					final StringBuffer nby = new StringBuffer("");
@@ -135,9 +123,9 @@ public class RomListener implements Listener {
 					final StringBuffer nex = new StringBuffer("");
 					final StringBuffer ney = new StringBuffer("");
 					final StringBuffer nez = new StringBuffer("");
-
-					int d = plts.size();
-					for (final Entry<BaseBlockPosition, BaseBlockPosition> en : plts.entrySet()) {
+		
+					int d = Rom.plts.size();
+					for (final Entry<BaseBlockPosition, BaseBlockPosition> en : Rom.plts.entrySet()) {
 						d--;
 						nbx.append(en.getKey().getX() + (d == 0 ? "" : ":"));
 						nby.append(en.getKey().getY() + (d == 0 ? "" : ":"));
@@ -146,16 +134,16 @@ public class RomListener implements Listener {
 						ney.append(en.getValue().getY() + (d == 0 ? "" : ":"));
 						nez.append(en.getValue().getZ() + (d == 0 ? "" : ":"));
 					}
-					cfg.set("plts.bx", nbx.toString());
-					cfg.set("plts.by", nby.toString());
-					cfg.set("plts.bz", nbz.toString());
-					cfg.set("plts.ex", nex.toString());
-					cfg.set("plts.ey", ney.toString());
-					cfg.set("plts.ez", nez.toString());
+					cfg.set("Rom.plts.bx", nbx.toString());
+					cfg.set("Rom.plts.by", nby.toString());
+					cfg.set("Rom.plts.bz", nbz.toString());
+					cfg.set("Rom.plts.ex", nex.toString());
+					cfg.set("Rom.plts.ey", ney.toString());
+					cfg.set("Rom.plts.ez", nez.toString());
 				}
 				
 				try {
-					cfg.save(instance.getDataFolder() + File.separator + "config.yml");
+					cfg.save(Rom.instance.getDataFolder() + File.separator + "config.yml");
 					e.getPlayer().sendMessage("§6Плита на коорд. (§7" + rb.getX() + "§6, §7" + rb.getY() + "§6, §7" + rb.getZ() + "§6) убрана!");
 				} catch (IOException ex) {
 					ex.printStackTrace();
@@ -163,25 +151,34 @@ public class RomListener implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlt(final PlayerInteractEvent e) {
 		final Player p = e.getPlayer();
 		if (e.getAction() == Action.PHYSICAL) {
 			final Location loc = e.getClickedBlock().getLocation();
-			final BaseBlockPosition lp = plts.get(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+			final BaseBlockPosition lp = Rom.plts.get(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
 			if (lp != null) {
 				e.setCancelled(true);
 				loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
 				loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
 				loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
 				p.setGameMode(GameMode.SPECTATOR);
-        		p.setFlying(true);
-				tps.put(p, lp);
+				p.setFlying(true);
+				Rom.tps.put(p, lp);
+			}
+		} else {
+			final HashSet<Material> ms = Rom.mts.get(p.getName());
+			if (ms != null && e.getClickedBlock() != null) {
+				final Material m = e.getClickedBlock().getType();
+				if (ms.size() < 50 && ms.add(m)) {
+					ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + m.toString().replace('_', ' ').toLowerCase() + "§7, осталось: §6" + (50 - ms.size()));
+					//bossbar???
+				}
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlc(final BlockPlaceEvent e) {
 		final Block b = e.getBlockPlaced();
@@ -191,8 +188,8 @@ public class RomListener implements Listener {
 				if (it != null && it.hasItemMeta()) {
 					final String nm = ((TextComponent) it.getItemMeta().displayName()).content();
 					final Location loc = b.getLocation();
-					prts.put(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), nm);
-					final FileConfiguration cfg = instance.getConfig();
+					Rom.prts.put(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), nm);
+					final FileConfiguration cfg = Rom.instance.getConfig();
 					final ConfigurationSection cs = cfg.getConfigurationSection("prtls");
 					if (cs == null) {
 						cfg.set("prtls.x", loc.getBlockX());
@@ -207,7 +204,7 @@ public class RomListener implements Listener {
 					}
 					
 					try {
-						cfg.save(instance.getDataFolder() + File.separator + "config.yml");
+						cfg.save(Rom.instance.getDataFolder() + File.separator + "config.yml");
 						e.getPlayer().sendMessage("§eПортал " + nm + " создан!");
 					} catch (IOException ex) {
 						ex.printStackTrace();
@@ -218,16 +215,16 @@ public class RomListener implements Listener {
 			final Player p = e.getPlayer();
 			final Location loc = b.getLocation();
 			if (p.hasMetadata("tp")) {
-				final FileConfiguration cfg = instance.getConfig();
-				final ConfigurationSection cs = cfg.getConfigurationSection("plts");
+				final FileConfiguration cfg = Rom.instance.getConfig();
+				final ConfigurationSection cs = cfg.getConfigurationSection("Rom.plts");
 				final BaseBlockPosition fst = (BaseBlockPosition) p.getMetadata("tp").get(0).value();
 				if (cs == null) {
-					cfg.set("plts.bx", fst.getX());
-					cfg.set("plts.by", fst.getY());
-					cfg.set("plts.bz", fst.getZ());
-					cfg.set("plts.ex", loc.getBlockX());
-					cfg.set("plts.ey", loc.getBlockY());
-					cfg.set("plts.ez", loc.getBlockZ());
+					cfg.set("Rom.plts.bx", fst.getX());
+					cfg.set("Rom.plts.by", fst.getY());
+					cfg.set("Rom.plts.bz", fst.getZ());
+					cfg.set("Rom.plts.ex", loc.getBlockX());
+					cfg.set("Rom.plts.ey", loc.getBlockY());
+					cfg.set("Rom.plts.ez", loc.getBlockZ());
 				} else {
 					cs.set("bx", cs.getString("bx") + ":" + fst.getX());
 					cs.set("by", cs.getString("by") + ":" + fst.getY());
@@ -236,20 +233,20 @@ public class RomListener implements Listener {
 					cs.set("ey", cs.getString("ey") + ":" + loc.getBlockY());
 					cs.set("ez", cs.getString("ez") + ":" + loc.getBlockZ());
 				}
-				plts.put(fst, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+				Rom.plts.put(fst, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
 				
 				try {
-					cfg.save(instance.getDataFolder() + File.separator + "config.yml");
+					cfg.save(Rom.instance.getDataFolder() + File.separator + "config.yml");
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
 				
 				p.sendMessage("§2Вторая плита поставлена на координатах (§7" + loc.getBlockX() + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
-				p.removeMetadata("tp", instance);
+				p.removeMetadata("tp", Rom.instance);
 				e.setCancelled(true);
 				p.sendMessage("§2Плита создана!");
 			} else {
-				p.setMetadata("tp", new FixedMetadataValue(instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
+				p.setMetadata("tp", new FixedMetadataValue(Rom.instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
 				p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
 			}
 		} else if (b.getType() == Material.BEDROCK) {
@@ -257,10 +254,10 @@ public class RomListener implements Listener {
 			e.getPlayer().sendMessage("§eПерезагружено!");
 		}
 	}
-	
+
 	@EventHandler
 	public void onLeave(final PlayerQuitEvent e) {
-		e.getPlayer().removeMetadata("tp", instance);
+		e.getPlayer().removeMetadata("tp", Rom.instance);
 	}
 
 	public boolean plcAtmpt(Block b, final BlockFace bf) {
@@ -269,7 +266,7 @@ public class RomListener implements Listener {
 			i++;
 			b = b.getRelative(bf.getOppositeFace());
 		}
-		
+
 		byte h = 1;
 		byte w = 1;
 
@@ -389,7 +386,7 @@ public class RomListener implements Listener {
 		}
 		return true;
 	}
-	
+
 	public boolean ntAirMinBlck(final Block b, byte amt) {
 		for (final BlockFace bf : RomListener.nr) {
 			if (!b.getRelative(bf).getType().isAir()) {

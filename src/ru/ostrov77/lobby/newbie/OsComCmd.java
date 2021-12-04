@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby;
+package ru.ostrov77.lobby.newbie;
 
 
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
+import ru.ostrov77.lobby.FlagsDebug;
 
 
 

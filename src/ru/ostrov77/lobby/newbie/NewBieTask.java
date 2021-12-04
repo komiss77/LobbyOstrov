@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby;
+package ru.ostrov77.lobby.newbie;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitTask;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
+import ru.ostrov77.lobby.Main;
 
 
 public class NewBieTask  implements Runnable {

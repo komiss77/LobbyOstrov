@@ -1,33 +1,42 @@
 package ru.ostrov77.lobby;
 
 
-import java.util.HashMap;
-import java.util.Map;
+import ru.ostrov77.lobby.newbie.OsComCmd;
+import ru.ostrov77.lobby.newbie.NewBie;
 import lbb.Romindous.Rom;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.OstrovDB;
-import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.utils.ItemBuilder;
+import ru.ostrov77.lobby.area.AreaManager;
 
 
 
 public class Main extends JavaPlugin {
     
     public static Main instance;
-    protected static Location newBieSpawnLocation;
-    protected static Location spawnLocation;
-
+    public static Location newBieSpawnLocation;
+    public static Location spawnLocation;
+    public static AreaManager areaManager;
+    protected static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
+                .setName("§7Топливо для §bКрыльев")
+                .lore("§7Осторожно,")
+                .lore("§7иногда взрывается!")
+                .build()
+    );
 
     
     @Override
@@ -59,6 +68,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NewBie(), instance);
         
         Rom.onEnable(this);
+        areaManager = new AreaManager();
         
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
             .setName("§bКрылья Островитянина")
@@ -129,10 +139,29 @@ public class Main extends JavaPlugin {
     
     
     
+    public static void giveItems(final Player p) {
+        p.getInventory().clear();
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        if (lp.hasFlag(LobbyFlag.Elytra)) {
+            p.getInventory().setItem(2, fw); //2
+            ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+        }
+        ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
+        ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+        p.updateInventory();
+    }    
     
     
     
- 
+    
+    private static ItemStack mkFwrk(final ItemStack fw) {
+        final FireworkMeta fm = (FireworkMeta) fw.getItemMeta();
+        final FireworkEffect fc = FireworkEffect.builder().withColor(Color.TEAL).withFade(Color.ORANGE).with(FireworkEffect.Type.BURST).build();
+        final FireworkEffect fl = FireworkEffect.builder().withColor(Color.LIME).withFade(Color.YELLOW).with(FireworkEffect.Type.BURST).build();
+        fm.addEffects(fc,fc,fc,fc,fl,fl,fl);
+        fw.setItemMeta(fm);
+        return fw;
+    } 
         
 }
 

@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby;
+package ru.ostrov77.lobby.newbie;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +13,8 @@ import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
+import ru.ostrov77.lobby.ListenerOne;
+import ru.ostrov77.lobby.Main;
 
 
 
@@ -71,12 +73,13 @@ public class NewBie implements Listener {
     
     }
 
-    protected static void stop(final Player p) {
+    public static void stop(final Player p) {
         if (cancelNewBieTask(p)) {
             p.teleport(Main.spawnLocation);
             final Oplayer op = PM.getOplayer(p);
+            op.score.getSideBar().reset();
             op.showScore();
-            ListenerOne.giveItems(p);
+            Main.giveItems(p);
 p.sendMessage("§6Интро прервано");
         } else {
 p.sendMessage("§6Интро не было запущено.");

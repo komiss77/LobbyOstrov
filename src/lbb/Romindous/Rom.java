@@ -74,6 +74,7 @@ public class Rom {
 		prts.clear();
 		plts.clear();
 		File file = new File(instance.getDataFolder() + File.separator + "config.yml");
+//System.out.println("----------------- loadCfgs exist?"+file.exists());
         if (file.exists()) {
     		final FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
     		if (cfg.isConfigurationSection("prtls")) {

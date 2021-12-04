@@ -1,12 +1,11 @@
 package ru.ostrov77.lobby;
 
+import ru.ostrov77.lobby.newbie.NewBie;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -21,12 +20,9 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkMeta;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
-import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.LocationUtil;
 
 
@@ -36,12 +32,7 @@ import ru.komiss77.utils.LocationUtil;
 public class ListenerOne implements Listener {
     
     
-    private static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
-                .setName("§7Топливо для §bКрыльев")
-                .lore("§7Осторожно,")
-                .lore("§7иногда взрывается!")
-                .build()
-    );
+    
     
     protected static Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();;
     
@@ -95,7 +86,7 @@ public class ListenerOne implements Listener {
             lp.setFlag(LobbyFlag.NewBieDone, true);
             NewBie.start(p, 0);
         } else {
-            giveItems(p);
+            Main.giveItems(p);
             final Location logoutLoc = LocationUtil.LocFromString(lp.logoutLoc);
             if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
 p.sendMessage("log: тп на точку выхода");
@@ -108,19 +99,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 
 
 
-    
-    
-    protected static void giveItems(final Player p) {
-        p.getInventory().clear();
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
-        if (lp.hasFlag(LobbyFlag.Elytra)) {
-            p.getInventory().setItem(2, fw); //2
-            ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
-        }
-        ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
-        ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
-        p.updateInventory();
-    }
+
 
 
 
@@ -181,7 +160,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     public void onLaunch(final ProjectileLaunchEvent e) { //PlayerElytraBoostEvent !!!
             final Projectile prj = e.getEntity();
             if (prj.getShooter() instanceof Player && prj.getType() == EntityType.FIREWORK) {
-                Ostrov.sync(()-> ((HumanEntity) prj.getShooter()).getInventory().setItem(2, fw), 8);
+                Ostrov.sync(()-> ((HumanEntity) prj.getShooter()).getInventory().setItem(2, Main.fw), 8);
             }
     }
 
@@ -192,14 +171,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
         }
     }
     
-    private static ItemStack mkFwrk(final ItemStack fw) {
-        final FireworkMeta fm = (FireworkMeta) fw.getItemMeta();
-        final FireworkEffect fc = FireworkEffect.builder().withColor(Color.TEAL).withFade(Color.ORANGE).with(FireworkEffect.Type.BURST).build();
-        final FireworkEffect fl = FireworkEffect.builder().withColor(Color.LIME).withFade(Color.YELLOW).with(FireworkEffect.Type.BURST).build();
-        fm.addEffects(fc,fc,fc,fc,fl,fl,fl);
-        fw.setItemMeta(fm);
-        return fw;
-    }
+
 
 
 

@@ -2,12 +2,11 @@ package ru.ostrov77.lobby;
 
 import org.bukkit.Bukkit;
 import ru.komiss77.LocalDB;
-import ru.ostrov77.lobby.quest.Quest;
 
 
 public class LobbyPlayer {
     
-    protected final String name;
+	public final String name;
     protected int flags;
     protected String logoutLoc;
     public int lastCuboidId;
@@ -26,7 +25,7 @@ public class LobbyPlayer {
     
     
     
-    public boolean hasFlag(final LobbyFlag flag) {
+       public boolean hasFlag(final LobbyFlag flag) {
         return LobbyFlag.hasFlag(flags, flag);
     }
     
@@ -36,12 +35,6 @@ public class LobbyPlayer {
         save(this);
     }
 
-    
-    
-    public boolean checkQuest (final Quest quest) {
-        return Main.questManager.checkQuest(this, quest);
-    }
-    
     protected static void save(final LobbyPlayer lp) {
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc,flags) VALUES "
                         + "('"+lp.name+"','"+lp.logoutLoc+"','0') "

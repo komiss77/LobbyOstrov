@@ -13,6 +13,7 @@ import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
+import ru.ostrov77.lobby.ListenerOne;
 import ru.ostrov77.lobby.Main;
 
 
@@ -77,7 +78,7 @@ public class NewBie implements Listener {
             p.teleport(Main.spawnLocation);
             final Oplayer op = PM.getOplayer(p);
             op.score.getSideBar().reset();
-            //op.showScore();
+            op.showScore();
             Main.giveItems(p);
 p.sendMessage("§6Интро прервано");
         } else {

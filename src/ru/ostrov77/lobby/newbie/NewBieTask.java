@@ -27,7 +27,7 @@ public class NewBieTask  implements Runnable {
     public NewBieTask  (final Player p) {
         name = p.getName();
         op = PM.getOplayer(p);
-        //op.hideScore();
+        op.hideScore();
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, NewBieTask.this, 1, 1);
         //NewBie.tasks.put(name, NewBieTask.this);
         p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50

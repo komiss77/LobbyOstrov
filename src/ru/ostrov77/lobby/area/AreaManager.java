@@ -1,7 +1,10 @@
 package ru.ostrov77.lobby.area;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -18,6 +21,33 @@ public class AreaManager {
     private static BukkitTask playerMoveTask;
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
+
+    
+    
+    
+    public static void deleteCuboid(final int cuboidId) {
+        cuboids.remove(cuboidId);
+        for (ChunkContent cc:chunkContetnt.values()) {
+            cc.deleteCuboidID(cuboidId);
+        }
+        //save
+    }
+    
+    //добавление только после всех проверок в команде!
+    protected static void addCuboid(final LCuboid lc) {
+        cuboids.put(lc.id, lc);
+        Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
+        Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
+        while (it.hasNext()) {
+            cLocs.add(getcLoc(it.next()));
+        }
+        for (int cLoc : cLocs) { //добавляем ид кубоида в чанки
+            if (chunkContetnt.containsKey(cLoc)) {
+                chunkContetnt.get(cLoc).addCuboidID(lc.id);
+            }
+        }
+        //save
+    }
     
     
     
@@ -41,8 +71,8 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
-                    currentCuboidId = getCuboidId(p.getLocation());
                     lp = Main.getLobbyPlayer(p);
+                    currentCuboidId = getCuboidId(p.getLocation());
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
                             previos = cuboids.get(lp.lastCuboidId);
@@ -60,6 +90,7 @@ p.sendMessage("перешел из кубоида "+previos.name+" в "+current.
                         }
                         lp.lastCuboidId = currentCuboidId;
                     }
+                    lp = Main.getLobbyPlayer(p);
                 }
                 
             }
@@ -71,31 +102,48 @@ p.sendMessage("перешел из кубоида "+previos.name+" в "+current.
     }
     
     
-        public static int getCuboidId(final Location loc) {
-            int cLoc = getcLoc(loc);
-            final ChunkContent cc = chunkContetnt.get(cLoc);
-            if (cc==null || cc.cuboids.isEmpty()) return 0;
-            for (int cuboidId : cc.cuboids) {
-                if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
-                    return cuboidId;
-                }
+    public static int getCuboidId(final Location loc) {
+        int cLoc = getcLoc(loc);
+        final ChunkContent cc = chunkContetnt.get(cLoc);
+        if (cc==null || !cc.hasCuboids()) return 0;
+        for (int cuboidId : cc.getCuboidsIds()) {
+            if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
+                return cuboidId;
             }
-            return 0;
         }
-        
-        public static LCuboid getCuboid(final Location loc) {
-            int cLoc = getcLoc(loc);
-            final ChunkContent cc = chunkContetnt.get(cLoc);
-            if (cc==null || cc.cuboids.isEmpty()) return null;
-            for (int cuboidId : cc.cuboids) {
-                if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
-                    return cuboids.get(cuboidId);
-                }
+        return 0;
+    }
+
+    public static LCuboid getCuboid(final Location loc) {
+        int cLoc = getcLoc(loc);
+        final ChunkContent cc = chunkContetnt.get(cLoc);
+        if (cc==null || !cc.hasCuboids()) return null;
+        for (int cuboidId : cc.getCuboidsIds()) {
+            if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
+                return cuboids.get(cuboidId);
             }
-            return null;
         }
+        return null;
+    }
+    public static LCuboid getCuboid(final String cuboidName) {
+        for (LCuboid lc : cuboids.values()) {
+            if (lc.name.equalsIgnoreCase(cuboidName)) {
+                return lc;
+            }
+        }
+        return null;
+    }
+
+    public static Set<Integer> getCuboidIds() {
+        return cuboids.keySet();
+    }
     
-    
+    public static LCuboid getCuboid(final int cuboidId) {
+        return cuboids.get(cuboidId);
+    }
+
+
+
     
     
     

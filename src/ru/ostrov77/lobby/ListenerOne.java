@@ -252,7 +252,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 			final Location loc = b.getLocation();
 			if (p.hasMetadata("tp")) {
 				final FileConfiguration cfg = Main.instance.getConfig();
-				final ConfigurationSection cs = cfg.getConfigurationSection("Rom.plts");
+				final ConfigurationSection cs = cfg.getConfigurationSection("plts");
 				final BaseBlockPosition fst = (BaseBlockPosition) p.getMetadata("tp").get(0).value();
 				if (cs == null) {
 					cfg.set("Rom.plts.bx", fst.getX());
@@ -526,7 +526,7 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     
     @EventHandler (ignoreCancelled = true)
     public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
-        if (!e.getEntity().getWorld().getName().equals("world")) return;
+        if (e.getEntity().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }
   

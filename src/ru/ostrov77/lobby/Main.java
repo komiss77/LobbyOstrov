@@ -64,7 +64,7 @@ public class Main extends JavaPlugin {
             Bukkit.shutdown();
             return;
         }
-        if (!LocalDB.useLocalData) {
+        /*if (!LocalDB.useLocalData) {
             Ostrov.log_err("LobbyOstrov - LocalDB.useLocalData выключена! офф..");
             Bukkit.shutdown();
             return;
@@ -73,7 +73,7 @@ public class Main extends JavaPlugin {
             Ostrov.log_err("LobbyOstrov - OstrovDB.useOstrovData выключена! офф..");
             Bukkit.shutdown();
             return;
-        }
+        }*/
         //lobbyPlayers = new HashMap<>();
         
         newBieSpawnLocation = new Location(world, 30.5, 160, 50.5, 0, 0);
@@ -175,6 +175,7 @@ public class Main extends JavaPlugin {
     				PlateManager.plts.put(new BaseBlockPosition(Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i])), 
     				new BaseBlockPosition(Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i])));
     			}
+    			PlateManager.strtPlts();
     		}
         } else {
         	Bukkit.getServer().getConsoleSender().sendMessage("§6Config для Lobby не найден, делаем новый...");

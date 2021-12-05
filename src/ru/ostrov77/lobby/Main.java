@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby;
 
 
+import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.newbie.OsComCmd;
 import ru.ostrov77.lobby.newbie.NewBie;
 import lbb.Romindous.Rom;
@@ -93,7 +94,7 @@ public class Main extends JavaPlugin {
         
 
         final ItemStack pip=new ItemBuilder(Material.CLOCK)
-            .setName(" §6ПКМ§e-профиль §2ЛКМ§a-сервера")
+            .setName(" §6ЛКМ§e-профиль §2ПКМ§a-сервера")
             .setUnbreakable(true)
             .unsaveEnchantment(Enchantment.LUCK, 1)
             .build();
@@ -107,12 +108,13 @@ public class Main extends JavaPlugin {
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
-            .leftClickCmd("serv")
-            .rightClickCmd("menu")
+            .rightClickCmd("serv")
+            .leftClickCmd("menu")
             .add();
 
         final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
-            .setName("Индивидуальность")
+            .setName("§aИндивидуальность")
+            .lore("§7Для Игроманов - всё и сразу!")
             .build();
         new MenuItemBuilder("cosmetic", cosmetic)
             .slot(4)
@@ -124,12 +126,14 @@ public class Main extends JavaPlugin {
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
-            .rightClickCmd("procosmetics open main")
-            .leftClickCmd("procosmetics unequipall")
+            .rightClickCmd("cosmetics")
+            .leftClickCmd("oscom unequipCosmetics")
             .add();
 
 
         instance.getCommand("oscom").setExecutor(new OsComCmd());
+        instance.getCommand("area").setExecutor(new AreaCmd());
+        
         Ostrov.log_ok("OsComCmd загружен");
 
     }
@@ -150,6 +154,7 @@ public class Main extends JavaPlugin {
             p.getInventory().setItem(2, fw); //2
             ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
+        //ProCosmeticsAPI.giveCosmeticMenu(p);
         ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         p.updateInventory();

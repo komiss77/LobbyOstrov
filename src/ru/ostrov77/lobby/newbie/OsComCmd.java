@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.FlagsDebug;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
@@ -100,6 +101,18 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         .build()
                         .open(p);
                         //}
+                    return true;
+                    
+                case "openCosmetics":
+                    //ProCosmeticsAPI.openMainMenu(p);
+                    //ProCosmeticsAPI.getUser(p).getAbstract3DMenu().run();
+                    return true;
+                     
+                case "unequipCosmetics":
+                   ProCosmeticsAPI.getUser(p).fullyUnequipCosmetics(true);
+                   return true;
+                     
+                case "t":
                     return true;
             }
         }

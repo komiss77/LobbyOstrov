@@ -7,7 +7,7 @@ import ru.ostrov77.lobby.quest.Quest;
 
 public class LobbyPlayer {
     
-    protected final String name;
+	public final String name;
     protected int flags;
     protected String logoutLoc;
     public int lastCuboidId;

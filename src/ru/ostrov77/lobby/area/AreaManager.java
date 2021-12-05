@@ -73,6 +73,7 @@ public class AreaManager {
                 for (final Player p : Bukkit.getOnlinePlayers()) {
                     lp = Main.getLobbyPlayer(p);
                     currentCuboidId = getCuboidId(p.getLocation());
+                    lp = Main.getLobbyPlayer(p);
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
                             previos = cuboids.get(lp.lastCuboidId);
@@ -90,7 +91,6 @@ p.sendMessage("перешел из кубоида "+previos.name+" в "+current.
                         }
                         lp.lastCuboidId = currentCuboidId;
                     }
-                    lp = Main.getLobbyPlayer(p);
                 }
                 
             }

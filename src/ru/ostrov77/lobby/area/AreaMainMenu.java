@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import ru.komiss77.Ostrov;
 import ru.komiss77.commands.BuilderCmd;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
@@ -15,6 +16,7 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 import ru.komiss77.utils.inventory.Pagination;
 import ru.komiss77.utils.inventory.SlotIterator;
 import ru.komiss77.utils.inventory.SlotPos;
+import ru.komiss77.version.AnvilGUI;
 
 
 
@@ -51,9 +53,12 @@ public class AreaMainMenu implements InventoryProvider {
                         
                 menuEntry.add(ClickableItem.of(new ItemBuilder( Material.BOOKSHELF )
                     .name(lc.name)
+                    .lore("ID: "+lc.id)
+                    .lore("displayName: "+lc.displayName)
                     .lore("§7Размер: "+lc.getSize()+" блоков")
+                    .lore("")
                     .lore("ЛКМ - тп в центр кубоида")
-                    //.lore("ПКМ - редактировать")
+                    .lore("ПКМ - изменить displayName")
                     .lore("клав.Q - §cудалить")
                     .lore("")
                     .lore("§8редактирование может")
@@ -73,13 +78,25 @@ public class AreaMainMenu implements InventoryProvider {
                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, .5f, 2);
                             return;
                             
-                        //case RIGHT:
-                            //schemFile.delete();
+                        case RIGHT:
+                            AnvilGUI agui = new AnvilGUI(Ostrov.instance, p, lc.displayName.replaceAll("§", "&"), (player2, displayName) -> {
+                        
+                                if(displayName.length()>64 ) {
+                                    p.sendMessage("§cлимит 64 символа!");
+                                    return null;
+                                }
+                                lc.displayName = displayName.replaceAll("&", "§");
+                                AreaManager.save(lc);
+                                reopen(p, contents);
+                                return null;
+                            
+                            //return null;
+                            });//schemFile.delete();
                             //sm.setCuboid(p, lc);
                             //sm.openSchemEditMenu(p, schem.getName());
                             //p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 5);
                             //reopen(p, contents);
-                            //return;
+                            return;
                             
                         case DROP:
                             AreaManager.deleteCuboid(cuboidId);

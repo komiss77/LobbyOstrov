@@ -56,6 +56,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
@@ -449,6 +450,40 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent e) { 
         if (!e.getEntity().getWorld().getName().equals("world")) return;
+        
+        if ( e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
+                    
+            switch (e.getCause()) {
+                case VOID:
+                    e.setDamage(0);
+                    ((Player) e.getEntity()).teleport (Main.spawnLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+                    return;
+                    
+                case FALL:
+                case THORNS:        //чары шипы на оружие-ранит нападающего
+                case LIGHTNING:     //молния
+                case DRAGON_BREATH: //дыхание дракона
+                case CONTACT:       //кактусы
+                case FIRE:          //огонь
+                case FIRE_TICK:     //горение
+                case HOT_FLOOR:     //BlockMagma
+                case CRAMMING:      //EntityVex
+                case DROWNING:      //утопление
+                case STARVATION:    //голод
+                case LAVA:
+                    e.setCancelled(true);
+                    return;
+                    //break;
+                    
+                default:
+                    e.setCancelled(true);
+                    //return;
+            }
+        } else {
+            e.setCancelled(true);
+        }
+                
+
     }
 
 

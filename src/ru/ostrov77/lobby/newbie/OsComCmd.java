@@ -19,6 +19,7 @@ import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.FlagsDebug;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
@@ -108,12 +109,16 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         //}
                     return true;
                     
-                case "ghast":
-                	final Blaze gh = (Blaze) p.getWorld().spawnEntity(p.getLocation(), EntityType.BLAZE);
-                    gh.addPassenger(p);
-                	Bukkit.getMobGoals().removeAllGoals(gh);
-                    final GhastGoal goal = new GhastGoal(gh, new Location(p.getWorld(), 0, 0, 0));
-                    Bukkit.getMobGoals().addGoal(gh, 1, goal);
+                case "openCosmetics":
+                    //ProCosmeticsAPI.openMainMenu(p);
+                    //ProCosmeticsAPI.getUser(p).getAbstract3DMenu().run();
+                    return true;
+                     
+                case "unequipCosmetics":
+                   ProCosmeticsAPI.getUser(p).fullyUnequipCosmetics(true);
+                   return true;
+                     
+                case "t":
                     return true;
             }
         }

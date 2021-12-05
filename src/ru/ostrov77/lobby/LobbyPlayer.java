@@ -6,7 +6,7 @@ import ru.komiss77.LocalDB;
 
 public class LobbyPlayer {
     
-    protected final String name;
+	public final String name;
     protected int flags;
     protected String logoutLoc;
     public int lastCuboidId;

@@ -1,7 +1,6 @@
 package ru.ostrov77.lobby.newbie;
 
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import ru.komiss77.utils.ItemBuilder;

@@ -5,11 +5,9 @@ version: 1.0
 load: POSTWORLD
 author: Romindous,Komiss77
 
-depend: [Ostrov, serverfigure, ProCosmetics]
+depend: [Ostrov, serverfigure]
 
 
 commands:
   oscom:
     description: Коммуникатор
-  area:
-    description: Добавить зону

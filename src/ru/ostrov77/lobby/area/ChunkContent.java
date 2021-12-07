@@ -29,11 +29,12 @@ public class ChunkContent {
         return cuboids==null ? Collections.EMPTY_SET : cuboids;
     }
 
-    public void deleteCuboidID(final int cuboidId) {
-        cuboids.remove(cuboidId);
+    public boolean deleteCuboidID(final int cuboidId) {
+        boolean result = cuboids.remove(cuboidId);
         if (cuboids.isEmpty()) {
             cuboids = null;
         }
+        return result;
     }
     
     public void addCuboidID(final int cuboidId) {

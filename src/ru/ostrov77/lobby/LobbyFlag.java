@@ -26,9 +26,9 @@ public enum LobbyFlag {
         }
     
 
-    public static boolean hasFlag(final int flagsArray, final LobbyFlag flag) {
-        return (flagsArray & (1 << flag.tag)) == (1 << flag.tag);
-    }
+   // public static boolean hasFlag(final int flagsArray, final LobbyFlag flag) {
+   //     return (flagsArray & (1 << flag.tag)) == (1 << flag.tag);
+   // }
 
 
 }

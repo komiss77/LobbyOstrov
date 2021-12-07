@@ -88,7 +88,7 @@ public class NewBieTask  implements Runnable {
                 
             case 180:
                 op.score.getSideBar().updateLine(1, "§7Добраться до спавна");
-                ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                Main.oscom.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
                 break;
                 
             case 200:

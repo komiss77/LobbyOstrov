@@ -3,16 +3,13 @@ package ru.ostrov77.lobby.newbie;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.utils.ItemBuilder;
 import ru.ostrov77.lobby.Main;
 
 
@@ -23,28 +20,13 @@ public class NewBie implements Listener {
     //protected static final ItemStack clock = new ItemBuilder(Material.CLOCK).name("§aОсКом").lore("временный коммуникатор").build();
 
     public NewBie () {
-        new MenuItemBuilder("newbie", new ItemBuilder(Material.CLOCK)
-        .name("§aвременный коммуникатор")
-        .build()
-        )
-                .slot(8)
-                .anycase(false)
-                .canDrop(true)
-                .canMove(true)
-                .canPickup(true)
-                .duplicate(false)
-                .giveOnJoin(false)
-                .giveOnRespavn(false)
-                .giveOnWorld_change(false)
-                //.leftClickCmd("i")
-                .rightClickCmd("oscom menu")
-                //.leftShiftClickCmd("profile")
-        .add();
     }
 
 
     public static void start(final Player p, final int stage) {
 
+        PM.getOplayer(p).hideScore();
+        
         cancelNewBieTask(p);
         //if (tasks.containsKey(p.getName())) {
         //    tasks.get(p.getName()).cancel();

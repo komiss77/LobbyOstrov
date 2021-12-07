@@ -4,29 +4,22 @@ package ru.ostrov77.lobby.newbie;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Blaze;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.FlagsDebug;
-import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbie", "menu", "flagdebug", "ghast");
+    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "flagdebug", "ghast");
 
         
         
@@ -63,7 +56,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             
             switch (arg[0]) {
                 
-                case "newbie":
+                case "newbieTest":
                     if (NewBie.hasNewBieTask(p)) {
                         p.sendMessage("§cВы уже в процессе!");
                         return true;
@@ -97,7 +90,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
                     return true;
                     
-                case "menu":
+                case "newbieMenu":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {
                     SmartInventory.builder()
                         .type(InventoryType.HOPPER)
@@ -109,14 +102,14 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         //}
                     return true;
                     
-                case "openCosmetics":
+                //case "openCosmetics":
                     //ProCosmeticsAPI.openMainMenu(p);
                     //ProCosmeticsAPI.getUser(p).getAbstract3DMenu().run();
-                    return true;
+                   // return true;
                      
-                case "unequipCosmetics":
-                   ProCosmeticsAPI.getUser(p).fullyUnequipCosmetics(true);
-                   return true;
+               // case "unequipCosmetics":
+                   //ProCosmeticsAPI.getUser(p).fullyUnequipCosmetics(true);
+                 //  return true;
                      
                 case "t":
                     return true;

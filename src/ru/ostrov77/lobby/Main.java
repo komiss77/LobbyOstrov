@@ -24,12 +24,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.komiss77.ApiOstrov;
-import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
-import ru.komiss77.OstrovDB;
+import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
+import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.PlateManager;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -43,9 +43,15 @@ public class Main extends JavaPlugin {
     public static Location spawnLocation;
     public static AreaManager areaManager;
     public static QuestManager questManager;
+    public static OstrovConfigManager configManager;
     
-	public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
-	public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+    public static MenuItem oscom;
+    public static MenuItem pipboy;
+    public static MenuItem cosmeticMenu;
+    public static MenuItem elytra;
+    
+    public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
+    public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
     
     protected static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
                 .setName("§7Топливо для §bКрыльев")
@@ -59,24 +65,14 @@ public class Main extends JavaPlugin {
     public void onEnable() {
 
         instance = this;
+        configManager = new OstrovConfigManager(this);
         final World world = Bukkit.getWorld("world");
         if (world==null) {
             Ostrov.log_err("LobbyOstrov - world недоступен! офф..");
             Bukkit.shutdown();
             return;
         }
-        /*if (!LocalDB.useLocalData) {
-            Ostrov.log_err("LobbyOstrov - LocalDB.useLocalData выключена! офф..");
-            Bukkit.shutdown();
-            return;
-        }
-        if (!OstrovDB.useOstrovData) {
-            Ostrov.log_err("LobbyOstrov - OstrovDB.useOstrovData выключена! офф..");
-            Bukkit.shutdown();
-            return;
-        }*/
-        //lobbyPlayers = new HashMap<>();
-        
+
         newBieSpawnLocation = new Location(world, 30.5, 160, 50.5, 0, 0);
         spawnLocation = new Location(world, .5, 100, .5, 0, 0);
         
@@ -92,7 +88,7 @@ public class Main extends JavaPlugin {
             .lore("§7Используйте для")
             .lore("§7перемещения по §eОстрову§7!")
             .build();
-        new MenuItemBuilder("elytra", is)
+        elytra = new MenuItemBuilder("elytra", is)
             .slot(38) //Chestplate
             .giveOnJoin(false)
             .giveOnRespavn(false)
@@ -109,7 +105,7 @@ public class Main extends JavaPlugin {
             .setUnbreakable(true)
             .unsaveEnchantment(Enchantment.LUCK, 1)
             .build();
-        new MenuItemBuilder("pipboy", pip)
+        pipboy = new MenuItemBuilder("pipboy", pip)
             .slot(8)
             .giveOnJoin(false)
             .giveOnRespavn(false)
@@ -122,12 +118,33 @@ public class Main extends JavaPlugin {
             .rightClickCmd("serv")
             .leftClickCmd("menu")
             .add();
+        
+        
+        final ItemStack newbie=new ItemBuilder(Material.COMPASS)
+            .setName("§7Устаревшая модель osCom")
+            .setUnbreakable(true)
+            //.unsaveEnchantment(Enchantment.LUCK, 1)
+            .build();
+        oscom = new MenuItemBuilder("oscom", newbie)
+            .slot(8)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .rightClickCmd("oscom newbieMenu")
+            //.leftShiftClickCmd("profile")
+            .add();
 
+        
         final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
             .setName("§aИндивидуальность")
             .lore("§7Для Игроманов - всё и сразу!")
             .build();
-        new MenuItemBuilder("cosmetic", cosmetic)
+        cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
             .slot(4)
             .giveOnJoin(false)
             .giveOnRespavn(false)
@@ -148,9 +165,16 @@ public class Main extends JavaPlugin {
         
         loadCfgs();
 		
-        Ostrov.log_ok("OsComCmd загружен");
+        Ostrov.log_ok("Lobby загружен");
 
     }
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -193,7 +217,14 @@ public class Main extends JavaPlugin {
 				e.printStackTrace();
 			}
         }
-	}
+    }
+    
+    
+    
+    
+    
+    
+    
     
     public static LobbyPlayer getLobbyPlayer(final Player p) {
         return ListenerOne.lobbyPlayers.get(p.getName());
@@ -204,12 +235,13 @@ public class Main extends JavaPlugin {
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
         if (lp.hasFlag(LobbyFlag.Elytra)) {
             p.getInventory().setItem(2, fw); //2
-            ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+            elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
-        ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
-        ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+        cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
+        pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         p.updateInventory();
+        PM.getOplayer(p).showScore();
     }
     
     private static ItemStack mkFwrk(final ItemStack fw) {
@@ -220,6 +252,9 @@ public class Main extends JavaPlugin {
         fw.setItemMeta(fm);
         return fw;
     }
+    
+    
+    
     
     public static boolean chckAKTsk(final Player p) {
 		final LobbyPlayer lp = Main.getLobbyPlayer(p);

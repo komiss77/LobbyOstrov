@@ -1,8 +1,10 @@
 package ru.ostrov77.lobby.area;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Bukkit;
@@ -11,13 +13,16 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import ru.komiss77.Ostrov;
+import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 public class AreaManager {
     
-    
+    private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
@@ -26,15 +31,26 @@ public class AreaManager {
     
     
     public static void deleteCuboid(final int cuboidId) {
-        cuboids.remove(cuboidId);
-        for (ChunkContent cc:chunkContetnt.values()) {
-            cc.deleteCuboidID(cuboidId);
+        if (cuboids.containsKey(cuboidId)) {
+            cuboids.remove(cuboidId);
+            //убрать ид кубоида из чанков
+            ChunkContent cc;
+            final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
+            for (int ccId:ids) {
+                cc=chunkContetnt.get(ccId);
+                if (cc.deleteCuboidID(cuboidId)) {
+                    if (!cc.hasCuboids()) { //убрать чанк, если нет там никакой инфы
+                        chunkContetnt.remove(ccId);
+                    }
+                }
+            }
+            areaConfig.set("areas."+cuboidId, null);
+            areaConfig.saveConfig();
         }
-        //save
     }
     
     //добавление только после всех проверок в команде!
-    protected static void addCuboid(final LCuboid lc) {
+    protected static void addCuboid(final LCuboid lc, final boolean save) {
         cuboids.put(lc.id, lc);
         Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
         Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
@@ -42,20 +58,46 @@ public class AreaManager {
             cLocs.add(getcLoc(it.next()));
         }
         for (int cLoc : cLocs) { //добавляем ид кубоида в чанки
-            if (chunkContetnt.containsKey(cLoc)) {
-                chunkContetnt.get(cLoc).addCuboidID(lc.id);
+            if (!chunkContetnt.containsKey(cLoc)) {
+                chunkContetnt.put(cLoc, new ChunkContent());
             }
+            chunkContetnt.get(cLoc).addCuboidID(lc.id);
         }
-        //save
+        if (save) {
+            save(lc);
+        }
     }
     
-    
+    protected static void save(final LCuboid lc) {
+        areaConfig.set("areas."+lc.id+".name", lc.name);
+        areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
+        areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
+        areaConfig.saveConfig();
+    }
     
     public AreaManager () {
         
         chunkContetnt = new HashMap<>();
         cuboids = new HashMap<>();
-        
+        areaConfig = Main.configManager.getNewConfig("area.yml");
+        if (areaConfig.getConfigurationSection("areas")!=null) {
+            for (String areaID : areaConfig.getConfigurationSection("areas").getKeys(false) ) {
+                try {
+                    final int id = Integer.parseInt(areaID);
+                    //final Location pos1 = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".pos1"));
+                    //final Location pos2 = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".pos2"));
+                    final String name = areaConfig.getString("areas."+areaID+".name");
+                    final String displayName = areaConfig.getString("areas."+areaID+".displayName");
+                    final String cuboidAsString = areaConfig.getString("areas."+areaID+".cuboidAsString");
+                    final LCuboid lc = new LCuboid(id, name, displayName, cuboidAsString);
+                    addCuboid(lc, false);
+                } catch (Exception ex) {
+                    Ostrov.log_err("AreaManager ошибка загрузки локации "+areaID+" : "+ex.getMessage());
+                }
+                
+            }
+        }
+       
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();
         }
@@ -75,19 +117,33 @@ public class AreaManager {
                     currentCuboidId = getCuboidId(p.getLocation());
                     lp = Main.getLobbyPlayer(p);
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
+                        
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
+                            
                             previos = cuboids.get(lp.lastCuboidId);
-p.sendMessage("вышел из кубоида "+previos.name);
+                            if (previos!=null) { //вдруг удалился?
+
+                                QuestManager.onCuboidExit(p, lp, previos);
+                            }
                             
                         } else if(lp.lastCuboidId==0) { //из пространства в кубоид
+                            
                             current = cuboids.get(currentCuboidId);
-p.sendMessage("вошел в кубоид "+current.name);
+                            if (current!=null) { //вдруг удалился?
+                                QuestManager.onCuboidEntry(p, lp, current);
+                            }
                             
                         } else { //из кубоида в кубоил
+                            
                             previos = cuboids.get(lp.lastCuboidId);
                             current = cuboids.get(currentCuboidId);
-p.sendMessage("перешел из кубоида "+previos.name+" в "+current.name);
-                            
+                            if (previos!=null && current!=null) { //вдруг удалился? тогда вызваем по отдельности
+                                QuestManager.onCuboidChange(p, lp, previos, current);
+                            } else if (current!=null) { //вдруг удалился?
+                                QuestManager.onCuboidEntry(p, lp, current);
+                            } else if (previos!=null) {
+                                QuestManager.onCuboidExit(p, lp, previos);
+                            }
                         }
                         lp.lastCuboidId = currentCuboidId;
                     }

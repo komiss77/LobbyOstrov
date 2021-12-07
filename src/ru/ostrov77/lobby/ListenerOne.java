@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -67,6 +68,7 @@ import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.LocationUtil;
+import ru.ostrov77.lobby.quest.Quest;
 
 
 
@@ -118,25 +120,46 @@ public class ListenerOne implements Listener {
 
             Statement stmt = null;
             ResultSet rs = null;
-
+            String logoutLoc = "";
+            
             try {  
                 stmt = LocalDB.GetConnection().createStatement(); 
                 rs = stmt.executeQuery( "SELECT * FROM `lobbyData` WHERE `name` = '"+lp.name+"' LIMIT 1" );
                 
                 if (rs.next()) {
-                    lp.logoutLoc = rs.getString("logoutLoc");
+                    logoutLoc = rs.getString("logoutLoc");
                     lp.flags = rs.getInt("flags");
+                    lp.openedArea = rs.getInt("openedArea");
+                    Quest quest;
+                    for (char c : rs.getString("questDone").toCharArray()) {
+                        quest = Quest.byCode(c);
+                        if (quest!=null) {
+                            lp.questDone.add(quest);
+                        }
+                    }
+                    for (char c : rs.getString("questAccept").toCharArray()) {
+                        quest = Quest.byCode(c);
+                        if (quest!=null) {
+                            lp.questAccept.add(quest);
+                        }
+                    }
+                } else { //создать сразу запись, или не будут работать save : executePstAsync UPDATE
+                    LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name) VALUES ('"+lp.name+"') ");
                 }
                 
-                Ostrov.sync(()-> {
-                    onDataLoad(p, lp);
-                }, 0);
+                //Ostrov.sync(()-> {
+                //    onDataLoad(p, lp, l);
+                //}, 0);
 
             } catch (SQLException ex) {
 
                 Ostrov.log_err("ListenerOne error  "+lp.name+" -> "+ex.getMessage());
 
             } finally {
+                
+                //Ostrov.sync(()-> {
+                    onDataLoad(p, lp, logoutLoc);
+                //}, 0);
                 try{
                     if (rs!=null && !rs.isClosed()) rs.close();
                     if (stmt!=null) stmt.close();
@@ -150,21 +173,22 @@ public class ListenerOne implements Listener {
     
     
 
-    private void onDataLoad(Player p, LobbyPlayer lp) {
-
-        if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-            lp.setFlag(LobbyFlag.NewBieDone, true);
-            NewBie.start(p, 0);
-        } else {
-            Main.giveItems(p);
-            final Location logoutLoc = LocationUtil.LocFromString(lp.logoutLoc);
-            if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
-p.sendMessage("log: тп на точку выхода");
+    private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
+        Ostrov.sync(()-> {
+            if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+                lp.setFlag(LobbyFlag.NewBieDone, true);
+                NewBie.start(p, 0);
             } else {
-                p.teleport(Main.spawnLocation);
-p.sendMessage("log: точка выхода опасна, тп на спавн");
+                Main.giveItems(p);
+                final Location logoutLoc = LocationUtil.LocFromString(logoutLocString);
+                if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
+    ApiOstrov.sendActionBarDirect(p, "log: тп на точку выхода");
+                } else {
+                    p.teleport(Main.spawnLocation);
+    ApiOstrov.sendActionBarDirect(p, "log: точка выхода опасна, тп на спавн");
+                }
             }
-        }
+        }, 0);        
     }
 
     
@@ -176,8 +200,14 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
         NewBie.stop(p);
         final LobbyPlayer lp = lobbyPlayers.remove(p.getName());
         if (lp!=null) {
-            lp.logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
-            LobbyPlayer.save(lp);
+            final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
+            //LobbyPlayer.save(lp);
+            //LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc) VALUES "
+            //            + "('"+lp.name+"','"+lp.logoutLoc+"') "
+             //           + "ON DUPLICATE KEY UPDATE "
+             //           + "`logoutLoc`='"+lp.logoutLoc+"'; " );
+            LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
+
         }
 		p.removeMetadata("tp", Main.instance);
     }    
@@ -292,6 +322,10 @@ p.sendMessage("log: точка выхода опасна, тп на спавн")
 		}
         //else if (!clear_stats) PM.Addbplace(e.getPlayer().getName());
     }
+    
+    
+    
+    
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onBreak(BlockBreakEvent e) {

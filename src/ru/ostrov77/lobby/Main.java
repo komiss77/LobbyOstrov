@@ -53,6 +53,7 @@ public class Main extends JavaPlugin {
     public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
     public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
     
+    
     protected static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
                 .setName("§7Топливо для §bКрыльев")
                 .lore("§7Осторожно,")

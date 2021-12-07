@@ -95,4 +95,19 @@ p.sendMessage("выполнен квест "+Quest.DiscoverAllArea.displayName);
     }
 
     
+    
+    
+    
+    
+    
+    public static boolean checkQuest (final LobbyPlayer lp, final Quest quest) {
+        
+        
+        return false;
+    }
+
+
+    
+    
+    
 }

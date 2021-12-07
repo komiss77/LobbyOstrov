@@ -94,7 +94,7 @@ public class ListenerOne implements Listener {
 				}
 			}
 			final Player p = (Player) e.getEntity();
-			if (Timer.has(p, "portal")) {
+			if (Timer.has(p, "portal") && p.getTicksLived() < 100) {
 				return;
 		    }
 		    Timer.add(p, "portal", 5);

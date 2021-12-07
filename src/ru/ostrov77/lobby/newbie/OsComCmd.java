@@ -10,9 +10,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.FlagsDebug;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 

@@ -12,9 +12,11 @@ public enum Quest {
     
     
     DiscoverAllArea         ('a',   "",                 "Открыть все локации"),
-    FindPandora             ('b',   "pandora",          "Найти шкатулку Пандоры"),
+    UsePandora              ('b',   "pandora",          "Открыть шкатулку Пандоры"),
     OpenTreassureChest      ('c',   "treassureChest",   "Открыть сундук сокровищ"),
     GreetNewBie             ('d',   "spawn",            "Поприветствовать новичка (ПКМ на новичка)"),
+    SpeakWithNPC            ('e',   "newbie",           "Разговорить лоцмана"),
+    ReachSpawn              ('f',   "newbie",           "Добраться до спавна"),
     ;
 
 

@@ -78,7 +78,7 @@ public class AreaMainMenu implements InventoryProvider {
                             p.closeInventory();
                             p.teleport(lc.getCenter(p.getLocation()));
                             //System.out.println("Schematic size="+schem.sizeX+" "+schem.sizeY+" "+schem.sizeZ);
-                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, .5f, 2);
+                            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, .5f, 2);
                             return;
                             
                         case RIGHT:

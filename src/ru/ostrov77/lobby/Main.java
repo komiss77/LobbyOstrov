@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby;
 
 
+import ru.ostrov77.lobby.listeners.ListenerOne;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.newbie.OsComCmd;
 import ru.ostrov77.lobby.newbie.NewBie;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -32,6 +34,7 @@ import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.PlateManager;
+import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.quest.QuestManager;
 
     
@@ -65,16 +68,14 @@ public class Main extends JavaPlugin {
     public static MenuItem cosmeticMenu;
     public static MenuItem elytra;
     
+    private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
+    
     public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
     public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+
     
     
-    protected static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
-                .setName("§7Топливо для §bКрыльев")
-                .lore("§7Осторожно,")
-                .lore("§7иногда взрывается!")
-                .build()
-    );
+
 
     
     @Override
@@ -95,6 +96,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ListenerOne(), instance);
         getServer().getPluginManager().registerEvents(new NewBie(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
+        if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         
         areaManager = new AreaManager();
         questManager = new QuestManager();
@@ -121,7 +123,7 @@ public class Main extends JavaPlugin {
     
     
     
-    protected static void loadCfgs() {
+    public static void loadCfgs() {
 		prts.clear();
 		PlateManager.plts.clear();
 		File file = new File(instance.getDataFolder() + File.separator + "config.yml");
@@ -167,10 +169,22 @@ public class Main extends JavaPlugin {
     
     
     
+    public static LobbyPlayer createLobbyPlayer(final Player p) {
+        final LobbyPlayer lp = new LobbyPlayer(p.getName());
+        lobbyPlayers.put(p.getName(), lp);
+        return lp;
+    }
     
     public static LobbyPlayer getLobbyPlayer(final Player p) {
-        return ListenerOne.lobbyPlayers.get(p.getName());
+        return lobbyPlayers.get(p.getName());
     }
+    
+    public static LobbyPlayer destroyLobbyPlayer(final String name) {
+        return lobbyPlayers.remove(name);
+    }
+
+
+
     
     public static void giveItems(final Player p) {
         p.getInventory().clear();
@@ -186,6 +200,13 @@ public class Main extends JavaPlugin {
         PM.getOplayer(p).showScore();
     }
     
+    public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
+        .setName("§7Топливо для §bКрыльев")
+        .lore("§7Осторожно,")
+        .lore("§7иногда взрывается!")
+        .build()
+    );
+
     private static ItemStack mkFwrk(final ItemStack fw) {
         final FireworkMeta fm = (FireworkMeta) fw.getItemMeta();
         final FireworkEffect fc = FireworkEffect.builder().withColor(Color.TEAL).withFade(Color.ORANGE).with(FireworkEffect.Type.BURST).build();

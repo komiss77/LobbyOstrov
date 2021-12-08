@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby;
+package ru.ostrov77.lobby.listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.TextComponent;
@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Axis;
@@ -68,6 +66,9 @@ import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.LocationUtil;
+import ru.ostrov77.lobby.LobbyFlag;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -76,7 +77,7 @@ import ru.ostrov77.lobby.quest.Quest;
 
 public class ListenerOne implements Listener {
     
-    protected static Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
+    
 	
 	private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 	
@@ -113,8 +114,7 @@ public class ListenerOne implements Listener {
     @EventHandler (priority = EventPriority.MONITOR)
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
-        final LobbyPlayer lp = new LobbyPlayer(p.getName());
-        lobbyPlayers.put(p.getName(), lp);
+        final LobbyPlayer lp = Main.createLobbyPlayer(p);
         
         Ostrov.async( () -> {
 
@@ -128,8 +128,8 @@ public class ListenerOne implements Listener {
                 
                 if (rs.next()) {
                     logoutLoc = rs.getString("logoutLoc");
-                    lp.flags = rs.getInt("flags");
-                    lp.openedArea = rs.getInt("openedArea");
+                    lp.setFlags(rs.getInt("flags"));
+                    lp.setOpenedArea(rs.getInt("openedArea"));
                     Quest quest;
                     for (char c : rs.getString("questDone").toCharArray()) {
                         quest = Quest.byCode(c);
@@ -198,7 +198,7 @@ public class ListenerOne implements Listener {
     public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
         NewBie.stop(p);
-        final LobbyPlayer lp = lobbyPlayers.remove(p.getName());
+        final LobbyPlayer lp = Main.destroyLobbyPlayer(p.getName());
         if (lp!=null) {
             final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
@@ -817,5 +817,7 @@ public class ListenerOne implements Listener {
 		}
 		return amt <= 0;
 	}
+
+
     
 }

@@ -77,22 +77,22 @@ public class NewBieTask  implements Runnable {
                 ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BarColor.PINK, BarStyle.SOLID, false);
                 break;
                 
-            case 100:
-                op.score.getSideBar().setTitle("§5Новые задачи");
-                op.score.getSideBar().updateLine(3, "");
-                break;
+            //case 100:
+            //    op.score.getSideBar().setTitle("§5Новые задачи");
+            //    op.score.getSideBar().updateLine(3, "");
+            //    break;
 
-            case 140:
-                op.score.getSideBar().updateLine(2, "§7Разговорить лоцмана");
-                break;
+            //case 140:
+            //    op.score.getSideBar().updateLine(2, "§7Разговорить лоцмана");
+           //     break;
                 
-            case 180:
-                op.score.getSideBar().updateLine(1, "§7Добраться до спавна");
-                Main.oscom.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
-                break;
+            //case 180:
+            //    op.score.getSideBar().updateLine(1, "§7Добраться до спавна");
+             //   Main.oscom.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+            //    break;
                 
             case 200:
-                //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
                 break;
                 
                 
@@ -102,37 +102,37 @@ public class NewBieTask  implements Runnable {
                 
                 
                 
-            case 500:
-                op.score.getSideBar().reset();
-                break;
+            //case 500:
+             //   op.score.getSideBar().reset();
+             //   break;
 
                 
-            case 690://460:
+            //case 690://460:
                 //p.stopSound(Sound.ITEM_ELYTRA_FLYING);
                 //p.setFallDistance(0);
-                break;
+              //  break;
                 
                 
                 
                 
-            case 700://460:
+            //case 700://460:
                 //ApiOstrov.sendBossbar(p, "#2 Прибытие.", 5, BarColor.PINK, BarStyle.SOLID, false);
-                //p.playSound( p.getLocation(), Sound.AMBIENT_BASALT_DELTAS_LOOP, 10f, 0.3f);
-                break;
+            //    //p.playSound( p.getLocation(), Sound.AMBIENT_BASALT_DELTAS_LOOP, 10f, 0.3f);
+             //   break;
                 
-            case 780://460:
+          //  case 780://460:
                 //p.sendMessage("§5[§dСтарпом§d] §fКэп? Вы что, уснули?");
-                //p.playSound( p.getLocation(), Sound.ENTITY_ILLUSIONER_AMBIENT, 1, 1);
-                break;
+           //     //p.playSound( p.getLocation(), Sound.ENTITY_ILLUSIONER_AMBIENT, 1, 1);
+           //     break;
                 
-            case 840:
+          ///  case 840:
                 //p.sendMessage("§5[§dСтарпом§d] §fК нам пристыковался посадочный модуль, ждут Вас. Осталось только заполнить миграционныу карту.");
                 //score.getSideBar().setTitle("§5Новые задачи");
                 //score.getSideBar().updateLine(3, "");
                 //p.playSound( p.getLocation(), Sound.ENTITY_EVOKER_CELEBRATE, 1, 1);
-                break;
+              //  break;
 
-            case 880:
+           // case 880:
                 //p.sendMessage("§5[§dСтарпом§d] §fДержите Ваш ОсКом.");
                 //p.getInventory().setItem(0, NewBie.clock.clone());
                 
@@ -140,7 +140,7 @@ public class NewBieTask  implements Runnable {
                 //score.getSideBar().updateLine(2, "§7карту.");
                 //score.getSideBar().updateLine(1, "§7Пройти на посадку.");
                // p.playSound( p.getLocation(), Sound.ENTITY_VINDICATOR_AMBIENT, 1, 1);
-                break;
+            //    break;
                 
 
 

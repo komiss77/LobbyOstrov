@@ -11,9 +11,9 @@ import ru.ostrov77.lobby.quest.Quest;
 public class LobbyPlayer {
     
     public final String name;
-    protected int flags;
+    private int flags;
     public int lastCuboidId;
-    protected int openedArea;
+    private int openedArea;
     public EnumSet<Quest> questDone;
     public EnumSet<Quest> questAccept;
     
@@ -38,7 +38,9 @@ public class LobbyPlayer {
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+name+"';");
     }
     
-    
+    //public LCuboid getCurrentCuboid(final Player p) {
+    //    return AreaManager.getCuboid(p.getLocation());
+    //}
     
     
     
@@ -78,6 +80,29 @@ p.sendMessage("log: квест "+quest+" уже завершен, игнор.");
             sbAccept.append(q.code);
         }
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `questDone` = '"+sbDone.toString()+"', `questAccept` = '"+sbAccept.toString()+"' WHERE `name` = '"+name+"';");
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    public void setFlags(final int flags) {
+        this.flags = flags;
+    }
+
+    public void setOpenedArea(int openedArea) {
+        this.openedArea = openedArea;
     }
 
     

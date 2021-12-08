@@ -201,15 +201,9 @@ public class ListenerOne implements Listener {
         final LobbyPlayer lp = lobbyPlayers.remove(p.getName());
         if (lp!=null) {
             final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
-            //LobbyPlayer.save(lp);
-            //LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc) VALUES "
-            //            + "('"+lp.name+"','"+lp.logoutLoc+"') "
-             //           + "ON DUPLICATE KEY UPDATE "
-             //           + "`logoutLoc`='"+lp.logoutLoc+"'; " );
             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
-
         }
-		p.removeMetadata("tp", Main.instance);
+        p.removeMetadata("tp", Main.instance);
     }    
     
     

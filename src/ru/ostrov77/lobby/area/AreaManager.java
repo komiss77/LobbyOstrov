@@ -13,10 +13,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
+import ru.komiss77.Timer;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.QuestManager;
 
 
@@ -121,30 +124,59 @@ public class AreaManager {
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
                             
                             previos = cuboids.get(lp.lastCuboidId);
-                            if (previos!=null) { //вдруг удалился?
-
-                                QuestManager.onCuboidExit(p, lp, previos);
+                            if (previos!=null) { //сработало при удалении? пропускаем
+//ApiOstrov.sendActionBar(p, "вышел из кубоида "+previos.displayName);
+                                Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
                             }
                             
                         } else if(lp.lastCuboidId==0) { //из пространства в кубоид
                             
                             current = cuboids.get(currentCuboidId);
-                            if (current!=null) { //вдруг удалился?
-                                QuestManager.onCuboidEntry(p, lp, current);
+                            if (current!=null) { //сработало при удалении? пропускаем
+//ApiOstrov.sendActionBar(p, "вошел в кубоид "+current.displayName);
+                                Ostrov.sync(()-> {
+                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
+                                    lp.cuboidEntryTime = Timer.getTime();
+                                    //if (!lp.isAreaDiscovered(current.id)) {
+                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
+                                    //}
+                                }, 0);
+                                
                             }
                             
                         } else { //из кубоида в кубоил
                             
                             previos = cuboids.get(lp.lastCuboidId);
                             current = cuboids.get(currentCuboidId);
-                            if (previos!=null && current!=null) { //вдруг удалился? тогда вызваем по отдельности
-                                QuestManager.onCuboidChange(p, lp, previos, current);
-                            } else if (current!=null) { //вдруг удалился?
-                                QuestManager.onCuboidEntry(p, lp, current);
+                            Ostrov.sync(()-> {
+                                Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
+                                if (current!=null) { //если есть кубоид входа, ставим метку времени
+                                    lp.cuboidEntryTime = Timer.getTime();
+                                }
+                            }, 0);
+                            
+                           /* if (previos!=null && current!=null) { //сработало при удалении? тогда вызваем по отдельности
+//ApiOstrov.sendActionBar(p, "перешел из кубоида "+(previos==null ? "" : previos.displayName)+" в "+(current==null ? "" : current.displayName));
+                                Ostrov.sync(()-> {
+                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
+                                    lp.cuboidEntryTime = Timer.getTime();
+                                    //if (!lp.isAreaDiscovered(current.id)) {
+                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
+                                    //}
+                                }, 0);
+                            } else if (current!=null) {
+                                Ostrov.sync(()-> {
+                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
+                                    lp.cuboidEntryTime = Timer.getTime();
+                                    //if (!lp.isAreaDiscovered(current.id)) {
+                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
+                                    //}
+                                }, 0);
                             } else if (previos!=null) {
-                                QuestManager.onCuboidExit(p, lp, previos);
-                            }
+                                Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
+                            }*/
                         }
+                        
                         lp.lastCuboidId = currentCuboidId;
                     }
                 }

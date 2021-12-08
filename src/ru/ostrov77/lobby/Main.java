@@ -34,7 +34,22 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.PlateManager;
 import ru.ostrov77.lobby.quest.QuestManager;
 
-
+    
+    
+    /*
+    CREATE TABLE `lobbyData` (
+  `name` varchar(16) NOT NULL,
+  `openedArea` int(11) NOT NULL DEFAULT '0',
+  `questDone` varchar(128) NOT NULL DEFAULT '',
+  `questAccept` varchar(128) NOT NULL DEFAULT '',
+  `flags` int(11) NOT NULL DEFAULT '0',
+  `logoutLoc` varchar(64) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    
+ALTER TABLE `lobbyData`
+  ADD PRIMARY KEY (`name`);
+COMMIT;
+    */
 
 public class Main extends JavaPlugin {
     
@@ -79,86 +94,12 @@ public class Main extends JavaPlugin {
         
         getServer().getPluginManager().registerEvents(new ListenerOne(), instance);
         getServer().getPluginManager().registerEvents(new NewBie(), instance);
+        getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         
         areaManager = new AreaManager();
         questManager = new QuestManager();
         
-        final ItemStack is=new ItemBuilder(Material.ELYTRA)
-            .setName("§bКрылья Островитянина")
-            .setUnbreakable(true)
-            .lore("§7Используйте для")
-            .lore("§7перемещения по §eОстрову§7!")
-            .build();
-        elytra = new MenuItemBuilder("elytra", is)
-            .slot(38) //Chestplate
-            .giveOnJoin(false)
-            .giveOnRespavn(false)
-            .giveOnWorld_change(false)
-            .anycase(true)
-            .canDrop(false)
-            .canPickup(false)
-            .canMove(false)
-            .add();
-        
-
-        final ItemStack pip=new ItemBuilder(Material.CLOCK)
-            .setName(" §6ЛКМ§e-профиль §2ПКМ§a-сервера")
-            .setUnbreakable(true)
-            .unsaveEnchantment(Enchantment.LUCK, 1)
-            .build();
-        pipboy = new MenuItemBuilder("pipboy", pip)
-            .slot(8)
-            .giveOnJoin(false)
-            .giveOnRespavn(false)
-            .giveOnWorld_change(false)
-            .anycase(true)
-            .canDrop(false)
-            .canPickup(false)
-            .canMove(false)
-            .duplicate(false)
-            .rightClickCmd("serv")
-            .leftClickCmd("menu")
-            .add();
-        
-        
-        final ItemStack newbie=new ItemBuilder(Material.COMPASS)
-            .setName("§7Устаревшая модель osCom")
-            .setUnbreakable(true)
-            //.unsaveEnchantment(Enchantment.LUCK, 1)
-            .build();
-        oscom = new MenuItemBuilder("oscom", newbie)
-            .slot(8)
-            .giveOnJoin(false)
-            .giveOnRespavn(false)
-            .giveOnWorld_change(false)
-            .anycase(true)
-            .canDrop(false)
-            .canPickup(false)
-            .canMove(false)
-            .duplicate(false)
-            .rightClickCmd("oscom newbieMenu")
-            //.leftShiftClickCmd("profile")
-            .add();
-
-        
-        final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
-            .setName("§aИндивидуальность")
-            .lore("§7Для Игроманов - всё и сразу!")
-            .build();
-        cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
-            .slot(4)
-            .giveOnJoin(false)
-            .giveOnRespavn(false)
-            .giveOnWorld_change(false)
-            .anycase(true)
-            .canDrop(false)
-            .canPickup(false)
-            .canMove(false)
-            .duplicate(false)
-            .rightClickCmd("cosmetics")
-            .leftClickCmd("oscom unequipCosmetics")
-            .add();
-
+        createMenuItems();
 
         instance.getCommand("oscom").setExecutor(new OsComCmd());
         instance.getCommand("area").setExecutor(new AreaCmd());
@@ -287,6 +228,87 @@ public class Main extends JavaPlugin {
 		}
 		return false;
 	}
+
+    private void createMenuItems() {
+        final ItemStack is=new ItemBuilder(Material.ELYTRA)
+            .setName("§bКрылья Островитянина")
+            .setUnbreakable(true)
+            .lore("§7Используйте для")
+            .lore("§7перемещения по §eОстрову§7!")
+            .build();
+        elytra = new MenuItemBuilder("elytra", is)
+            .slot(38) //Chestplate
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .create();
+        
+
+        final ItemStack pip=new ItemBuilder(Material.CLOCK)
+            .setName(" §6ЛКМ§e-профиль §2ПКМ§a-сервера")
+            .setUnbreakable(true)
+            .unsaveEnchantment(Enchantment.LUCK, 1)
+            .build();
+        pipboy = new MenuItemBuilder("pipboy", pip)
+            .slot(8)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .rightClickCmd("serv")
+            .leftClickCmd("menu")
+            .create();
+        
+        
+        final ItemStack newbie=new ItemBuilder(Material.COMPASS)
+            .setName("§7Устаревшая модель osCom")
+            .setUnbreakable(true)
+            //.unsaveEnchantment(Enchantment.LUCK, 1)
+            .build();
+        oscom = new MenuItemBuilder("oscom", newbie)
+            .slot(8)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .rightClickCmd("oscom newbieMenu")
+            //.leftShiftClickCmd("profile")
+            .create();
+
+        
+        final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
+            .setName("§aИндивидуальность")
+            .lore("§7Для Игроманов - всё и сразу!")
+            .build();
+        cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
+            .slot(4)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .rightClickCmd("cosmetics")
+            .leftClickCmd("oscom unequipCosmetics")
+            .create();
+    }
+    
+    
+    
 }
 
 

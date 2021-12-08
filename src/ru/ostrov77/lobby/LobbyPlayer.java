@@ -2,7 +2,9 @@ package ru.ostrov77.lobby;
 
 import java.util.EnumSet;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
+import ru.komiss77.Timer;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -10,11 +12,12 @@ public class LobbyPlayer {
     
     public final String name;
     protected int flags;
-    //protected String logoutLoc;
     public int lastCuboidId;
-    public int openedArea;
+    protected int openedArea;
     public EnumSet<Quest> questDone;
     public EnumSet<Quest> questAccept;
+    
+    public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
 
     LobbyPlayer(final String name) {
         this.name = name;
@@ -25,11 +28,11 @@ public class LobbyPlayer {
     
     
     
-    //может вызываться из ASYNC !!!
+    
     public boolean isAreaDiscovered(final int areaId) {
         return (openedArea & (1 << areaId)) == (1 << areaId);
     }
-    //может вызываться из ASYNC !!!
+    
     public void setAreaDiscovered(final int areaId) {
         openedArea =(openedArea | (1 << areaId));
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+name+"';");
@@ -51,42 +54,35 @@ public class LobbyPlayer {
     }
 
     
-    
-    //public boolean checkQuest (final Quest quest) {
-    //    return Main.questManager.checkQuest(this, quest);
-    //}
-    
-    
-    
-    
-  /*  protected static void save(final LobbyPlayer lp) {
-        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name,logoutLoc) VALUES "
-                        + "('"+lp.name+"','"+lp.logoutLoc+"') "
-                        + "ON DUPLICATE KEY UPDATE "
-                        + "`logoutLoc`='"+lp.logoutLoc+"'; " ); //остальные сохраняются по мере обновления!
-                        //+ "`openedArea`='"+lp.openedArea+"', "
-                        //+ "`questDone`='"+lp.questDone+"', "
-                        //+ "`questAccept`='"+lp.questAccept+"', "
-                        //+ "`flags`='"+lp.flags+"' ;");
-    }*/
+    public void questDone(final Player p, final Quest quest) {
+        boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
+        if (questDone.add(quest)) {
+            change = true;
+p.sendMessage("log: выполнен квест "+Quest.DiscoverAllArea.displayName);
+        } else {
+p.sendMessage("log: квест "+quest+" уже завершен, игнор.");
+        }
+        if (change) {
+            saveQuest();
+        }
+    }
     
     
+    public void saveQuest() {
+        final StringBuilder sbDone = new StringBuilder();
+        for (Quest q:questDone) {
+            sbDone.append(q.code);
+        }
+        final StringBuilder sbAccept = new StringBuilder();
+        for (Quest q:questAccept) {
+            sbAccept.append(q.code);
+        }
+        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `questDone` = '"+sbDone.toString()+"', `questAccept` = '"+sbAccept.toString()+"' WHERE `name` = '"+name+"';");
+    }
+
     
     
     
-    /*
-    CREATE TABLE `lobbyData` (
-  `name` varchar(16) NOT NULL,
-  `openedArea` int(11) NOT NULL DEFAULT '0',
-  `questDone` varchar(128) NOT NULL DEFAULT '',
-  `questAccept` varchar(128) NOT NULL DEFAULT '',
-  `flags` int(11) NOT NULL DEFAULT '0',
-  `logoutLoc` varchar(64) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    
-ALTER TABLE `lobbyData`
-  ADD PRIMARY KEY (`name`);
-COMMIT;
-    */
+
     
 }

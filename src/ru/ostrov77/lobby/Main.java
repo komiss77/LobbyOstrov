@@ -194,6 +194,7 @@ public class Main extends JavaPlugin {
             elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
+        oscom.give(p);
         cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         p.updateInventory();
@@ -290,12 +291,14 @@ public class Main extends JavaPlugin {
         
         
         final ItemStack newbie=new ItemBuilder(Material.COMPASS)
-            .setName("§7Устаревшая модель osCom")
+            .setName("§bosCom коммуникатор")
+            .lore("§6ЛКМ§e - задачи ")
+            .lore("§2ПКМ§a - локации")
             .setUnbreakable(true)
             //.unsaveEnchantment(Enchantment.LUCK, 1)
             .build();
         oscom = new MenuItemBuilder("oscom", newbie)
-            .slot(8)
+            .slot(0)
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
@@ -304,8 +307,8 @@ public class Main extends JavaPlugin {
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
-            .rightClickCmd("oscom newbieMenu")
-            //.leftShiftClickCmd("profile")
+            .rightClickCmd("oscom quest")
+            .leftClickCmd("oscom area")
             .create();
 
         

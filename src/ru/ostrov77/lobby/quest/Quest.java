@@ -11,12 +11,12 @@ public enum Quest {
     //ИД локаций
     
     
-    DiscoverAllArea         ('a',   "",                 "Открыть все локации"),
-    UsePandora              ('b',   "pandora",          "Открыть шкатулку Пандоры"),
-    OpenTreassureChest      ('c',   "treassureChest",   "Открыть сундук сокровищ"),
+    DiscoverAllArea         ('a',   "",                 "Открыть все локации"), //+при входе в новую зону сверяется размер изученных и существующих
+    UsePandora              ('b',   "pandora",          "Уйти от Пандоры живым"), //+ чекается при выходе из кубоида пандоры
+    OpenTreassureChest      ('c',   "treassureChest",   "Открыть сундук сокровищ"), //+по эвенту косметики открытие сундука
     GreetNewBie             ('d',   "spawn",            "Поприветствовать новичка (ПКМ на новичка)"),
     SpeakWithNPC            ('e',   "newbie",           "Разговорить лоцмана"),
-    ReachSpawn              ('f',   "newbie",           "Добраться до спавна"),
+    ReachSpawn              ('f',   "newbie",           "Добраться до спавна"), //+при входе в зону спавн
     ;
 
 
@@ -25,7 +25,6 @@ public enum Quest {
     public final char code;
     public final String attachedArea;
     public final String displayName;
-    private static final Map<Character,Quest> codeMap;
     
     
     private Quest (final char code, final String attachedArea, final String displayName) {
@@ -34,6 +33,7 @@ public enum Quest {
         this.displayName = displayName;
     }
     
+    private static final Map<Character,Quest> codeMap;
     static {
         Map<Character,Quest> im = new ConcurrentHashMap<>();
         for (Quest d : Quest.values()) {

@@ -2,6 +2,7 @@ package ru.ostrov77.lobby.area;
 
 import org.bukkit.Location;
 import ru.komiss77.modules.world.Cuboid;
+import ru.ostrov77.lobby.Main;
 
 
 public class LCuboid extends Cuboid {
@@ -9,22 +10,21 @@ public class LCuboid extends Cuboid {
     public final int id;
     public final String name;
     public String displayName;
+    public Location spawnPoint;
     
-   // public LCuboid(Location loc, int sizeX, int sizeY, int sizeZ) {
-     //   super(loc, sizeX, sizeY, sizeZ);
-   // }
-    
-    public LCuboid(final int id, final String name, final String displayName, final Location location, final Location location2) {
-        super (location, location2);
+    public LCuboid(final int id, final String name, final String displayName, final Location spawnPoint, final Location pos1, final Location pos2) {
+        super (pos1, pos2);
         this.id = id;
         this.name = name;
         this.displayName = displayName;
+        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.spawnLocation): spawnPoint;
     }
     
-    public LCuboid(final int id, final String name, final String displayName, final String cuboidAsString) {
+    public LCuboid(final int id, final String name, final String displayName, final Location spawnPoint, final String cuboidAsString) {
         super (cuboidAsString);
         this.id = id;
         this.name = name;
         this.displayName = displayName;
+        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.spawnLocation): spawnPoint;
     }
 }

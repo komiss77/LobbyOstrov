@@ -60,7 +60,7 @@ public class AreaMainMenu implements InventoryProvider {
                     .lore("§7Размер: §b"+lc.getSizeX()+"§7x§b"+lc.getSizeY()+"§7x§b"+lc.getSizeZ())
                     .lore("§7Объём: §b"+lc.getSize()+" блоков")
                     .lore("")
-                    .lore("ЛКМ - §6тп в центр кубоида")
+                    .lore("ЛКМ - §6тп в точку спавна кубоида")
                     .lore("ПКМ - §6редактировать")
                     .lore("клав.Q - §cудалить")
                     .lore("")
@@ -76,7 +76,7 @@ public class AreaMainMenu implements InventoryProvider {
                         
                         case LEFT:
                             p.closeInventory();
-                            p.teleport(lc.getCenter(p.getLocation()));
+                            p.teleport(lc.spawnPoint);
                             //System.out.println("Schematic size="+schem.sizeX+" "+schem.sizeY+" "+schem.sizeZ);
                             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, .5f, 2);
                             return;
@@ -98,6 +98,7 @@ public class AreaMainMenu implements InventoryProvider {
                             sm.setCuboid(p, lc);
                             sm.param = String.valueOf(lc.id);
                             sm.extra1 = lc.displayName;
+                            sm.spawnPoint = lc.spawnPoint;
                             AreaCmd.openAreaEditMenu(p, lc.name);
                             //p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 5);
                             //reopen(p, contents);

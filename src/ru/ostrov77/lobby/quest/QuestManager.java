@@ -10,6 +10,9 @@ import org.bukkit.event.Listener;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.enums.StatFlag;
+import ru.komiss77.modules.player.Oplayer;
+import ru.komiss77.modules.player.PM;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -45,6 +48,11 @@ ApiOstrov.sendActionBar(e.p, "log: вошел в кубоид "+e.current.displa
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
             }
         }
+        
+        if (e.previos!=null && e.previos.name.equals("pandora")) { //вышел из локации пандора - значит мог её использовать
+            checkQuest(e.p, e.lp, Quest.UsePandora);
+        }
+        
     }
 
     
@@ -70,11 +78,10 @@ p.sendMessage("log: +новое задание с открытием зоны "+
         }
         
         checkQuest(p, lp, Quest.DiscoverAllArea);
+        
         if (cuboid.name.equals("spawn")) {
             checkQuest(p, lp, Quest.ReachSpawn);
-        } //else if (cuboid.name.equals("pandora")) {
-            //эвент пандоры??
-        //}
+        }
     }
 
     
@@ -111,9 +118,17 @@ p.sendMessage("log: +новое задание с открытием зоны "+
 p.sendMessage("log: checkQuest "+quest+" - уже выполнен; return ");
             return false;
         }
+        if (!lp.questAccept.contains(quest)) {
+p.sendMessage("log: checkQuest "+quest+" - не был получен; return ");
+            return false;
+        }
 p.sendMessage("log: checkQuest "+quest);
+        final Oplayer op = PM.getOplayer(p);
+        
+        
         
         switch (quest) {
+            
             case DiscoverAllArea:
                 int discoverCount=0;
                 for (int id:AreaManager.getCuboidIds()) {
@@ -123,6 +138,22 @@ p.sendMessage("log: checkQuest "+quest);
                     lp.questDone(p, quest);
                 } else {
 p.sendMessage("log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
+                }
+                break;
+                
+            case UsePandora: //будет вызвано при выходе из кубоида пандоры
+                if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана
+                    lp.questDone(p, quest);
+                } else {
+p.sendMessage("log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
+                }
+                break;
+                
+                
+            case ReachSpawn: //сработает при входе в зону спавн
+                lp.questDone(p, quest);
+                if (lp.questAccept.contains(Quest.SpeakWithNPC)) {//выключить задания новичка
+                    lp.questDone(p, Quest.SpeakWithNPC);
                 }
                 break;
         }

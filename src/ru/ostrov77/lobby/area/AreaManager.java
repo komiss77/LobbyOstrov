@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby.area;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,14 +14,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.quest.QuestManager;
 
 
 public class AreaManager {
@@ -74,6 +74,7 @@ public class AreaManager {
     protected static void save(final LCuboid lc) {
         areaConfig.set("areas."+lc.id+".name", lc.name);
         areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
+        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.StringFromLocWithYawPitch(lc.spawnPoint));
         areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
         areaConfig.saveConfig();
     }
@@ -87,12 +88,11 @@ public class AreaManager {
             for (String areaID : areaConfig.getConfigurationSection("areas").getKeys(false) ) {
                 try {
                     final int id = Integer.parseInt(areaID);
-                    //final Location pos1 = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".pos1"));
-                    //final Location pos2 = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".pos2"));
                     final String name = areaConfig.getString("areas."+areaID+".name");
                     final String displayName = areaConfig.getString("areas."+areaID+".displayName");
                     final String cuboidAsString = areaConfig.getString("areas."+areaID+".cuboidAsString");
-                    final LCuboid lc = new LCuboid(id, name, displayName, cuboidAsString);
+                    final Location spawnPoint = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".spawnPoint"));
+                    final LCuboid lc = new LCuboid(id, name, displayName, spawnPoint, cuboidAsString);
                     addCuboid(lc, false);
                 } catch (Exception ex) {
                     Ostrov.log_err("AreaManager ошибка загрузки локации "+areaID+" : "+ex.getMessage());
@@ -222,6 +222,10 @@ public class AreaManager {
         return null;
     }
 
+    public static Collection<LCuboid> getCuboids() {
+        return cuboids.values();
+    }
+    
     public static Set<Integer> getCuboidIds() {
         return cuboids.keySet();
     }

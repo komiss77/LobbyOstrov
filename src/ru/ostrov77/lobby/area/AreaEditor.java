@@ -29,12 +29,6 @@ public class AreaEditor implements InventoryProvider{
     public static final ItemStack fillOk = new ItemBuilder(Material.GREEN_STAINED_GLASS_PANE).build();;
     public static final ItemStack fillErr = new ItemBuilder(Material.RED_STAINED_GLASS_PANE).build();;
     
-   // private final String schemName;// private final String schemName;
-    
-    
-    public AreaEditor() {
-        //this.schemName = schemName;
-    }
         
     
     
@@ -108,7 +102,7 @@ public class AreaEditor implements InventoryProvider{
         if (sm.pos2==null) {
              contents.set(1, 4, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7верхняя точка кубоида.")
-                .lore("§7")
+                .lore("§cне установлена")
                 .lore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
@@ -118,7 +112,6 @@ public class AreaEditor implements InventoryProvider{
                     reopen(p, contents);
                 }));
         } else {
-            //p.sendBlockChange(sm.pos2, Material.EMERALD_BLOCK.createBlockData());
             contents.set(1, 4, ClickableItem.of( new ItemBuilder(Material.OAK_FENCE)
                 .name("§7верхняя точка кубоида.")
                 .lore("§7")
@@ -130,10 +123,8 @@ public class AreaEditor implements InventoryProvider{
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                        //p.sendBlockChange(sm.pos2, Material.AIR.createBlockData());
                         sm.pos2=p.getLocation();
                         sm.checkPosition(p);
-                        //p.sendBlockChange(sm.pos2, Material.EMERALD_BLOCK.createBlockData());
                         reopen(p, contents);
                     }
                 }));
@@ -152,17 +143,16 @@ public class AreaEditor implements InventoryProvider{
         if (sm.pos1==null) {
              contents.set(4, 1, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7нижняя точка кубоида.")
-                .lore("§7")
+                .lore("§cне установлена")
                 .lore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                    sm.pos1=p.getLocation();
-                    sm.checkPosition(p);
-                    //p.sendBlockChange(p.getLocation(), Material.EMERALD_BLOCK.createBlockData());
+                    sm.spawnPoint=p.getLocation();
+                    sm.spawnPoint.setY(p.getLocation().getYaw());
+                    sm.spawnPoint.setPitch(p.getLocation().getPitch());
                     reopen(p, contents);
                 }));
         } else {
-            //p.sendBlockChange(style.getPos1(p.getWorld().getName()), Material.EMERALD_BLOCK.createBlockData());
             contents.set(4, 1, ClickableItem.of( new ItemBuilder(Material.OAK_FENCE)
                 .name("§7нижняя точка кубоида.")
                 .lore("§7")
@@ -170,19 +160,42 @@ public class AreaEditor implements InventoryProvider{
                 .lore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
-                        p.teleport(sm.pos1);
+                        p.teleport(sm.spawnPoint);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                        //p.sendBlockChange(sm.pos1, Material.AIR.createBlockData());
-                        sm.pos1=p.getLocation();
-                        sm.checkPosition(p);
-                        //p.sendBlockChange(sm.pos1, Material.EMERALD_BLOCK.createBlockData());
+                        sm.spawnPoint=p.getLocation();
+                        sm.spawnPoint.setY(p.getLocation().getYaw());
+                        sm.spawnPoint.setPitch(p.getLocation().getPitch());
                         reopen(p, contents);
                     }
                 }));
         }
 
+        
+    
+        contents.set(1, 6, ClickableItem.of( new ItemBuilder(sm.spawnPoint==null ? Material.BARRIER : Material.ENDER_EYE)
+            .name("§7точка спавна кубоида.")
+            .lore("§7")
+            .lore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
+            .lore("§7ПКМ-установить")
+            .build(), e -> {
+                if (e.isLeftClick() && sm.spawnPoint!=null) {
+                    p.teleport(sm.spawnPoint);
+                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
+                } else if (e.isRightClick()) {
+                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
+                    sm.spawnPoint=p.getLocation();
+                    reopen(p, contents);
+                } else {
+                    PM.soundDeny(p);
+                }
+            }));        
+        
+        
+        
+        
+        
         
         
         
@@ -259,7 +272,7 @@ public class AreaEditor implements InventoryProvider{
         
         
         
-        if (selected && !wrongID && overlap==null) {
+        if (selected && !wrongID && overlap==null && sm.spawnPoint!=null) {
             
             
             
@@ -270,7 +283,7 @@ public class AreaEditor implements InventoryProvider{
                     
                     
                     AreaManager.deleteCuboid(id); //вычистить старые ChunkContent, если были
-                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.pos1, sm.pos2);
+                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.spawnPoint, sm.pos1, sm.pos2);
                     AreaManager.addCuboid(lc, true);
                     
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);

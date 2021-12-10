@@ -10,15 +10,21 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import eu.endercentral.crazy_advancements.advancement.Advancement;
+import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay.AdvancementFrame;
+import eu.endercentral.crazy_advancements.advancement.AdvancementFlag;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
+import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 public class AreaManager {
@@ -26,6 +32,7 @@ public class AreaManager {
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
     public static final Map<String,Integer>racePlayers = new HashMap<>();
+    public static final HashSet<Advancement>advanceAreas = new HashSet<>();
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
@@ -99,6 +106,9 @@ public class AreaManager {
                 
             }
         }
+        
+        //подгрузка вчивок
+        QuestAdvance.loadQuestAdv();
        
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();
@@ -119,7 +129,7 @@ public class AreaManager {
                     final Integer time = racePlayers.get(p.getName());
                     if (time != null) {
                     	if (time > 300) {
-                			p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!");
+                    		Ostrov.sync(()-> p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!"), 0);
                 			racePlayers.remove(p.getName());
                     	} else {
                     		racePlayers.replace(p.getName(), time + 1);

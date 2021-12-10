@@ -1,11 +1,5 @@
 package ru.ostrov77.lobby.listeners;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.TextComponent;
-import net.minecraft.core.BaseBlockPosition;
-import ru.ostrov77.lobby.area.PlateManager;
-import ru.ostrov77.lobby.newbie.NewBie;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -61,6 +55,18 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import eu.endercentral.crazy_advancements.JSONMessage;
+import eu.endercentral.crazy_advancements.NameKey;
+import eu.endercentral.crazy_advancements.advancement.Advancement;
+import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay;
+import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay.AdvancementFrame;
+import eu.endercentral.crazy_advancements.advancement.AdvancementFlag;
+import eu.endercentral.crazy_advancements.advancement.AdvancementVisibility;
+import eu.endercentral.crazy_advancements.advancement.criteria.Criteria;
+import eu.endercentral.crazy_advancements.manager.AdvancementManager;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.TextComponent;
+import net.minecraft.core.BaseBlockPosition;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -69,7 +75,11 @@ import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.area.PlateManager;
+import ru.ostrov77.lobby.newbie.NewBie;
 import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 
@@ -167,8 +177,26 @@ public class ListenerOne implements Listener {
                     Ostrov.log_err("ListenerOne close error - "+ex.getMessage());
                 }
             }
-
+            
         }, 0);
+
+		Ostrov.sync(() -> {
+			final AdvancementManager adm = new AdvancementManager(new NameKey("pls"), p);
+			adm.addAdvancement(QuestAdvance.adm.toArray(new Advancement[0]));
+			try {
+				adm.loadProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+			} catch (Exception ex) {
+				adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+			}
+			Ostrov.sync(() -> {
+				try {
+					adm.saveProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+				} catch (Exception ex) {
+					adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+				}
+				p.sendMessage("§eСоздано!");
+			}, 10);
+		}, 10);
     }
     
     

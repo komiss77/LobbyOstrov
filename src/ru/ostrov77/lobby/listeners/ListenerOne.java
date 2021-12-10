@@ -1,11 +1,5 @@
 package ru.ostrov77.lobby.listeners;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.TextComponent;
-import net.minecraft.core.BaseBlockPosition;
-import ru.ostrov77.lobby.area.PlateManager;
-import ru.ostrov77.lobby.newbie.NewBie;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -60,7 +54,12 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-
+import eu.endercentral.crazy_advancements.NameKey;
+import eu.endercentral.crazy_advancements.advancement.Advancement;
+import eu.endercentral.crazy_advancements.manager.AdvancementManager;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.TextComponent;
+import net.minecraft.core.BaseBlockPosition;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -69,7 +68,10 @@ import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.area.PlateManager;
+import ru.ostrov77.lobby.newbie.NewBie;
 import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 
@@ -167,8 +169,26 @@ public class ListenerOne implements Listener {
                     Ostrov.log_err("ListenerOne close error - "+ex.getMessage());
                 }
             }
-
+            
         }, 0);
+
+		Ostrov.sync(() -> {
+			final AdvancementManager adm = new AdvancementManager(new NameKey("pls"), p);
+			adm.addAdvancement(QuestAdvance.adm.toArray(new Advancement[0]));
+			try {
+				adm.loadProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+			} catch (Exception ex) {
+				adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+			}
+			Ostrov.sync(() -> {
+				try {
+					adm.saveProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+				} catch (Exception ex) {
+					adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+				}
+				p.sendMessage("§eСоздано!");
+			}, 10);
+		}, 10);
     }
     
     
@@ -237,7 +257,7 @@ public class ListenerOne implements Listener {
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onPlace(BlockPlaceEvent e) {
+    public void onPlace(final BlockPlaceEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         
@@ -322,7 +342,7 @@ public class ListenerOne implements Listener {
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onBreak(BlockBreakEvent e) {
+    public void onBreak(final BlockBreakEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
 		if (e.getBlock().getType() == Material.NETHER_PORTAL && !Main.prts.isEmpty()) {
@@ -417,7 +437,7 @@ public class ListenerOne implements Listener {
 
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onHangingBreakByEntityEvent(HangingBreakByEntityEvent e) {
+    public void onHangingBreakByEntityEvent(final HangingBreakByEntityEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         if (  e.getRemover()!=null && e.getRemover().getType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
                 if (!ApiOstrov.isLocalBuilder((Player) e.getRemover()) ) e.setCancelled(true);
@@ -426,7 +446,7 @@ public class ListenerOne implements Listener {
     }
        
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onHangingBreakEvent(HangingBreakEvent e) {
+    public void onHangingBreakEvent(final HangingBreakEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         if ( e.getEntity().getType()==EntityType.PLAYER) {
                 if (!ApiOstrov.isLocalBuilder((Player) e.getEntity()) ) e.setCancelled(true);
@@ -443,7 +463,7 @@ public class ListenerOne implements Listener {
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onPlayerInteractAtEntityEvent(PlayerInteractAtEntityEvent e) {
+    public void onPlayerInteractAtEntityEvent(final PlayerInteractAtEntityEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
     }
@@ -452,7 +472,7 @@ public class ListenerOne implements Listener {
    
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void PlayerArmorStandManipulateEvent(PlayerArmorStandManipulateEvent e){
+    public void PlayerArmorStandManipulateEvent(final PlayerArmorStandManipulateEvent e){
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer())) e.setCancelled(true);
     }        
@@ -460,7 +480,7 @@ public class ListenerOne implements Listener {
     
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    public void onPlayerRespawn(PlayerRespawnEvent e) {
+    public void onPlayerRespawn(final PlayerRespawnEvent e) {
          if (!e.getPlayer().getWorld().getName().equals("world")) return;
     }
     
@@ -476,7 +496,7 @@ public class ListenerOne implements Listener {
 
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityDamage(EntityDamageEvent e) { 
+    public void onEntityDamage(final EntityDamageEvent e) { 
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
         if ( e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
@@ -520,7 +540,7 @@ public class ListenerOne implements Listener {
 
 
     @EventHandler (ignoreCancelled = true)
-    public void onPlayerPickUpItem(EntityPickupItemEvent e) {
+    public void onPlayerPickUpItem(final EntityPickupItemEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
     }
 
@@ -533,7 +553,7 @@ public class ListenerOne implements Listener {
    
   
     @EventHandler  (ignoreCancelled = true)
-    public void onHungerChange(FoodLevelChangeEvent e) {
+    public void onHungerChange(final FoodLevelChangeEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         e.setCancelled(true); 
         ((Player)e.getEntity()).setFoodLevel(20);
@@ -578,7 +598,7 @@ public class ListenerOne implements Listener {
 
 
     @EventHandler (ignoreCancelled = true)
-    public void onBlockFade(BlockFadeEvent e) {
+    public void onBlockFade(final BlockFadeEvent e) {
         if (!e.getBlock().getWorld().getName().equals("world")) return;
         if( e.getBlock().getType() == Material.ICE || e.getBlock().getType() == Material.PACKED_ICE || e.getBlock().getType() == Material.SNOW || e.getBlock().getType() == Material.SNOW_BLOCK) 
         e.setCancelled(true);
@@ -588,14 +608,14 @@ public class ListenerOne implements Listener {
     
     
     @EventHandler (ignoreCancelled = true)
-    public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
+    public void onCreatureSpawnEvent(final CreatureSpawnEvent e) {
         if (e.getEntity().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }
   
     
     @EventHandler (ignoreCancelled = true)
-    public void onWeatherChange(WeatherChangeEvent e) {
+    public void onWeatherChange(final WeatherChangeEvent e) {
         if (!e.getWorld().getName().equals("world")) return;
         if (e.toWeatherState()) e.setCancelled(true);
     }
@@ -603,19 +623,19 @@ public class ListenerOne implements Listener {
 
           
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockSpread(BlockSpreadEvent e) {
+    public void onBlockSpread(final BlockSpreadEvent e) {
         if (!e.getBlock().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }  
         
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockGrowth(BlockGrowEvent e) { 
+    public void onBlockGrowth(final BlockGrowEvent e) { 
         if (!e.getBlock().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }    
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onStructureGrow(StructureGrowEvent e) { 
+    public void onStructureGrow(final StructureGrowEvent e) { 
         if (!e.getLocation().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }    

@@ -13,7 +13,7 @@ import ru.komiss77.modules.player.PM;
 import ru.ostrov77.lobby.Main;
 
 
-public class NewBieTask  implements Runnable {
+public class NewBieTask implements Runnable {
     
     private final BukkitTask task;
     protected int tick;

@@ -13,6 +13,8 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
 import eu.endercentral.crazy_advancements.advancement.AdvancementVisibility;
+import eu.endercentral.crazy_advancements.manager.AdvancementManager;
+import ru.komiss77.Ostrov;
 
 
 public class QuestAdvance {
@@ -25,6 +27,30 @@ public class QuestAdvance {
 		return parent == null ? new Advancement(new NameKey(key), dis, flags) : new Advancement(parent, new NameKey(key), dis, flags);
 	}
 	
+        
+        
+
+        public static void load (final Player p) {
+                Ostrov.sync( () -> {
+                        final AdvancementManager adm = new AdvancementManager(new NameKey("pls"), p);
+                        adm.addAdvancement(QuestAdvance.adm.toArray(new Advancement[0]));
+                        try {
+                                adm.loadProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+                        } catch (Exception ex) {
+                                adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+                        }
+                        Ostrov.sync(() -> {
+                                try {
+                                        adm.saveProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
+                                } catch (Exception ex) {
+                                        adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
+                                }
+                                p.sendMessage("§eСоздано!");
+                        }, 10);
+                }, 10);
+        }
+    
+    
 	public static void loadQuestAdv() {
 		adm.clear();
         int x = -1;

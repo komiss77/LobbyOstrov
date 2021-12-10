@@ -13,17 +13,16 @@ import org.bukkit.event.inventory.InventoryType;
 
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
-import ru.ostrov77.lobby.FlagsDebug;
+import ru.ostrov77.lobby.DebugMenu;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.quest.QuestViewMenu;
-import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "flagdebug", "ghast", "quest", "area");
+    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "debug", "ghast", "quest", "area");
 
         
         
@@ -81,12 +80,12 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     //p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
                     return true;
                     
-                case "flagdebug":
+                case "debug":
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
                         SmartInventory
                             .builder()
                             .id("flags"+p.getName())
-                            .provider(new FlagsDebug())
+                            .provider(new DebugMenu())
                             .size(6, 9)
                             .title("флаги лобби")
                             .build()

@@ -14,7 +14,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import eu.endercentral.crazy_advancements.advancement.Advancement;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.LocationUtil;
@@ -30,7 +29,6 @@ public class AreaManager {
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
     public static final Map<String,Integer>racePlayers = new HashMap<>();
-    public static final HashSet<Advancement>advanceAreas = new HashSet<>();
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
@@ -106,7 +104,7 @@ public class AreaManager {
         }
         
         //подгрузка вчивок
-        QuestAdvance.loadQuestAdv();
+        if (Main.advancements) QuestAdvance.loadQuestAdv();
        
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();

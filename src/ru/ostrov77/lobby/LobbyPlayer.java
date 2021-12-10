@@ -60,7 +60,7 @@ public class LobbyPlayer {
         boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questDone.add(quest)) {
             change = true;
-p.sendMessage("log: выполнен квест "+Quest.DiscoverAllArea.displayName);
+p.sendMessage("log: завершен квест "+Quest.DiscoverAllArea.displayName);
         } else {
 p.sendMessage("log: квест "+quest+" уже завершен, игнор.");
         }

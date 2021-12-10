@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.newbie;
 
+import com.destroystokyo.paper.entity.PaperPathfinder.PaperPathResult;
 import java.util.EnumSet;
 
 import org.bukkit.Bukkit;
@@ -54,8 +55,13 @@ public class GhastGoal implements Goal<Blaze> {
         
     @Override
     public void tick() {
+        
+        //PaperPathResult ppr = mob.getPathfinder().getCurrentPath();
+        
         if ((mob.getTicksLived() & 63) == 0 && noPth) {
-            final PathResult path = mob.getPathfinder().findPath(loc);
+            final PathResult path = mob.getPathfinder().getCurrentPath();
+            //final PathResult path = mob.getPathfinder().moveTo(loc);
+            //path.getPoints()
             /*Не работает ибо в moveTo() надо
             final PathResult path = new PathResult() {
         	
@@ -86,7 +92,7 @@ public class GhastGoal implements Goal<Blaze> {
 		};*/
             if (path!=null) {
             	noPth = false;
-            	Bukkit.getConsoleSender().sendMessage(path.getNextPoint() + " " + path.getFinalPoint() + " " + path.getNextPointIndex());
+Bukkit.getConsoleSender().sendMessage(path.getNextPoint() + " " + path.getFinalPoint() + " " + path.getNextPointIndex());
                 final boolean done = mob.getPathfinder().moveTo(path, 1.6d);
             }
         }

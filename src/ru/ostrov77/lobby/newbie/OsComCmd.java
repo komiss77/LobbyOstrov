@@ -14,13 +14,16 @@ import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.FlagsDebug;
+import ru.ostrov77.lobby.area.AreaViewMenu;
+import ru.ostrov77.lobby.quest.QuestViewMenu;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "flagdebug", "ghast");
+    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "flagdebug", "ghast", "quest", "area");
 
         
         
@@ -98,6 +101,32 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         .id("oscom"+p.getName()) 
                         .provider(new OsComMenu())
                         .title("§aОсКом")
+                        .build()
+                        .open(p);
+                        //}
+                    return true;
+                    
+               case "quest":
+                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    SmartInventory.builder()
+                        .type(InventoryType.CHEST)
+                        .id("quest"+p.getName()) 
+                        .provider(new QuestViewMenu())
+                        .title("Задания")
+                        .size (5,9)
+                        .build()
+                        .open(p);
+                        //}
+                    return true;
+                    
+               case "area":
+                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    SmartInventory.builder()
+                        .type(InventoryType.CHEST)
+                        .id("area"+p.getName()) 
+                        .provider(new AreaViewMenu())
+                        .title("Локации")
+                        .size (5,9)
                         .build()
                         .open(p);
                         //}

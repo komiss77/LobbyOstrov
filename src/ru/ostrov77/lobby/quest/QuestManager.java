@@ -9,6 +9,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
+import ru.komiss77.Timer;
+import ru.komiss77.enums.StatFlag;
+import ru.komiss77.modules.player.Oplayer;
+import ru.komiss77.modules.player.PM;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -31,33 +35,37 @@ public class QuestManager implements Listener {
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
     @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
+        
     	if (e.current == null) {
-    		ApiOstrov.sendActionBar(e.p, "§7§l⟣ &3&lАрхипелаг §7§l⟢");
+            ApiOstrov.sendActionBar(e.p, "§7§l⟣ &3&lАрхипелаг §7§l⟢");
     		
     	} else {
-    		ApiOstrov.sendActionBar(e.p, "§7§l⟣ " + e.current.displayName + " §7§l⟢");
-    		if (!e.lp.isAreaDiscovered(e.current.id)) {
+            
+            ApiOstrov.sendActionBar(e.p, "§7§l⟣ " + e.current.displayName + " §7§l⟢");
+            if (!e.lp.isAreaDiscovered(e.current.id)) {
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
             }
-    		if (e.current.name == "start") {
-    			if (e.lp.questAccept.contains(Quest.MiniRace)) {
-        			e.p.sendMessage("§5[§eСостязание§5] §f>> На старт! Внимание! Вперед!");
-        			AreaManager.racePlayers.putIfAbsent(e.lp.name, 0);
-    			} else if (e.lp.questDone.contains(Quest.MiniRace)) {
-        			e.p.sendMessage("§5[§eСостязание§5] §f>> Вы уже участвовали в состязании!");
-    			} else {
-        			e.p.sendMessage("§5[§eСостязание§5] §f>> Перед началом, возьмите задание у §eИгромана§f!");
-				}
-    		} else if (e.current.name == "end" && e.lp.questAccept.contains(Quest.MiniRace)) {
-    			final Integer time = AreaManager.racePlayers.remove(e.lp.name);
-    			if (time != null) {
-        			e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + (time / 60) + (time % 60 > 9 ? ":" + time % 60 : ":0" + time % 60));
-        			e.lp.questDone(e.p, Quest.MiniRace);
-    			}
-			}
-		}
+                
+            if (e.current.name.equals("start")) {
+                if (e.lp.questAccept.contains(Quest.MiniRace)) {
+                    e.p.sendMessage("§5[§eСостязание§5] §f>> На старт! Внимание! Вперед!");
+                    AreaManager.racePlayers.putIfAbsent(e.lp.name, 0);
+                } else if (e.lp.questDone.contains(Quest.MiniRace)) {
+                    e.p.sendMessage("§5[§eСостязание§5] §f>> Вы уже участвовали в состязании!");
+                } else {
+                    e.p.sendMessage("§5[§eСостязание§5] §f>> Перед началом, возьмите задание у §eИгромана§f!");
+                    }
+            } else if (e.current.name.equals("end") && e.lp.questAccept.contains(Quest.MiniRace)) {
+                final Integer time = AreaManager.racePlayers.remove(e.lp.name);
+                if (time != null) {
+                        e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + (time / 60) + (time % 60 > 9 ? ":" + time % 60 : ":0" + time % 60));
+                        e.lp.questDone(e.p, Quest.MiniRace);
+                }
+            }
+        }
     	
-        /*if (e.current!=null && e.previos!=null) {
+        
+       /* if (e.current!=null && e.previos!=null) {
         	ApiOstrov.sendActionBar(e.p, "log: перешел из кубоида "+e.previos.displayName+" в "+e.current.displayName+", вход:"+e.previosEntryTime+", пробыл:"+(Timer.getTime()-e.previosEntryTime));
             if (!e.lp.isAreaDiscovered(e.current.id)) {
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
@@ -70,6 +78,11 @@ public class QuestManager implements Listener {
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
             }
         }*/
+        
+        if (e.previos!=null && e.previos.name.equals("pandora")) { //вышел из локации пандора - значит мог её использовать
+            checkQuest(e.p, e.lp, Quest.UsePandora);
+        }
+        
     }
 
     
@@ -95,11 +108,10 @@ public class QuestManager implements Listener {
         }
         
         checkQuest(p, lp, Quest.DiscoverAllArea);
+        
         if (cuboid.name.equals("spawn")) {
             checkQuest(p, lp, Quest.ReachSpawn);
-        } //else if (cuboid.name.equals("pandora")) {
-            //эвент пандоры??
-        //}
+        }
     }
 
     
@@ -136,9 +148,17 @@ public class QuestManager implements Listener {
         	p.sendMessage("log: checkQuest "+quest+" - уже выполнен; return ");
             return false;
         }
-        p.sendMessage("log: checkQuest "+quest);
+        if (!lp.questAccept.contains(quest)) {
+p.sendMessage("log: checkQuest "+quest+" - не был получен; return ");
+            return false;
+        }
+p.sendMessage("log: checkQuest "+quest);
+        final Oplayer op = PM.getOplayer(p);
+        
+        
         
         switch (quest) {
+            
             case DiscoverAllArea:
                 int discoverCount=0;
                 for (int id:AreaManager.getCuboidIds()) {
@@ -150,8 +170,22 @@ public class QuestManager implements Listener {
                 	p.sendMessage("log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
                 }
                 break;
-		default:
-			break;
+                
+            case UsePandora: //будет вызвано при выходе из кубоида пандоры
+                if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана
+                    lp.questDone(p, quest);
+                } else {
+p.sendMessage("log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
+                }
+                break;
+                
+                
+            case ReachSpawn: //сработает при входе в зону спавн
+                lp.questDone(p, quest);
+                if (lp.questAccept.contains(Quest.SpeakWithNPC)) {//выключить задания новичка
+                    lp.questDone(p, Quest.SpeakWithNPC);
+                }
+                break;
         }
         
         return false;

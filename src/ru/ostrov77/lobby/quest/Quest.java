@@ -10,16 +10,14 @@ import org.bukkit.Material;
 
 public enum Quest {
     
-    //ИД локаций
-    
-    
-    DiscoverAllArea         ('a',	Material.COMPASS,				"",             	"Открыть все Локации",			"Исследуйте всю территорию лобби"),
-    UsePandora              ('p',	Material.SPONGE,				"spawn",      		"Открыть шкатулку Пандоры", 	"Испытайте свою удачу в Разломе Пандоры"),
-    OpenTreassureChest      ('c',	Material.ENDER_CHEST,			"spawn",   			"Открыть Сундук Сокровищ", 		"Получите примочки из Сундука Сокровищ"),
-    GreetNewBie             ('s',	Material.QUARTZ,				"spawn",        	"Поприветствовать Новичка", 	"Нажмите ПКМ на нового игрока"),
+
+    DiscoverAllArea         ('a',	Material.COMPASS,		"",             	"Открыть все Локации",			"Исследуйте всю территорию лобби"),//+при входе в новую зону сверяется размер изученных и существующих
+    UsePandora              ('b',	Material.SPONGE,		"spawn",      		"Уйти от Пандоры живым", 	"Испытайте свою удачу в Ра //+при входе в новую зону сверяется размер изученных и существующихзломе Пандоры"),//+ чекается при выходе из кубоида пандоры
+    OpenTreassureChest      ('c',	Material.ENDER_CHEST,		"spawn",   		"Открыть Сундук Сокровищ", 		"Получите примочки из Сундука Сокровищ"), //+по эвенту косметики открытие сундука
+    GreetNewBie             ('d',	Material.QUARTZ,		"spawn",        	"Поприветствовать Новичка", 	"Нажмите ПКМ на нового игрока"),
     SpeakWithNPC            ('e',	Material.GLOBE_BANNER_PATTERN,	"newbie",       	"Разговорить Лоцмана", 			"Выведайте куда вы прибыли у Лоцмана"),
-    ReachSpawn              ('f',	Material.ENDER_PEARL,			"newbie",       	"Добраться до Спавна", 			"Нажмите на Гаста для перемещения на спавн"),
-    MiniRace              	('r',	Material.TURTLE_HELMET,			"nopvp",       		"Олимпиада", 					"Пройти состязание менее чем за 5 минут"),
+    ReachSpawn              ('f',	Material.ENDER_PEARL,		"newbie",       	"Добраться до Спавна", 			"Нажмите на Гаста для перемещения на спавн"),//+при входе в зону спавн
+    MiniRace                ('g',	Material.TURTLE_HELMET,		"nopvp",       		"Олимпиада", 					"Пройти состязание менее чем за 5 минут"),
     ;
 
 
@@ -30,7 +28,6 @@ public enum Quest {
     public final String attachedArea;
     public final String displayName;
     public final String description;
-    private static final Map<Character,Quest> codeMap;
     
     
     private Quest (final char code, final Material icon, final String attachedArea, final String displayName, final String description) {
@@ -41,6 +38,7 @@ public enum Quest {
         this.description = description;
     }
     
+    private static final Map<Character,Quest> codeMap;
     static {
         Map<Character,Quest> im = new ConcurrentHashMap<>();
         for (final Quest d : Quest.values()) {

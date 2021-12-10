@@ -54,15 +54,8 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-
-import eu.endercentral.crazy_advancements.JSONMessage;
 import eu.endercentral.crazy_advancements.NameKey;
 import eu.endercentral.crazy_advancements.advancement.Advancement;
-import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay;
-import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay.AdvancementFrame;
-import eu.endercentral.crazy_advancements.advancement.AdvancementFlag;
-import eu.endercentral.crazy_advancements.advancement.AdvancementVisibility;
-import eu.endercentral.crazy_advancements.advancement.criteria.Criteria;
 import eu.endercentral.crazy_advancements.manager.AdvancementManager;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.TextComponent;
@@ -79,7 +72,6 @@ import ru.ostrov77.lobby.area.PlateManager;
 import ru.ostrov77.lobby.newbie.NewBie;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestAdvance;
-import ru.ostrov77.lobby.quest.QuestManager;
 
 
 

@@ -11,12 +11,13 @@ public enum Quest {
     //ИД локаций
     
     
-    DiscoverAllArea         ('a',   "",                 "Открыть все локации"),
-    UsePandora              ('b',   "pandora",          "Открыть шкатулку Пандоры"),
-    OpenTreassureChest      ('c',   "treassureChest",   "Открыть сундук сокровищ"),
-    GreetNewBie             ('d',   "spawn",            "Поприветствовать новичка (ПКМ на новичка)"),
-    SpeakWithNPC            ('e',   "newbie",           "Разговорить лоцмана"),
-    ReachSpawn              ('f',   "newbie",           "Добраться до спавна"),
+    DiscoverAllArea         ('a',   "",             "Открыть все локации"),
+    UsePandora              ('p',   "pandora",      "Открыть шкатулку Пандоры"),
+    OpenTreassureChest      ('c',   "chest",   		"Открыть сундук сокровищ"),
+    GreetNewBie             ('s',   "spawn",        "Поприветствовать новичка (ПКМ на новичка)"),
+    SpeakWithNPC            ('e',   "newbie",       "Разговорить лоцмана"),
+    ReachSpawn              ('f',   "newbie",       "Добраться до спавна"),
+    MiniRace              	('r',   "nopvp",       	"Пройти состязание менее чем за 5 минут"),
     ;
 
 
@@ -48,10 +49,11 @@ public enum Quest {
     
     public static EnumSet<Quest> getAreaQuest(final String cuboidName) {
         final EnumSet<Quest> areaQuest = EnumSet.noneOf(Quest.class);
-        for (Quest q : Quest.values()) {
+        for (final Quest q : Quest.values()) {
             if (q.attachedArea.equals(cuboidName)) {
                 areaQuest.add(q);
             }
         }
         return areaQuest;
-    }}
+    }
+}

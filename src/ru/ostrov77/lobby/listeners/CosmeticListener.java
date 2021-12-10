@@ -10,7 +10,7 @@ import ru.ostrov77.lobby.quest.QuestManager;
 import sv.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
 
 
-public class CosmeticListener implements Listener{
+public class CosmeticListener implements Listener {
  
     
     //https://github.com/File14/ProCosmetics/wiki/API

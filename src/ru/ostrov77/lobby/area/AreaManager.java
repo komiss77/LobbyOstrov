@@ -13,20 +13,19 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.quest.QuestManager;
 
 
 public class AreaManager {
     
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
+    public static final Map<String,Integer>racePlayers = new HashMap<>();
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
@@ -79,7 +78,7 @@ public class AreaManager {
     }
     
     public AreaManager () {
-        
+
         chunkContetnt = new HashMap<>();
         cuboids = new HashMap<>();
         areaConfig = Main.configManager.getNewConfig("area.yml");
@@ -116,9 +115,21 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
+                    //чек если игрок проходит состязание
+                    final Integer time = racePlayers.get(p.getName());
+                    if (time != null) {
+                    	if (time > 300) {
+                			p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!");
+                			racePlayers.remove(p.getName());
+                    	} else {
+                    		racePlayers.replace(p.getName(), time + 1);
+                        	//scoreboard время??
+                    		
+						}
+                    }
+                    
                     lp = Main.getLobbyPlayer(p);
                     currentCuboidId = getCuboidId(p.getLocation());
-                    lp = Main.getLobbyPlayer(p);
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
                         
                         if (currentCuboidId==0) { //вышел из кубоида в пространство

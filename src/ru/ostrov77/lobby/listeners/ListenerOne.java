@@ -101,7 +101,11 @@ public class ListenerOne implements Listener {
 				return;
 		    }
 		    Timer.add(p, "portal", 5);
-			p.performCommand("server " + n);
+                        if (n!=null) {
+                            p.performCommand("server " + n);
+                        } else {
+                            Ostrov.log_err("onPrtl n=null , чекайте почему!");
+                        }
 		}
 	}
     

@@ -45,7 +45,7 @@ public class QuestAdvance {
                                 } catch (Exception ex) {
                                         adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
                                 }
-                                p.sendMessage("§eСоздано!");
+p.sendMessage("§8log: QuestAdvanceСоздано!");
                         }, 10);
                 }, 10);
         }

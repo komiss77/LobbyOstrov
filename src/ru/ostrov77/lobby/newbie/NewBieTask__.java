@@ -13,7 +13,7 @@ import ru.komiss77.modules.player.PM;
 import ru.ostrov77.lobby.Main;
 
 
-public class NewBieTask implements Runnable {
+public class NewBieTask__ implements Runnable {
     
     private final BukkitTask task;
     protected int tick;
@@ -24,11 +24,11 @@ public class NewBieTask implements Runnable {
     
     //private static final List<String>scoreAmin = Arrays.asList("§bПолучено задание", "§eПолучено задание");
     
-    public NewBieTask  (final Player p) {
+    public NewBieTask__  (final Player p) {
         name = p.getName();
         op = PM.getOplayer(p);
         //op.hideScore();
-        task = Bukkit.getScheduler().runTaskTimer(Main.instance, NewBieTask.this, 1, 1);
+        task = Bukkit.getScheduler().runTaskTimer(Main.instance, NewBieTask__.this, 1, 1);
         //NewBie.tasks.put(name, NewBieTask.this);
         p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
         //p.setGameMode(GameMode.SPECTATOR);  //только спектатор! или может выкл полёт и падать

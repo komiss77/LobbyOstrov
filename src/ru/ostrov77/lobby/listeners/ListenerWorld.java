@@ -55,19 +55,22 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.TextComponent;
 import net.minecraft.core.BaseBlockPosition;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.PlateManager;
-import ru.ostrov77.lobby.newbie.NewBie;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestAdvance;
 
@@ -82,7 +85,7 @@ public class ListenerWorld implements Listener {
 	private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onPrtl(final EntityPortalEnterEvent e) {
+	public void onEntityPortalEnter(final EntityPortalEnterEvent e) {
 		if (e.getEntityType() == EntityType.PLAYER && !Main.prts.isEmpty()) {
 			final Location loc = e.getLocation();
 			int d = Integer.MAX_VALUE;
@@ -99,11 +102,12 @@ public class ListenerWorld implements Listener {
 				return;
 		    }
 		    Timer.add(p, "portal", 5);
-                        if (n!=null) {
+Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
+                        //if (n!=null) {
                             p.performCommand("server " + n);
-                        } else {
-                            Ostrov.log_err("onPrtl n=null , чекайте почему!");
-                        }
+                        //} else {
+                        //    Ostrov.log_err("onPrtl n=null , чекайте почему!");
+                        //}
 		}
 	}
     
@@ -185,16 +189,23 @@ public class ListenerWorld implements Listener {
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
         Ostrov.sync(()-> {
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-                lp.setFlag(LobbyFlag.NewBieDone, true);
-                NewBie.start(p, 0);
+                //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
+                //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
+                //NewBie.start(p, 0);
+                PM.getOplayer(p).hideScore();
+                p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
+                p.setCollidable(false);
+                Main.oscom.give(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BarColor.PINK, BarStyle.SOLID, false);
             } else {
                 Main.giveItems(p);
                 final Location logoutLoc = LocationUtil.LocFromString(logoutLocString);
                 if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
-    ApiOstrov.sendActionBarDirect(p, "log: тп на точку выхода");
+    ApiOstrov.sendActionBarDirect(p, "§8log: тп на точку выхода");
                 } else {
                     p.teleport(Main.spawnLocation);
-    ApiOstrov.sendActionBarDirect(p, "log: точка выхода опасна, тп на спавн");
+    ApiOstrov.sendActionBarDirect(p, "§8log: точка выхода опасна, тп на спавн");
                 }
             }
         }, 0);        
@@ -206,7 +217,7 @@ public class ListenerWorld implements Listener {
     @EventHandler (priority = EventPriority.NORMAL)
     public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
-        NewBie.stop(p);
+        //NewBie__.stop(p);
         final LobbyPlayer lp = Main.destroyLobbyPlayer(p.getName());
         if (lp!=null) {
             final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
@@ -230,16 +241,16 @@ public class ListenerWorld implements Listener {
     
     
     
-    @EventHandler (ignoreCancelled = true)
-    public void onPlayerChat(AsyncChatEvent e) {
-        if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        if (NewBie.hasNewBieTask(e.getPlayer())) {
+   // @EventHandler (ignoreCancelled = true)
+   // public void onPlayerChat(AsyncChatEvent e) {
+      //  if (!e.getPlayer().getWorld().getName().equals("world")) return;
+       // if (NewBie__.hasNewBieTask(e.getPlayer())) {
             
-        }
+        //}
         //e.setCancelled(true);
         //e.viewers().clear();
         //e.getPlayer().sendMessage("§6Для пропуска интро просто перезайдите.");
-    }      
+   // }      
     
     
     
@@ -454,7 +465,17 @@ public class ListenerWorld implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onPlayerInteractAtEntityEvent(final PlayerInteractAtEntityEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
+        final Player p = e.getPlayer();
+        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(p) ) {
+            e.setCancelled(true);
+        }
+        if (e.getRightClicked().getType()==EntityType.PLAYER) {
+            final LobbyPlayer lp = Main.getLobbyPlayer(p);
+            final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
+            if (lp!=null && clickedLp!=null) {
+p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!lp.hasFlag(LobbyFlag.NewBieDone));
+            }
+        }
     }
 
 

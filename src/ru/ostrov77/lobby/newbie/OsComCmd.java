@@ -13,17 +13,16 @@ import org.bukkit.event.inventory.InventoryType;
 
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
-import ru.ostrov77.lobby.FlagsDebug;
+import ru.ostrov77.lobby.DebugMenu;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.quest.QuestViewMenu;
-import sv.file14.procosmetics.api.ProCosmeticsAPI;
 
 
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList("newbieTest", "newbieMenu", "flagdebug", "ghast", "quest", "area");
+    private final List <String> subCommands = Arrays.asList(  "debug", "ghast", "quest", "area");
 
         
         
@@ -60,7 +59,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             
             switch (arg[0]) {
                 
-                case "newbieTest":
+              /*  case "newbieTest":
                     if (NewBie.hasNewBieTask(p)) {
                         p.sendMessage("§cВы уже в процессе!");
                         return true;
@@ -77,24 +76,22 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     } else {
                         NewBie.start(p, 0);
                     }
+                    return true;*/
                     
-                    //p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
-                    return true;
-                    
-                case "flagdebug":
+                case "debug":
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
                         SmartInventory
                             .builder()
                             .id("flags"+p.getName())
-                            .provider(new FlagsDebug())
-                            .size(6, 9)
-                            .title("флаги лобби")
+                            .provider(new DebugMenu())
+                            .size(3, 9)
+                            .title("меню отладки")
                             .build()
                             .open(p);
                     }
                     return true;
                     
-                case "newbieMenu":
+              /*  case "newbieMenu":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {
                     SmartInventory.builder()
                         .type(InventoryType.HOPPER)
@@ -104,7 +101,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         .build()
                         .open(p);
                         //}
-                    return true;
+                    return true;*/
                     
                case "quest":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {

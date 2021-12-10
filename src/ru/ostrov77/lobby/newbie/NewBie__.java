@@ -14,9 +14,9 @@ import ru.ostrov77.lobby.Main;
 
 
 
-public class NewBie implements Listener {
-    
-    private static final Map <String,NewBieTask> tasks = new HashMap<>();
+public class NewBie__ implements Listener {
+  /*  
+    private static final Map <String,NewBieTask__> tasks = new HashMap<>();
     //protected static final ItemStack clock = new ItemBuilder(Material.CLOCK).name("§aОсКом").lore("временный коммуникатор").build();
 
     public NewBie () {
@@ -33,7 +33,7 @@ public class NewBie implements Listener {
             //tasks.remove(p.getName()); //удалится само в NewBieTask
         //}
 
-        NewBieTask nbt =  new NewBieTask(p); //добавится само в NewBieTask
+        NewBieTask__ nbt =  new NewBieTask__(p); //добавится само в NewBieTask
         /*switch (stage) {
             case 1: 
                 nbt.tick = 0;
@@ -49,7 +49,7 @@ public class NewBie implements Listener {
                 break;
             default:
                 break;
-        }*/
+        }/
         tasks.put(p.getName(),nbt);
     
     }
@@ -120,7 +120,7 @@ p.sendMessage("§6Интро не было запущено.");
     }
 
     
-    
+    */
 
     
     

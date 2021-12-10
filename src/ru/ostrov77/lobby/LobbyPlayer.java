@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
+import ru.komiss77.utils.DonatEffect;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -60,9 +61,10 @@ public class LobbyPlayer {
         boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questDone.add(quest)) {
             change = true;
-p.sendMessage("log: завершен квест "+Quest.DiscoverAllArea.displayName);
+p.sendMessage("§8log: завершен квест "+Quest.DiscoverAllArea.displayName);
+            DonatEffect.spawnRandomFirework(p.getLocation());
         } else {
-p.sendMessage("log: квест "+quest+" уже завершен, игнор.");
+p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
         }
         if (change) {
             saveQuest();

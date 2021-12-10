@@ -26,9 +26,10 @@ import ru.ostrov77.lobby.quest.QuestAdvance;
 
 public class AreaManager {
     
+    public static final Map<String,Integer>racePlayers = new HashMap<>();
+    
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
-    public static final Map<String,Integer>racePlayers = new HashMap<>();
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
@@ -103,8 +104,10 @@ public class AreaManager {
             }
         }
         
-        //подгрузка вчивок
-        if (Main.advancements) QuestAdvance.loadQuestAdv();
+        //подгрузка ачивок
+        if (Main.advancements) {
+            QuestAdvance.loadQuestAdv();
+        }
        
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();
@@ -121,6 +124,9 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
+                    if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                                                        //причём в QuestManager так нельзя, или не детектит вход новичка!
+                    
                     //чек если игрок проходит состязание
                     final Integer time = racePlayers.get(p.getName());
                     if (time != null) {
@@ -130,12 +136,12 @@ public class AreaManager {
                     	} else {
                     		racePlayers.replace(p.getName(), time + 1);
                         	//scoreboard время??
-                    		
-						}
+                        }
                     }
                     
                     lp = Main.getLobbyPlayer(p);
                     currentCuboidId = getCuboidId(p.getLocation());
+                    
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
                         
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
@@ -154,9 +160,6 @@ public class AreaManager {
                                 Ostrov.sync(()-> {
                                     Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
                                     lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
                                 }, 0);
                                 
                             }
@@ -171,27 +174,7 @@ public class AreaManager {
                                     lp.cuboidEntryTime = Timer.getTime();
                                 }
                             }, 0);
-                            
-                           /* if (previos!=null && current!=null) { //сработало при удалении? тогда вызваем по отдельности
-//ApiOstrov.sendActionBar(p, "перешел из кубоида "+(previos==null ? "" : previos.displayName)+" в "+(current==null ? "" : current.displayName));
-                                Ostrov.sync(()-> {
-                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
-                                    lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
-                                }, 0);
-                            } else if (current!=null) {
-                                Ostrov.sync(()-> {
-                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
-                                    lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
-                                }, 0);
-                            } else if (previos!=null) {
-                                Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
-                            }*/
+
                         }
                         
                         lp.lastCuboidId = currentCuboidId;

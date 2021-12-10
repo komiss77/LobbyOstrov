@@ -4,7 +4,7 @@ package ru.ostrov77.lobby;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.newbie.OsComCmd;
-import ru.ostrov77.lobby.newbie.NewBie;
+import ru.ostrov77.lobby.newbie.NewBie__;
 import net.minecraft.core.BaseBlockPosition;
 
 import java.io.File;
@@ -35,6 +35,7 @@ import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.PlateManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
+import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
     
@@ -96,7 +97,7 @@ public class Main extends JavaPlugin {
         spawnLocation = new Location(world, .5, 100, .5, 0, 0);
         
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
-        getServer().getPluginManager().registerEvents(new NewBie(), instance);
+        getServer().getPluginManager().registerEvents(new NewBie__(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         advancements =  Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null ;
@@ -180,6 +181,10 @@ public class Main extends JavaPlugin {
     
     public static LobbyPlayer getLobbyPlayer(final Player p) {
         return lobbyPlayers.get(p.getName());
+    }  
+    
+    public static LobbyPlayer getLobbyPlayer(final String name) {
+        return lobbyPlayers.get(name);
     }
     
     public static LobbyPlayer destroyLobbyPlayer(final String name) {
@@ -198,8 +203,12 @@ public class Main extends JavaPlugin {
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
         oscom.give(p);
-        cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
-        pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+        if (lp.questDone.contains(Quest.LeavePandora)) {
+            cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
+        }
+        if (lp.questDone.contains(Quest.GreetNewBie)) {
+            pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+        }
         p.updateInventory();
         PM.getOplayer(p).showScore();
     }

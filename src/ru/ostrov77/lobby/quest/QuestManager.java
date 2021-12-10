@@ -12,7 +12,9 @@ import ru.komiss77.Ostrov;
 import ru.komiss77.enums.StatFlag;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
+import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
@@ -21,12 +23,12 @@ import ru.ostrov77.lobby.event.CuboidEvent;
 public class QuestManager implements Listener {
 
     public static void sound(final Player p) {
-        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 2);
+        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
         Ostrov.async(()-> {
             if (p.isOnline()) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 2);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1,  0.5f);
             }
-        }, 10);
+        }, 5);
     }
 
 
@@ -34,6 +36,7 @@ public class QuestManager implements Listener {
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
     @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
+       
         
     	if (e.current == null) {
             ApiOstrov.sendActionBar(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
@@ -42,7 +45,7 @@ public class QuestManager implements Listener {
             
             ApiOstrov.sendActionBar(e.p, "§7§l⟣ " + e.current.displayName + " §7§l⟢");
             if (!e.lp.isAreaDiscovered(e.current.id)) {
-                QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
+                onNewAreaDiscover(e.p, e.lp, e.current);
             }
                 
             if (e.current.name.equals("start")) {
@@ -65,21 +68,21 @@ public class QuestManager implements Listener {
     	
         
        /* if (e.current!=null && e.previos!=null) {
-        	ApiOstrov.sendActionBar(e.p, "log: перешел из кубоида "+e.previos.displayName+" в "+e.current.displayName+", вход:"+e.previosEntryTime+", пробыл:"+(Timer.getTime()-e.previosEntryTime));
+        	ApiOstrov.sendActionBar(e.p, "§8log: перешел из кубоида "+e.previos.displayName+" в "+e.current.displayName+", вход:"+e.previosEntryTime+", пробыл:"+(Timer.getTime()-e.previosEntryTime));
             if (!e.lp.isAreaDiscovered(e.current.id)) {
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
             }
         } else if (e.previos!=null) {
-        	ApiOstrov.sendActionBar(e.p, "log: вышел из кубоида "+e.previos.displayName+", вход:"+e.previosEntryTime+", пробыл:"+(Timer.getTime()-e.previosEntryTime));
+        	ApiOstrov.sendActionBar(e.p, "§8log: вышел из кубоида "+e.previos.displayName+", вход:"+e.previosEntryTime+", пробыл:"+(Timer.getTime()-e.previosEntryTime));
         } else if (e.current!=null) {
-        	ApiOstrov.sendActionBar(e.p, "log: вошел в кубоид "+e.current.displayName);
+        	ApiOstrov.sendActionBar(e.p, "§8log: вошел в кубоид "+e.current.displayName);
             if (!e.lp.isAreaDiscovered(e.current.id)) {
                 QuestManager.onNewAreaDiscover(e.p, e.lp, e.current);
             }
         }*/
         
         if (e.previos!=null && e.previos.name.equals("pandora")) { //вышел из локации пандора - значит мог её использовать
-            checkQuest(e.p, e.lp, Quest.UsePandora);
+            checkQuest(e.p, e.lp, Quest.LeavePandora);
         }
         
     }
@@ -88,8 +91,25 @@ public class QuestManager implements Listener {
     
     //SYNC !!!
     public static void onNewAreaDiscover(final Player p, final LobbyPlayer lp, final LCuboid cuboid) {
-        sound(p);
-        ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
+        
+       if (lp.hasFlag(LobbyFlag.NewBieDone)) { //уже не новичёк
+            //if (cuboid.name.equals("newbie")) { //старичкам на спавне новичков ничего не даётся - он итак будет в уже изученных
+            //    return;
+            //}
+            checkQuest(p, lp, Quest.DiscoverAllArea);
+            
+       } else {  //новичёк - пока не откроет спавн, другие не давать
+           
+            if (cuboid.name.equals("newbie")) { //для кубоида новичков даём первые задания ниже
+                //
+            } else if (cuboid.name.equals("spawn")) { //новичёк дошел до спавна
+                checkQuest(p, lp, Quest.ReachSpawn);
+            } else { //на остальные кубоиды новичёк не реагирует
+                return;
+            }
+            
+         }
+       
         lp.setAreaDiscovered(cuboid.id);
         
         final EnumSet<Quest> areaQuest = Quest.getAreaQuest(cuboid.name);
@@ -98,7 +118,8 @@ public class QuestManager implements Listener {
             for (Quest q : areaQuest) {
                 if (!lp.questDone.contains(q) && lp.questAccept.add(q)) { //это задание ранее не выполнено и уже не было получено ранее
                     save = true;
-                    p.sendMessage("log: +новое задание с открытием зоны "+cuboid.name+" : "+q.displayName);
+                    ApiOstrov.sendTitleDelay(p, "§7Квест:", q.displayName, 20, 40, 20);
+p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.name+" : "+q.displayName);
                 }
             }
         }
@@ -106,11 +127,9 @@ public class QuestManager implements Listener {
             lp.saveQuest();
         }
         
-        checkQuest(p, lp, Quest.DiscoverAllArea);
+        ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
+        sound(p);
         
-        if (cuboid.name.equals("spawn")) {
-            checkQuest(p, lp, Quest.ReachSpawn);
-        }
     }
 
     
@@ -144,14 +163,14 @@ public class QuestManager implements Listener {
     public static boolean checkQuest (final Player p, final LobbyPlayer lp, final Quest quest) {
         
         if (lp.questDone.contains(quest)) {
-        	p.sendMessage("log: checkQuest "+quest+" - уже выполнен; return ");
+        	p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
             return false;
         }
         if (!lp.questAccept.contains(quest)) {
-p.sendMessage("log: checkQuest "+quest+" - не был получен; return ");
+p.sendMessage("§8log: checkQuest "+quest+" - не был получен; return ");
             return false;
         }
-p.sendMessage("log: checkQuest "+quest);
+p.sendMessage("§8log: checkQuest "+quest);
         final Oplayer op = PM.getOplayer(p);
         
         
@@ -166,24 +185,32 @@ p.sendMessage("log: checkQuest "+quest);
                 if (discoverCount>=AreaManager.getCuboidIds().size()) {
                     lp.questDone(p, quest);
                 } else {
-                	p.sendMessage("log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
+                	p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
                 }
                 break;
                 
-            case UsePandora: //будет вызвано при выходе из кубоида пандоры
-                if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана
+            case LeavePandora: //будет вызвано при выходе из кубоида пандоры
+                if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
                     lp.questDone(p, quest);
+                    Main.cosmeticMenu.give(p);
                 } else {
-p.sendMessage("log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
+p.sendMessage("§8log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
                 }
                 break;
                 
                 
             case ReachSpawn: //сработает при входе в зону спавн
+                lp.setFlag(LobbyFlag.NewBieDone, true);
                 lp.questDone(p, quest);
-                if (lp.questAccept.contains(Quest.SpeakWithNPC)) {//выключить задания новичка
+                //if (lp.questAccept.contains(Quest.SpeakWithNPC)) {//выключить задания новичка
                     lp.questDone(p, Quest.SpeakWithNPC);
-                }
+                    lp.questDone(p, Quest.openQuestMenu);
+                //}
+                break;
+                
+            case GreetNewBie:
+                lp.questDone(p, quest);
+                Main.pipboy.give(p);
                 break;
         }
         

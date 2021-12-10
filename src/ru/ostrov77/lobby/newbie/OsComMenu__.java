@@ -10,10 +10,10 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 
 
 
-public class OsComMenu implements InventoryProvider {
+public class OsComMenu__ implements InventoryProvider {
     
     
-    public OsComMenu() {
+    public OsComMenu__() {
     }
     
     
@@ -61,7 +61,7 @@ public class OsComMenu implements InventoryProvider {
             .lore("")
             .build(), e -> {
                 p.closeInventory();
-                NewBie.stop(p);
+                //NewBie.stop(p);
 
             }
         ));

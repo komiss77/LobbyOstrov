@@ -54,9 +54,7 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import eu.endercentral.crazy_advancements.NameKey;
-import eu.endercentral.crazy_advancements.advancement.Advancement;
-import eu.endercentral.crazy_advancements.manager.AdvancementManager;
+
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.TextComponent;
 import net.minecraft.core.BaseBlockPosition;
@@ -77,7 +75,7 @@ import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 
-public class ListenerOne implements Listener {
+public class ListenerWorld implements Listener {
     
     
 	
@@ -175,24 +173,11 @@ public class ListenerOne implements Listener {
             }
             
         }, 0);
+        
+        if (Main.advancements) {
+            QuestAdvance.load(p);
+        }
 
-		Ostrov.sync(() -> {
-			final AdvancementManager adm = new AdvancementManager(new NameKey("pls"), p);
-			adm.addAdvancement(QuestAdvance.adm.toArray(new Advancement[0]));
-			try {
-				adm.loadProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
-			} catch (Exception ex) {
-				adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
-			}
-			Ostrov.sync(() -> {
-				try {
-					adm.saveProgress(p, adm.getAdvancements().toArray(new Advancement[0]));
-				} catch (Exception ex) {
-					adm.createNewSave(p, adm.getAdvancements().toArray(new Advancement[0]));
-				}
-				p.sendMessage("§eСоздано!");
-			}, 10);
-		}, 10);
     }
     
     

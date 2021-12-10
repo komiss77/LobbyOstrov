@@ -1,5 +1,5 @@
 package lbb.Romindous;
-
+/*
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ DA - a,6
 AK - 9,e
 PVP - c,6
 PVE - e,
-*/
+*
 
 public class Rom {
 	
@@ -153,7 +153,6 @@ public class Rom {
 		return false;
 	}
 	
-	/*public static String OCPrfx() {
-		return "§6[§eОстров§6] ";
-	}*/
+
 }
+*/

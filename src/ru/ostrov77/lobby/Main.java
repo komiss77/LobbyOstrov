@@ -1,7 +1,7 @@
 package ru.ostrov77.lobby;
 
 
-import ru.ostrov77.lobby.listeners.ListenerOne;
+import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.newbie.OsComCmd;
 import ru.ostrov77.lobby.newbie.NewBie;
@@ -68,6 +68,8 @@ public class Main extends JavaPlugin {
     public static MenuItem cosmeticMenu;
     public static MenuItem elytra;
     
+    public static boolean advancements = false;
+    
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     
     public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
@@ -93,10 +95,11 @@ public class Main extends JavaPlugin {
         newBieSpawnLocation = new Location(world, 30.5, 160, 50.5, 0, 0);
         spawnLocation = new Location(world, .5, 100, .5, 0, 0);
         
-        getServer().getPluginManager().registerEvents(new ListenerOne(), instance);
+        getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
         getServer().getPluginManager().registerEvents(new NewBie(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
+        advancements =  Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null ;
         
         areaManager = new AreaManager();
         questManager = new QuestManager();

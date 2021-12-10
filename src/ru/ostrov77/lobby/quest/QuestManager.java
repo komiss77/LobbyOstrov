@@ -9,7 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
-import ru.komiss77.Timer;
 import ru.komiss77.enums.StatFlag;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
@@ -37,7 +36,7 @@ public class QuestManager implements Listener {
     public static void onCuboidEvent(final CuboidEvent e) {
         
     	if (e.current == null) {
-            ApiOstrov.sendActionBar(e.p, "§7§l⟣ &3&lАрхипелаг §7§l⟢");
+            ApiOstrov.sendActionBar(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
     		
     	} else {
             

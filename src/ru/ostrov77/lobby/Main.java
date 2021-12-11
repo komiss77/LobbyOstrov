@@ -4,13 +4,10 @@ package ru.ostrov77.lobby;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.newbie.OsComCmd;
-import ru.ostrov77.lobby.newbie.NewBie__;
-import net.minecraft.core.BaseBlockPosition;
-
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -19,8 +16,6 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,10 +26,11 @@ import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.PlateManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
+import ru.ostrov77.lobby.listeners.QuestAdvance;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -73,8 +69,12 @@ public class Main extends JavaPlugin {
     
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     
-    public static final HashMap<BaseBlockPosition, String> prts = new HashMap<BaseBlockPosition, String>();//порталы по типу точка портала : сервер
+    private static OstrovConfig serverPortalsConfig;
+    
+    public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
     public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+
+
 
     
     
@@ -86,6 +86,7 @@ public class Main extends JavaPlugin {
 
         instance = this;
         configManager = new OstrovConfigManager(this);
+        
         final World world = Bukkit.getWorld("world");
         if (world==null) {
             Ostrov.log_err("LobbyOstrov - world недоступен! офф..");
@@ -93,14 +94,21 @@ public class Main extends JavaPlugin {
             return;
         }
 
+        serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
+        
         newBieSpawnLocation = new Location(world, 30.5, 160, 50.5, 0, 0);
         spawnLocation = new Location(world, .5, 100, .5, 0, 0);
         
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
-        getServer().getPluginManager().registerEvents(new NewBie__(), instance);
+        //getServer().getPluginManager().registerEvents(new NewBie__(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
-        if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
-        advancements =  Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null ;
+        if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
+            getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
+        }
+        if ( Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
+            advancements =  true;
+            getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
+        }
         
         areaManager = new AreaManager();
         questManager = new QuestManager();
@@ -127,46 +135,91 @@ public class Main extends JavaPlugin {
     
     
     
+    
+    
+    
+    
+    public static void savePortals() {
+        final List<String>list = new ArrayList<>();
+        for ( Map.Entry<XYZ, String> entry : Main.serverPortals.entrySet()) {
+            list.add(entry.getKey().toString()+","+entry.getValue());
+
+        }
+        Main.serverPortalsConfig.set("portalData", list);
+        Main.serverPortalsConfig.saveConfig();   
+    }  
+    
+    
     public static void loadCfgs() {
-		prts.clear();
-		PlateManager.plts.clear();
-		File file = new File(instance.getDataFolder() + File.separator + "config.yml");
-		//System.out.println("----------------- loadCfgs exist?"+file.exists());
-        if (file.exists()) {
-    		final FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-    		if (cfg.isConfigurationSection("prtls")) {
-    			final String[] xs = cfg.getString("prtls.x").split(":");
-    			final String[] ys = cfg.getString("prtls.y").split(":");
-    			final String[] zs = cfg.getString("prtls.z").split(":");
-    			final String[] ss = cfg.getString("prtls.s").split(":");
-    			for (int i = xs.length - 1; i >= 0; i--) {
-    				prts.put(new BaseBlockPosition(Integer.parseInt(xs[i]), Integer.parseInt(ys[i]), Integer.parseInt(zs[i])), ss[i]);
-    			}
-    		}
-    		if (cfg.isConfigurationSection("plts")) {
+        
+        serverPortals.clear();
+        
+        if (serverPortalsConfig.getStringList("portalData")!=null) {
+            for (final String portalData : serverPortalsConfig.getStringList("portalData")) {
+                final XYZ xyz = XYZ.fromString(portalData);
+                if (xyz!=null) {
+//System.out.println("=== portalData="+portalData+" serv=>"+portalData.replace(xyz.toString(), "")+"<");
+                    serverPortals.put(xyz, portalData.substring(portalData.lastIndexOf(",")+1));
+                }
+            }
+        }
+        //платы грузятся в AreaManager
+        
+        //PlateManager.plts.clear();
+        //File file = new File(instance.getDataFolder() + File.separator + "config.yml");
+       // //System.out.println("----------------- loadCfgs exist?"+file.exists());
+      //  if (file.exists()) {
+    	//	final FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+                
+//КОНВЕСИЯ  порталов       
+/*if (cfg.isConfigurationSection("prtls")) {
+        final String[] xs = cfg.getString("prtls.x").split(":");
+        final String[] ys = cfg.getString("prtls.y").split(":");
+        final String[] zs = cfg.getString("prtls.z").split(":");
+        final String[] ss = cfg.getString("prtls.s").split(":");
+        for (int i = xs.length - 1; i >= 0; i--) {
+                //prts.put(new BaseBlockPosition(Integer.parseInt(xs[i]), Integer.parseInt(ys[i]), Integer.parseInt(zs[i])), ss[i]);
+                final XYZ xyzw= new XYZ ("world",Integer.parseInt(xs[i]), Integer.parseInt(ys[i]), Integer.parseInt(zs[i]));
+                serverPortals.put(xyzw, ss[i]);
+        }
+savePortals();
+}*/
+            
+//КОНВЕСИЯ  плат
+    		/*if (cfg.isConfigurationSection("plts")) {
     			final String[] bxs = cfg.getString("plts.bx").split(":");
     			final String[] bys = cfg.getString("plts.by").split(":");
     			final String[] bzs = cfg.getString("plts.bz").split(":");
     			final String[] exs = cfg.getString("plts.ex").split(":");
     			final String[] eys = cfg.getString("plts.ey").split(":");
     			final String[] ezs = cfg.getString("plts.ez").split(":");
+                        
     			for (int i = bxs.length - 1; i >= 0; i--) {
-    				PlateManager.plts.put(new BaseBlockPosition(Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i])), 
-    				new BaseBlockPosition(Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i])));
+                            
+                            final XYZ first = new XYZ("world",Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i]));
+                            final XYZ second = new XYZ("world",Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i]));
+                            final int cLoc = getcLoc(first);
+                            final ChunkContent cc = getChunkContent(cLoc, true);
+                            cc.addPlate(first, second);
+                            AreaManager.savePlate(first, second);
+    				//PlateManager.plts.put(new BaseBlockPosition(Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i])), 
+    				//new BaseBlockPosition(Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i])));
+                                
+                                
     			}
     			PlateManager.strtPlts();
     		}
-        } else {
+                
+      //  } else {
         	Bukkit.getServer().getConsoleSender().sendMessage("§6Config для Lobby не найден, делаем новый...");
     		instance.getConfig().options().copyDefaults(true);
     		try {
-				instance.getConfig().save(file);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-        }
+                        instance.getConfig().save(file);
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+      //  }*/
     }
-    
     
     
     

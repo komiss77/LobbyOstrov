@@ -18,6 +18,7 @@ public class CosmeticListener implements Listener {
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTreassure (final PlayerOpenTreasureEvent e) {
         final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
+e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (lp!=null) {
             QuestManager.checkQuest(e.getPlayer(), lp, Quest.OpenTreassureChest);
         }

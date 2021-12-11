@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby.quest;
+package ru.ostrov77.lobby.listeners;
 
 import java.util.HashSet;
 import org.bukkit.Material;
@@ -14,10 +14,12 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
 import eu.endercentral.crazy_advancements.advancement.AdvancementVisibility;
 import eu.endercentral.crazy_advancements.manager.AdvancementManager;
+import org.bukkit.event.Listener;
 import ru.komiss77.Ostrov;
+import ru.ostrov77.lobby.quest.Quest;
 
 
-public class QuestAdvance {
+public class QuestAdvance implements Listener{
 
 	public static final HashSet<Advancement> adm = new HashSet<>();
 

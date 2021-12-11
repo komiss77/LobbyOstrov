@@ -15,12 +15,12 @@ import org.bukkit.util.Vector;
 
 import net.minecraft.core.BaseBlockPosition;
 import ru.ostrov77.lobby.Main;
-
+/*
 public class PlateManager {
 	
-	public static BukkitTask playerPlateTask;
-    public static final HashMap<BaseBlockPosition, BaseBlockPosition> plts = new HashMap<BaseBlockPosition, BaseBlockPosition>();//плиты по типу точка начала : точка конца
-	public static final HashMap<Player, BaseBlockPosition> tps = new HashMap<Player, BaseBlockPosition>();//плиты по типу игрок : точка прибытия
+    public static BukkitTask playerPlateTask;
+    //public static final HashMap<BaseBlockPosition, BaseBlockPosition> plts = new HashMap<BaseBlockPosition, BaseBlockPosition>();//плиты по типу точка начала : точка конца
+    public static final HashMap<Player, BaseBlockPosition> tps = new HashMap<Player, BaseBlockPosition>();//плиты по типу игрок : точка прибытия
     
 	public static boolean strtPlts() {
 		playerPlateTask = new BukkitRunnable() {
@@ -54,3 +54,4 @@ public class PlateManager {
 		return true;
 	}
 }
+*/

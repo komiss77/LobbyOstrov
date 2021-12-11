@@ -39,29 +39,32 @@ public class QuestManager implements Listener {
        
         
     	if (e.current == null) {
-            ApiOstrov.sendActionBar(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
+            ApiOstrov.sendActionBarDirect(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
     		
     	} else {
             
-            ApiOstrov.sendActionBar(e.p, "§7§l⟣ " + e.current.displayName + " §7§l⟢");
+            ApiOstrov.sendActionBarDirect(e.p, "§7§l⟣ " + e.current.displayName + " §7§l⟢");
             if (!e.lp.isAreaDiscovered(e.current.id)) {
                 onNewAreaDiscover(e.p, e.lp, e.current);
             }
-                
+            
             if (e.current.name.equals("start")) {
                 if (e.lp.questAccept.contains(Quest.MiniRace)) {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> На старт! Внимание! Вперед!");
-                    AreaManager.racePlayers.putIfAbsent(e.lp.name, 0);
+                    //AreaManager.racePlayers.putIfAbsent(e.lp.name, 0);
+                    e.lp.raceTime = 0;
                 } else if (e.lp.questDone.contains(Quest.MiniRace)) {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> Вы уже участвовали в состязании!");
                 } else {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> Перед началом, возьмите задание у §eИгромана§f!");
                     }
             } else if (e.current.name.equals("end") && e.lp.questAccept.contains(Quest.MiniRace)) {
-                final Integer time = AreaManager.racePlayers.remove(e.lp.name);
-                if (time != null) {
-                        e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + (time / 60) + (time % 60 > 9 ? ":" + time % 60 : ":0" + time % 60));
-                        e.lp.questDone(e.p, Quest.MiniRace);
+                //final Integer time = AreaManager.racePlayers.remove(e.lp.name);
+                if (e.lp.raceTime>0) { //if (time != null) {
+                        //e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + (e.lp.raceTime / 60) + (time % 60 > 9 ? ":" + time % 60 : ":0" + time % 60));
+                        e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.lp.raceTime));
+                        e.lp.raceTime = -1;
+                        e.lp.questDone(e.p, Quest.MiniRace, true);
                 }
             }
         }
@@ -116,10 +119,9 @@ public class QuestManager implements Listener {
         boolean save = false;
         if (!areaQuest.isEmpty()) { //с открытой зоной добавились новые задания
             for (Quest q : areaQuest) {
-                if (!lp.questDone.contains(q) && lp.questAccept.add(q)) { //это задание ранее не выполнено и уже не было получено ранее
-                    save = true;
-                    ApiOstrov.sendTitleDelay(p, "§7Квест:", q.displayName, 20, 40, 20);
+                if (addQuest(p, lp, q)) {
 p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.name+" : "+q.displayName);
+                    save = true;
                 }
             }
         }
@@ -132,8 +134,18 @@ p.sendMessage("§8log: +новое задание с открытием зоны
         
     }
 
-    
-
+    //отдельным методом, т.к. могут добавлять и НПС
+    public static boolean addQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
+        if (!lp.questDone.contains(quest) && lp.questAccept.add(quest)) { //это задание ранее не выполнено и уже не было получено ранее
+            if (Main.advancements) {
+ApiOstrov.sendTitleDelay(p, "", "§7Квест: "+quest.displayName, 20, 40, 20);
+            } else {
+                ApiOstrov.sendTitleDelay(p, "", "§7Квест: "+quest.displayName, 20, 40, 20);
+            }
+            return true;
+        }
+        return false;
+    }
     
     
     
@@ -160,10 +172,12 @@ p.sendMessage("§8log: +новое задание с открытием зоны
     
     
     //может вызываться из ASYNC !!!
+    //по дефолту, задание будет выполнено, если оно было взято и не завершено.
+    //для некоторых можно ставить сври чекающие обработчики
     public static boolean checkQuest (final Player p, final LobbyPlayer lp, final Quest quest) {
         
         if (lp.questDone.contains(quest)) {
-        	p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
+p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
             return false;
         }
         if (!lp.questAccept.contains(quest)) {
@@ -183,39 +197,51 @@ p.sendMessage("§8log: checkQuest "+quest);
                     if (lp.isAreaDiscovered(id)) discoverCount++;
                 }
                 if (discoverCount>=AreaManager.getCuboidIds().size()) {
-                    lp.questDone(p, quest);
+                    lp.questDone(p, quest, true);
+                    return true;
                 } else {
-                	p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
+p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
                 }
-                break;
+                return false;
                 
             case LeavePandora: //будет вызвано при выходе из кубоида пандоры
                 if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
-                    lp.questDone(p, quest);
+                    lp.questDone(p, quest, true);
                     Main.cosmeticMenu.give(p);
+                    return true;
                 } else {
 p.sendMessage("§8log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
                 }
-                break;
+                return false;
                 
                 
             case ReachSpawn: //сработает при входе в зону спавн
-                lp.setFlag(LobbyFlag.NewBieDone, true);
-                lp.questDone(p, quest);
-                //if (lp.questAccept.contains(Quest.SpeakWithNPC)) {//выключить задания новичка
-                    lp.questDone(p, Quest.SpeakWithNPC);
-                    lp.questDone(p, Quest.openQuestMenu);
-                //}
-                break;
+                if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+                    lp.setFlag(LobbyFlag.NewBieDone, true);
+                    lp.questDone(p, Quest.SpeakWithNPC, true);
+                    lp.questDone(p, Quest.SpeakWithNPC, false);
+                    lp.questDone(p, Quest.openQuestMenu, false);
+                    if (PM.exist(p.getName())) {
+                        PM.getOplayer(p).showScore();
+                    }
+                    return true;
+                }
+                return false;
                 
             case GreetNewBie:
-                lp.questDone(p, quest);
+                lp.questDone(p, quest, true);
                 Main.pipboy.give(p);
-                break;
+                return true;
+                
+            default:
+                lp.questDone(p, quest, true);
+                return true;
         }
         
-        return false;
+        //return false;
     }
+
+
 
 
     

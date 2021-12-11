@@ -60,12 +60,12 @@ public class QuestViewMenu implements InventoryProvider {
             
             final ItemStack is = new ItemBuilder(Material.SCUTE)
                     .name(q.displayName)
+                    .lore(Quest.getLore(q))
                     .lore("§aАктивно")
                     .build();
             
-                buttons.add(ClickableItem.of(is, e-> {
+                buttons.add(ClickableItem.empty(is));
                     
-                }));
         }
         
         LCuboid lc;
@@ -78,6 +78,7 @@ public class QuestViewMenu implements InventoryProvider {
                 
                  is = new ItemBuilder(Material.FIRE_CHARGE)
                     .name(q.displayName)
+                    .lore(Quest.getLore(q))
                     .lore("§6Предстоит")
                     .build();
                  
@@ -85,6 +86,7 @@ public class QuestViewMenu implements InventoryProvider {
                 lc = AreaManager.getCuboid(q.attachedArea);
                 is = new ItemBuilder(Material.FIRE_CHARGE)
                     .name(q.displayName)
+                    .lore(Quest.getLore(q))
                     .lore("§6Предстоит")
                     .lore("§7Откроется при изучении локации")
                     .lore(lc==null ? "" : lc.displayName)

@@ -2,22 +2,26 @@ package ru.ostrov77.lobby.quest;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Material;
+import ru.komiss77.utils.ItemUtils;
 
 
 public enum Quest {
     
 
-    DiscoverAllArea         ('a',	Material.COMPASS,		"",             	"Открыть все Локации",			"Исследуйте всю территорию лобби"),//+при входе в новую зону сверяется размер изученных и существующих
-    UsePandora              ('b',	Material.SPONGE,		"spawn",      		"Уйти от Пандоры живым", 	"Испытайте свою удачу в Ра //+при входе в новую зону сверяется размер изученных и существующихзломе Пандоры"),//+ чекается при выходе из кубоида пандоры
-    OpenTreassureChest      ('c',	Material.ENDER_CHEST,		"spawn",   		"Открыть Сундук Сокровищ", 		"Получите примочки из Сундука Сокровищ"), //+по эвенту косметики открытие сундука
-    GreetNewBie             ('d',	Material.QUARTZ,		"spawn",        	"Поприветствовать Новичка", 	"Нажмите ПКМ на нового игрока"),
-    SpeakWithNPC            ('e',	Material.GLOBE_BANNER_PATTERN,	"newbie",       	"Разговорить Лоцмана", 			"Выведайте куда вы прибыли у Лоцмана"),
-    ReachSpawn              ('f',	Material.ENDER_PEARL,		"newbie",       	"Добраться до Спавна", 			"Нажмите на Гаста для перемещения на спавн"),//+при входе в зону спавн
-    MiniRace                ('g',	Material.TURTLE_HELMET,		"nopvp",       		"Олимпиада", 					"Пройти состязание менее чем за 5 минут"),
+    openQuestMenu           ('a',	Material.DEAD_BUSH,	        "newbie",       	"Древо квестов", 			""),
+    SpeakWithNPC            ('b',	Material.GLOBE_BANNER_PATTERN,	"newbie",       	"Разговорить Лоцмана", 			"Выведайте куда вы прибыли у Лоцмана"),
+    ReachSpawn              ('c',	Material.ENDER_PEARL,		"newbie",       	"Добраться до Спавна", 			"Нажмите на Гаста для перемещения на спавн"),//+при входе в зону спавн
+    GhastFly                ('d',	Material.ENDER_PEARL,		"newbie",       	"Оседлать гаста", 			"Один из вариантов добраться до спавна"),//+при входе в зону спавн
+    DiscoverAllArea         ('e',	Material.COMPASS,		"spawn",             	"Открыть все Локации",			"Исследуйте всю территорию лобби"),//+при входе в новую зону сверяется размер изученных и существующих
+    LeavePandora            ('f',	Material.SPONGE,		"pandora",     		"Уйти от Пандоры",               	"Испытайте свою удачу в Разломе Пандоры, и уди живым! Награда: меню индивидуальности"),//+ чекается при выходе из кубоида пандоры
+    OpenTreassureChest      ('g',	Material.ENDER_CHEST,		"chest",   		"Открыть Сундук Сокровищ", 		"Получите чудеса из Сундука Сокровищ"), //+по эвенту косметики открытие сундука
+    GreetNewBie             ('h',	Material.QUARTZ,		"spawn",        	"Поприветствовать Новичка",             "Правй клик на нового игрока и вы станете старым: получите новый коммуникатор!"), //+onPlayerInteractAtEntityEvent
+    MiniRace                ('i',	Material.TURTLE_HELMET,		"nopvp",       		"Олимпиада", 				"Пройти состязание менее чем за 5 минут"),
     ;
 
 
@@ -39,12 +43,21 @@ public enum Quest {
     }
     
     private static final Map<Character,Quest> codeMap;
+    private static final Map<Quest,List<String>> loreMap;
+    
     static {
         Map<Character,Quest> im = new ConcurrentHashMap<>();
+        Map<Quest,List<String>> l = new ConcurrentHashMap<>();
         for (final Quest d : Quest.values()) {
             im.put(d.code,d);
+            l.put(d,ItemUtils.Gen_lore(null, d.description, "§7"));
         }
         codeMap = Collections.unmodifiableMap(im);
+        loreMap = Collections.unmodifiableMap(l);
+    }
+    
+    public static List<String> getLore(final Quest q){
+        return loreMap.get(q);
     }
     
     public static Quest byCode(final char code){

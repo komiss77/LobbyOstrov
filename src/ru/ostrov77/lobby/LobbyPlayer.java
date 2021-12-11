@@ -2,23 +2,32 @@ package ru.ostrov77.lobby;
 
 import java.util.EnumSet;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
+import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.utils.DonatEffect;
 import ru.ostrov77.lobby.quest.Quest;
 
 
 public class LobbyPlayer {
     
     public final String name;
-    private int flags;
-    public int lastCuboidId;
-    private int openedArea;
-    public EnumSet<Quest> questDone;
-    public EnumSet<Quest> questAccept;
+    private int flags; //флаги
+    private int openedArea; //открытые локации
+    public EnumSet<Quest> questDone; //завершенные задания
+    public EnumSet<Quest> questAccept; //текущие задания
     
+    //служебные
+    public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
+    public int raceTime; //таймер гонки
 
+    
+    
+    
+    
     LobbyPlayer(final String name) {
         this.name = name;
         questDone = EnumSet.noneOf(Quest.class);
@@ -37,11 +46,7 @@ public class LobbyPlayer {
         openedArea =(openedArea | (1 << areaId));
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+name+"';");
     }
-    
-    //public LCuboid getCurrentCuboid(final Player p) {
-    //    return AreaManager.getCuboid(p.getLocation());
-    //}
-    
+
     
     
     
@@ -49,20 +54,33 @@ public class LobbyPlayer {
         return (flags & (1 << flag.tag)) == (1 << flag.tag);//return LobbyFlag.hasFlag(flags, flag);
     }
     
-    
     public void setFlag(final LobbyFlag flag, final boolean state) {
         flags = state ? (flags | (1 << flag.tag)) : flags & ~(1 << flag.tag);
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `flags` = '"+flags+"' WHERE `name` = '"+name+"';");
     }
 
     
-    public void questDone(final Player p, final Quest quest) {
+    
+    
+    
+    private static final ChatColor[] colors = new ChatColor[] { ChatColor.DARK_AQUA, ChatColor.GOLD, ChatColor.GRAY, ChatColor.BLUE, ChatColor.GREEN, ChatColor.AQUA, ChatColor.RED, ChatColor.LIGHT_PURPLE, ChatColor.YELLOW };
+    public void questDone(final Player p, final Quest quest, final boolean condratulations) {
         boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questDone.add(quest)) {
             change = true;
-p.sendMessage("log: завершен квест "+Quest.DiscoverAllArea.displayName);
+            if (condratulations) {
+                DonatEffect.spawnRandomFirework(p.getLocation());
+                final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
+                p.sendMessage(" ");
+                p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
+                p.sendMessage(chatColor + quest.displayName );
+                p.sendMessage(chatColor + " Квест завершен! " );
+                p.sendMessage(" ");
+            } else {
+p.sendMessage("§8log:  квест завершен без поздравлений "+quest.displayName);
+            }
         } else {
-p.sendMessage("log: квест "+quest+" уже завершен, игнор.");
+p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
         }
         if (change) {
             saveQuest();

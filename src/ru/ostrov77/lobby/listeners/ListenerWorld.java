@@ -1,12 +1,9 @@
 package ru.ostrov77.lobby.listeners;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
-import java.util.Map.Entry;
 
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
@@ -18,8 +15,6 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -55,21 +50,26 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.TextComponent;
-import net.minecraft.core.BaseBlockPosition;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.PlateManager;
-import ru.ostrov77.lobby.newbie.NewBie;
+import ru.ostrov77.lobby.XYZ;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 
@@ -77,35 +77,52 @@ import ru.ostrov77.lobby.quest.QuestAdvance;
 
 public class ListenerWorld implements Listener {
     
-    
+    private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
+
 	
-	private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
-	
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onPrtl(final EntityPortalEnterEvent e) {
-		if (e.getEntityType() == EntityType.PLAYER && !Main.prts.isEmpty()) {
-			final Location loc = e.getLocation();
-			int d = Integer.MAX_VALUE;
-			String n = "";
-			for (final Entry<BaseBlockPosition, String> en : Main.prts.entrySet()) {
-				final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
-				if (dd < d) {
-					d = dd;
-					n = en.getValue();
-				}
-			}
-			final Player p = (Player) e.getEntity();
-			if (Timer.has(p, "portal") && p.getTicksLived() < 100) {
-				return;
-		    }
-		    Timer.add(p, "portal", 5);
-                        if (n!=null) {
-                            p.performCommand("server " + n);
-                        } else {
-                            Ostrov.log_err("onPrtl n=null , чекайте почему!");
-                        }
-		}
-	}
+    	
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEntityPortalEnter(final EntityPortalEnterEvent e) {
+        
+        if (e.getEntityType()==EntityType.PLAYER) {
+            
+            if (e.getEntity().getTicksLived() < 100 || Timer.has(e.getEntity().getEntityId()))  return;
+            final Player p = (Player) e.getEntity();
+            Timer.add(p.getEntityId(), 5);
+            
+            for (final XYZ xyzw : Main.serverPortals.keySet()) {
+                if (xyzw.nearly(e.getLocation())) {
+                    p.performCommand("server "+Main.serverPortals.get(xyzw));
+                }
+            }
+
+        }
+        
+          /*  if (e.getEntityType() == EntityType.PLAYER && !Main.prts.isEmpty()) {
+                    final XYZW xyzw = new XYZW (e.getLocation());
+                    
+                    int d = Integer.MAX_VALUE;
+                    String n = "";
+                    for (final Entry<BaseBlockPosition, String> en : Main.prts.entrySet()) {
+                            final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
+                            if (dd < d) {
+                                    d = dd;
+                                    n = en.getValue();
+                            }
+                    }
+                    final Player p = (Player) e.getEntity();
+                    if (Timer.has(p, "portal") && p.getTicksLived() < 100) {
+                            return;
+                }
+                Timer.add(p, "portal", 5);
+Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
+                    //if (n!=null) {
+                        p.performCommand("server " + n);
+                    //} else {
+                    //    Ostrov.log_err("onPrtl n=null , чекайте почему!");
+                    //}
+            }*/
+    }
     
     
     
@@ -185,16 +202,23 @@ public class ListenerWorld implements Listener {
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
         Ostrov.sync(()-> {
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-                lp.setFlag(LobbyFlag.NewBieDone, true);
-                NewBie.start(p, 0);
+                //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
+                //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
+                //NewBie.start(p, 0);
+                PM.getOplayer(p).hideScore();
+                p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
+                p.setCollidable(false);
+                Main.oscom.give(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BarColor.PINK, BarStyle.SOLID, false);
             } else {
                 Main.giveItems(p);
                 final Location logoutLoc = LocationUtil.LocFromString(logoutLocString);
                 if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
-    ApiOstrov.sendActionBarDirect(p, "log: тп на точку выхода");
+//ApiOstrov.sendActionBarDirect(p, "§8log: тп на точку выхода");
                 } else {
                     p.teleport(Main.spawnLocation);
-    ApiOstrov.sendActionBarDirect(p, "log: точка выхода опасна, тп на спавн");
+//ApiOstrov.sendActionBarDirect(p, "§8log: точка выхода опасна, тп на спавн");
                 }
             }
         }, 0);        
@@ -206,7 +230,7 @@ public class ListenerWorld implements Listener {
     @EventHandler (priority = EventPriority.NORMAL)
     public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
-        NewBie.stop(p);
+        //NewBie__.stop(p);
         final LobbyPlayer lp = Main.destroyLobbyPlayer(p.getName());
         if (lp!=null) {
             final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
@@ -230,16 +254,16 @@ public class ListenerWorld implements Listener {
     
     
     
-    @EventHandler (ignoreCancelled = true)
-    public void onPlayerChat(AsyncChatEvent e) {
-        if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        if (NewBie.hasNewBieTask(e.getPlayer())) {
+   // @EventHandler (ignoreCancelled = true)
+   // public void onPlayerChat(AsyncChatEvent e) {
+      //  if (!e.getPlayer().getWorld().getName().equals("world")) return;
+       // if (NewBie__.hasNewBieTask(e.getPlayer())) {
             
-        }
+        //}
         //e.setCancelled(true);
         //e.viewers().clear();
         //e.getPlayer().sendMessage("§6Для пропуска интро просто перезайдите.");
-    }      
+   // }      
     
     
     
@@ -253,39 +277,57 @@ public class ListenerWorld implements Listener {
 		final Block b = e.getBlockPlaced();
 		
 		if (b.getType() == Material.FIRE) {
-			if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
-				final ItemStack it = e.getItemInHand();
-				if (it != null && it.hasItemMeta()) {
-					final String nm = ((TextComponent) it.getItemMeta().displayName()).content();
-					final Location loc = b.getLocation();
-					Main.prts.put(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), nm);
-					final FileConfiguration cfg = Main.instance.getConfig();
-					final ConfigurationSection cs = cfg.getConfigurationSection("prtls");
-					if (cs == null) {
-						cfg.set("prtls.x", loc.getBlockX());
-						cfg.set("prtls.y", loc.getBlockY());
-						cfg.set("prtls.z", loc.getBlockZ());
-						cfg.set("prtls.s", nm);
-					} else {
-						cs.set("x", cs.getString("x") + ":" + loc.getBlockX());
-						cs.set("y", cs.getString("y") + ":" + loc.getBlockY());
-						cs.set("z", cs.getString("z") + ":" + loc.getBlockZ());
-						cs.set("s", cs.getString("s") + ":" + nm);
-					}
-					
-					try {
-						cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
-						e.getPlayer().sendMessage("§eПортал " + nm + " создан!");
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				}
-			}
+                    
+                    if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
+                        
+                        final ItemStack it = e.getItemInHand();
+                        if (it.getType()!=Material.AIR && it.hasItemMeta()) {
+                            final String servername = ((TextComponent) it.getItemMeta().displayName()).content();
+                            final Location loc = b.getLocation();
+                            
+                            Main.serverPortals.put(new XYZ(loc), servername);
+                            Main.savePortals();
+                            
+
+                            /*final FileConfiguration cfg = Main.instance.getConfig();
+                            final ConfigurationSection cs = cfg.getConfigurationSection("prtls");
+                            if (cs == null) {
+                                    cfg.set("prtls.x", loc.getBlockX());
+                                    cfg.set("prtls.y", loc.getBlockY());
+                                    cfg.set("prtls.z", loc.getBlockZ());
+                                    cfg.set("prtls.s", nm);
+                            } else {
+                                    cs.set("x", cs.getString("x") + ":" + loc.getBlockX());
+                                    cs.set("y", cs.getString("y") + ":" + loc.getBlockY());
+                                    cs.set("z", cs.getString("z") + ":" + loc.getBlockZ());
+                                    cs.set("s", cs.getString("s") + ":" + nm);
+                            }
+
+                            try {
+                                    cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
+                                    e.getPlayer().sendMessage("§eПортал " + nm + " создан!");
+                            } catch (IOException ex) {
+                                    ex.printStackTrace();
+                            }*/
+                        }
+                    }
+                    
+                    
 		} else if (b.getType() == Material.HEAVY_WEIGHTED_PRESSURE_PLATE) {
+                    
 			final Player p = e.getPlayer();
 			final Location loc = b.getLocation();
+                        
 			if (p.hasMetadata("tp")) {
-				final FileConfiguration cfg = Main.instance.getConfig();
+                            
+                            final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
+                            final XYZ secondPlateXYZ = new XYZ(loc);
+                                    
+                            final ChunkContent cc = AreaManager.getChunkContent(loc, true); //берём чанк по второй плите
+                            cc.addPlate(firstPlateXYZ, secondPlateXYZ);
+                            AreaManager.savePlate(firstPlateXYZ, secondPlateXYZ);
+                            
+				/*final FileConfiguration cfg = Main.instance.getConfig();
 				final ConfigurationSection cs = cfg.getConfigurationSection("plts");
 				final BaseBlockPosition fst = (BaseBlockPosition) p.getMetadata("tp").get(0).value();
 				if (cs == null) {
@@ -309,16 +351,18 @@ public class ListenerWorld implements Listener {
 					cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
 				} catch (IOException ex) {
 					ex.printStackTrace();
-				}
+				}*/
 				
 				p.sendMessage("§2Вторая плита поставлена на координатах (§7" + loc.getBlockX() + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
 				p.removeMetadata("tp", Main.instance);
 				e.setCancelled(true);
 				p.sendMessage("§2Плита создана!");
 			} else {
-				p.setMetadata("tp", new FixedMetadataValue(Main.instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
+				//p.setMetadata("tp", new FixedMetadataValue(Main.instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
+				p.setMetadata("tp", new FixedMetadataValue(Main.instance, new XYZ(loc)));
 				p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
 			}
+                        
 		} else if (b.getType() == Material.BEDROCK) {
 			Main.loadCfgs();
 			e.getPlayer().sendMessage("§eПерезагружено!");
@@ -334,12 +378,26 @@ public class ListenerWorld implements Listener {
     public void onBreak(final BlockBreakEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
-		if (e.getBlock().getType() == Material.NETHER_PORTAL && !Main.prts.isEmpty()) {
-			final FileConfiguration cfg = Main.instance.getConfig();
+        
+		if (e.getBlock().getType() == Material.NETHER_PORTAL && !Main.serverPortals.isEmpty()) {
+                    
 			final Location loc = e.getBlock().getLocation();
-			int d = Integer.MAX_VALUE;
+                        XYZ find = null;
+                        for (final XYZ xyzw : Main.serverPortals.keySet()) {
+                            if (xyzw.nearly(loc)) {
+                                find = xyzw;
+                                break;
+                            }
+                        }
+                        if (find!=null) {
+                            Main.serverPortals.remove(find);
+                            Main.savePortals();
+                        }
+                        
+			//final FileConfiguration cfg = Main.instance.getConfig();
+			/*int d = Integer.MAX_VALUE;
 			BaseBlockPosition rb = new BaseBlockPosition(0, 0, 0);
-			for (final Entry<BaseBlockPosition, String> en : Main.prts.entrySet()) {
+			for (final Entry<BaseBlockPosition, String> en : Main.serverPortals.entrySet()) {
 				final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
 				if (dd < d) {
 					d = dd;
@@ -348,10 +406,10 @@ public class ListenerWorld implements Listener {
 			}
 			
 			//убираем из HashMap
-			final String pnm = Main.prts.remove(rb);
+			final String pnm = Main.serverPortals.remove(rb);
 		
 			//убираем из файла
-			if (Main.prts.isEmpty()) {
+			if (Main.serverPortals.isEmpty()) {
 				cfg.set("prtls", null);
 			} else {
 				final StringBuffer nx = new StringBuffer("");
@@ -377,10 +435,21 @@ public class ListenerWorld implements Listener {
 				e.getPlayer().sendMessage("§6Портал " + pnm + " убран!");
 			} catch (IOException ex) {
 				ex.printStackTrace();
-			}
-		} else if (e.getBlock().getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE && !PlateManager.plts.isEmpty()) {
-			final FileConfiguration cfg = Main.instance.getConfig();
-			final Location loc = e.getBlock().getLocation();
+			}*/
+		} else if (e.getBlock().getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE) {
+                    
+                    final Location loc = e.getBlock().getLocation();
+                    final ChunkContent cc = AreaManager.getChunkContent(loc);
+                    if (cc.hasPlate()) {
+                        final XYZ second = cc.getPlate(loc);
+                        if (second!=null) { //пункт назначения назначен - значит плата есть
+                            cc.delPlate(loc);
+                            AreaManager.savePlate(new XYZ(loc), null);
+                            e.getPlayer().sendMessage("§6Плита на коорд. (§7" + loc.getX() + "§6, §7" + loc.getY() + "§6, §7" + loc.getZ() + "§6) убрана!");
+                        }
+                    }
+                    
+			/*final FileConfiguration cfg = Main.instance.getConfig();
 			//убираем из HashMap
 			final BaseBlockPosition rb = new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 			if (PlateManager.plts.remove(rb) != null) {
@@ -419,7 +488,7 @@ public class ListenerWorld implements Listener {
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
-			}
+			}*/
 		}
         //else if (!clear_stats) PM.get(e.getPlayer().getName());
     }
@@ -454,7 +523,18 @@ public class ListenerWorld implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onPlayerInteractAtEntityEvent(final PlayerInteractAtEntityEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
+        final Player p = e.getPlayer();
+        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(p) ) {
+            e.setCancelled(true);
+        }
+        if (e.getRightClicked().getType()==EntityType.PLAYER) {
+            final LobbyPlayer lp = Main.getLobbyPlayer(p);
+            final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
+p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.hasFlag(LobbyFlag.NewBieDone));
+            if (lp!=null && lp.questAccept.contains(Quest.GreetNewBie) && clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
+                lp.questDone(p, Quest.GreetNewBie, true);
+            }
+        }
     }
 
 
@@ -663,31 +743,81 @@ public class ListenerWorld implements Listener {
     public void onInter(final PlayerInteractEvent e) {
         if (e.hasItem() && e.getClickedBlock() != null && e.getItem().getType()==Material.FIREWORK_ROCKET) {
             e.setUseItemInHand(Event.Result.DENY);
+            return;
         }
         
-		final Player p = e.getPlayer();
-		if (e.getAction() == Action.PHYSICAL) {
-			final Location loc = e.getClickedBlock().getLocation();
-			final BaseBlockPosition lp = PlateManager.plts.get(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-			if (lp != null) {
-				e.setCancelled(true);
-				loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
-				loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-				loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
-				p.setGameMode(GameMode.SPECTATOR);
-				p.setFlying(true);
-				PlateManager.tps.put(p, lp);
-			}
-		} else if (e.getClickedBlock() != null) {
-			final HashSet<Material> ms = Main.mts.get(p.getName());
-			if (ms != null) {
-				final Material m = e.getClickedBlock().getType();
-				if (ms.size() < 50 && ms.add(m)) {
-					ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + m.toString().replace('_', ' ').toLowerCase() + "§7, осталось: §6" + (50 - ms.size()));
-					//bossbar???
-				}
-			}
-		}
+        final Player p = e.getPlayer();
+        
+        if (e.getAction() == Action.PHYSICAL) {
+            final Location loc = e.getClickedBlock().getLocation();
+
+            final ChunkContent cc = AreaManager.getChunkContent(loc);
+            if (cc.hasPlate()) {
+                final XYZ second = cc.getPlate(loc);
+                if (second!=null) { //пункт назначения назначен - значит плата есть
+//e.getPlayer().sendMessage("§aПлита на коорд. -> "+second.toString());
+                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                    loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
+                    loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
+                    final GameMode gm = p.getGameMode();
+                    p.setGameMode(GameMode.SPECTATOR);
+                    //p.setFlying(true);
+                        
+                    new BukkitRunnable() {
+			final String name = p.getName();
+                        int count;
+                        
+			@Override
+			public void run() {
+                            
+                            final Player p = Bukkit.getPlayerExact(name);
+                            if (count==100 || p==null || !p.isOnline()) {
+                                this.cancel();
+                                return;
+                            }
+                            
+                            final Location loc = p.getLocation();
+                           
+                            if (Math.abs(loc.getBlockX() - second.x) < 2 && loc.getBlockY() == second.y && Math.abs(loc.getBlockZ() - second.z) < 2) {
+                                loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                                loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
+                                p.setGameMode(gm);
+                                p.setVelocity(new Vector(0, 0, 0));
+                                //p.setFlying(false);
+                                this.cancel();
+                            } else {
+                                p.setVelocity(new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
+                                loc.getWorld().spawnParticle(Particle.NAUTILUS, loc, 40, 0.2d, 0.2d, 0.2d);
+                            }
+                            count++;
+                        }
+                    }.runTaskTimer(Main.instance, 3, 3);
+             /*   final BaseBlockPosition lp = PlateManager.plts.get(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                if (lp != null) {
+                        e.setCancelled(true);
+                        loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                        loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
+                        loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
+                        p.setGameMode(GameMode.SPECTATOR);
+                        p.setFlying(true);
+                        PlateManager.tps.put(p, lp);
+                }*/                
+                }
+            }
+
+
+
+                
+        } else if (e.getClickedBlock() != null) {
+                final HashSet<Material> ms = Main.mts.get(p.getName());
+                if (ms != null) {
+                        final Material m = e.getClickedBlock().getType();
+                        if (ms.size() < 50 && ms.add(m)) {
+                                ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + m.toString().replace('_', ' ').toLowerCase() + "§7, осталось: §6" + (50 - ms.size()));
+                                //bossbar???
+                        }
+                }
+        }
     }
     // ---------------------------------------- 
 

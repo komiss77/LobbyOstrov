@@ -20,15 +20,17 @@ import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.listeners.QuestAdvance;
 
 
 public class AreaManager {
     
+    //public static final Map<String,Integer>racePlayers = new HashMap<>();
+    
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
-    public static final Map<String,Integer>racePlayers = new HashMap<>();
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
@@ -41,10 +43,10 @@ public class AreaManager {
             //убрать ид кубоида из чанков
             ChunkContent cc;
             final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
-            for (int ccId:ids) {
+            for (int ccId : ids) {
                 cc=chunkContetnt.get(ccId);
                 if (cc.deleteCuboidID(cuboidId)) {
-                    if (!cc.hasCuboids()) { //убрать чанк, если нет там никакой инфы
+                    if (cc.isEmpty()) { //убрать чанк, если нет там никакой инфы
                         chunkContetnt.remove(ccId);
                     }
                 }
@@ -63,29 +65,46 @@ public class AreaManager {
             cLocs.add(getcLoc(it.next()));
         }
         for (int cLoc : cLocs) { //добавляем ид кубоида в чанки
-            if (!chunkContetnt.containsKey(cLoc)) {
-                chunkContetnt.put(cLoc, new ChunkContent());
-            }
-            chunkContetnt.get(cLoc).addCuboidID(lc.id);
+            //if (!chunkContetnt.containsKey(cLoc)) {
+            //    chunkContetnt.put(cLoc, new ChunkContent());
+            //}
+            getChunkContent(cLoc, true).addCuboidID(lc.id);
         }
         if (save) {
-            save(lc);
+            saveCuboid(lc);
         }
     }
     
-    protected static void save(final LCuboid lc) {
+    protected static void saveCuboid(final LCuboid lc) {
         areaConfig.set("areas."+lc.id+".name", lc.name);
         areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
         areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.StringFromLocWithYawPitch(lc.spawnPoint));
         areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
         areaConfig.saveConfig();
     }
+
+    public static void savePlate(final XYZ firstPlateXYZ, final XYZ secondPlateXYZ) {
+        if (secondPlateXYZ==null) { //удаление
+            areaConfig.set("plate."+firstPlateXYZ.toString(), null);
+        } else {
+            areaConfig.set("plate."+firstPlateXYZ.toString()+".second", secondPlateXYZ.toString());
+        }
+        areaConfig.saveConfig();
+    }
+    
+    
+    
+    
+    
+    
+    
     
     public AreaManager () {
 
         chunkContetnt = new HashMap<>();
         cuboids = new HashMap<>();
         areaConfig = Main.configManager.getNewConfig("area.yml");
+        
         if (areaConfig.getConfigurationSection("areas")!=null) {
             for (String areaID : areaConfig.getConfigurationSection("areas").getKeys(false) ) {
                 try {
@@ -103,8 +122,24 @@ public class AreaManager {
             }
         }
         
-        //подгрузка вчивок
-        if (Main.advancements) QuestAdvance.loadQuestAdv();
+        if (areaConfig.getConfigurationSection("plate")!=null) {
+            for (String firstPlateData : areaConfig.getConfigurationSection("plate").getKeys(false) ) {
+                final XYZ first = XYZ.fromString(firstPlateData);
+                final XYZ second = XYZ.fromString(areaConfig.getString("plate."+firstPlateData+".second"));
+                if (first==null || second==null) {
+                    Ostrov.log_err("AreaManager ошибка загрузки платы "+firstPlateData+" : null");
+                    continue;
+                }
+                final int cLoc = getcLoc(first);
+                final ChunkContent cc = getChunkContent(cLoc, true);
+                cc.addPlate(first, second);
+            }
+        }
+
+        //подгрузка ачивок
+        if (Main.advancements) {
+            QuestAdvance.loadQuestAdv();
+        }
        
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();
@@ -121,21 +156,30 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
-                    //чек если игрок проходит состязание
-                    final Integer time = racePlayers.get(p.getName());
-                    if (time != null) {
-                    	if (time > 300) {
-                    		Ostrov.sync(()-> p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!"), 0);
-                			racePlayers.remove(p.getName());
-                    	} else {
-                    		racePlayers.replace(p.getName(), time + 1);
-                        	//scoreboard время??
-                    		
-						}
-                    }
+                    if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                                                        //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
                     lp = Main.getLobbyPlayer(p);
+                    
+                    //чек если игрок проходит состязание
+                    //final Integer time = racePlayers.get(p.getName());
+                    //if (time != null) {
+                    	if (lp.raceTime > 0) { //>0 значит гонка активна
+                            lp.raceTime++;
+                            if (lp.raceTime>=300) {
+                                p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!");
+                                lp.raceTime = -1;
+                            }
+                    		//Ostrov.sync(()-> p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!"), 0);
+                			//racePlayers.remove(p.getName());
+                    	} //else {
+                    		//racePlayers.replace(p.getName(), time + 1);
+                        	//scoreboard время??
+                        //}
+                    //}
+                    
                     currentCuboidId = getCuboidId(p.getLocation());
+                    
                     if (lp.lastCuboidId!=currentCuboidId) { //зашел в новый кубоид
                         
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
@@ -154,9 +198,6 @@ public class AreaManager {
                                 Ostrov.sync(()-> {
                                     Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
                                     lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
                                 }, 0);
                                 
                             }
@@ -171,27 +212,7 @@ public class AreaManager {
                                     lp.cuboidEntryTime = Timer.getTime();
                                 }
                             }, 0);
-                            
-                           /* if (previos!=null && current!=null) { //сработало при удалении? тогда вызваем по отдельности
-//ApiOstrov.sendActionBar(p, "перешел из кубоида "+(previos==null ? "" : previos.displayName)+" в "+(current==null ? "" : current.displayName));
-                                Ostrov.sync(()-> {
-                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
-                                    lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
-                                }, 0);
-                            } else if (current!=null) {
-                                Ostrov.sync(()-> {
-                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
-                                    lp.cuboidEntryTime = Timer.getTime();
-                                    //if (!lp.isAreaDiscovered(current.id)) {
-                                    //    QuestManager.onNewAreaDiscover(p, lp, current);
-                                    //}
-                                }, 0);
-                            } else if (previos!=null) {
-                                Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
-                            }*/
+
                         }
                         
                         lp.lastCuboidId = currentCuboidId;
@@ -201,15 +222,38 @@ public class AreaManager {
             }
 
              
-        }.runTaskTimerAsynchronously(Main.instance, 20, 20);
+        }.runTaskTimerAsynchronously(Main.instance, 20, 9);
         
         
     }
     
     
-    public static int getCuboidId(final Location loc) {
+    
+    
+    
+    public static ChunkContent getChunkContent(final Location loc) {
         int cLoc = getcLoc(loc);
-        final ChunkContent cc = chunkContetnt.get(cLoc);
+        return chunkContetnt.get(cLoc);
+    }
+        
+    
+    public static ChunkContent getChunkContent(final Location loc, final boolean createIfNotExist) {
+        int cLoc = getcLoc(loc);
+        return getChunkContent(cLoc, createIfNotExist);
+    }
+           
+    public static ChunkContent getChunkContent(final int cLoc, final boolean createIfNotExist) {
+        if (createIfNotExist && !chunkContetnt.containsKey(cLoc)) {
+            final ChunkContent cc = new ChunkContent();
+            chunkContetnt.put(cLoc, cc);
+        }
+        return chunkContetnt.get(cLoc);
+    }    
+    
+    
+    
+    public static int getCuboidId(final Location loc) {
+        final ChunkContent cc = getChunkContent(loc);
         if (cc==null || !cc.hasCuboids()) return 0;
         for (int cuboidId : cc.getCuboidsIds()) {
             if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
@@ -230,6 +274,7 @@ public class AreaManager {
         }
         return null;
     }
+    
     public static LCuboid getCuboid(final String cuboidName) {
         for (LCuboid lc : cuboids.values()) {
             if (lc.name.equalsIgnoreCase(cuboidName)) {
@@ -256,6 +301,10 @@ public class AreaManager {
     
     
     
+    
+    public static int getcLoc(final XYZ xyz) {
+        return getcLoc(xyz.worldName, xyz.x>>4, xyz.z>>4);
+    }
     
     public static int getcLoc(final Location loc) {
         return getcLoc(loc.getWorld().getName(), loc.getChunk().getX(), loc.getChunk().getZ());

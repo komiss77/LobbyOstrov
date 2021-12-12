@@ -22,7 +22,8 @@ import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.listeners.QuestAdvance;
+import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 public class AreaManager {
@@ -91,13 +92,6 @@ public class AreaManager {
         }
         areaConfig.saveConfig();
     }
-    
-    
-    
-    
-    
-    
-    
     
     public AreaManager () {
 

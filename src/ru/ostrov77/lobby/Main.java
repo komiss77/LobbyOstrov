@@ -30,7 +30,6 @@ import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
-import ru.ostrov77.lobby.listeners.QuestAdvance;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -74,8 +73,6 @@ public class Main extends JavaPlugin {
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
     public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
 
-
-
     
     
 
@@ -105,9 +102,9 @@ public class Main extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
-        if ( Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
+        if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
             advancements =  true;
-            getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
+            //getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
         }
         
         areaManager = new AreaManager();
@@ -285,9 +282,9 @@ savePortals();
     
     
     
-    public static boolean chckAKTsk(final Player p) {
+    /*public static boolean chckAKTsk(final Player p) {
 		final LobbyPlayer lp = Main.getLobbyPlayer(p);
-		if (lp != null && !lp.hasFlag(LobbyFlag.Arcaim)) {
+		if (lp != null && lp.questAccept.contains(Quest.FindBlock)) {
 			final HashSet<Material> ms = mts.get(p.getName());
 			if (ms == null) {
 				p.sendMessage("§9[§eНПС§9] §fЗдравствуй, будующий §eстроитель§f!");
@@ -307,14 +304,14 @@ savePortals();
 				}, 80);
 			} else if (ms.size() > 50) {
 				p.sendMessage("§9[§eНПС§9] §fМолодец, тебе удалось найти различные §eблоки §fв этом лобби! Теперь ты можешь §dмгновенно §fперемещатся на §e§lАркаим§f!");
-				lp.setFlag(LobbyFlag.Arcaim, true);
+				lp.questDone(LobbyFlag.Arcaim, true);
 				mts.remove(p.getName());
 			} else {
 				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - ms.size()) + " §fблок(ов)!");
 			}
 		}
 		return false;
-	}
+	}*/
 
     private void createMenuItems() {
         final ItemStack is=new ItemBuilder(Material.ELYTRA)

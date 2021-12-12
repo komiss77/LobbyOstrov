@@ -70,6 +70,7 @@ import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 
@@ -782,6 +783,7 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                                 loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                                 loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
                                 p.setGameMode(gm);
+                                p.setFlying(false);
                                 p.setVelocity(new Vector(0, 0, 0));
                                 //p.setFlying(false);
                                 this.cancel();

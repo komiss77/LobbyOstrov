@@ -36,7 +36,6 @@ public class QuestManager implements Listener {
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
     @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
-       
         
     	if (e.current == null) {
             ApiOstrov.sendActionBarDirect(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
@@ -58,14 +57,8 @@ public class QuestManager implements Listener {
                 } else {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> Перед началом, возьмите задание у §eИгромана§f!");
                     }
-            } else if (e.current.name.equals("end") && e.lp.questAccept.contains(Quest.MiniRace)) {
-                //final Integer time = AreaManager.racePlayers.remove(e.lp.name);
-                if (e.lp.raceTime>0) { //if (time != null) {
-                        //e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + (e.lp.raceTime / 60) + (time % 60 > 9 ? ":" + time % 60 : ":0" + time % 60));
-                        e.p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.lp.raceTime));
-                        e.lp.raceTime = -1;
-                        e.lp.questDone(e.p, Quest.MiniRace, true);
-                }
+            } else if (e.current.name.equals("end")) {
+                QuestManager.checkQuest(e.p, e.lp, Quest.MiniRace);
             }
         }
     	
@@ -112,7 +105,8 @@ public class QuestManager implements Listener {
             }
             
          }
-       
+
+   		completeAdv(p, cuboid.name);
         lp.setAreaDiscovered(cuboid.id);
         
         final EnumSet<Quest> areaQuest = Quest.getAreaQuest(cuboid.name);
@@ -120,7 +114,7 @@ public class QuestManager implements Listener {
         if (!areaQuest.isEmpty()) { //с открытой зоной добавились новые задания
             for (Quest q : areaQuest) {
                 if (addQuest(p, lp, q)) {
-p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.name+" : "+q.displayName);
+                	p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.name+" : "+q.displayName);
                     save = true;
                 }
             }
@@ -174,7 +168,7 @@ ApiOstrov.sendTitleDelay(p, "", "§7Квест: "+quest.displayName, 20, 40, 20)
     //может вызываться из ASYNC !!!
     //по дефолту, задание будет выполнено, если оно было взято и не завершено.
     //для некоторых можно ставить сври чекающие обработчики
-    public static boolean checkQuest (final Player p, final LobbyPlayer lp, final Quest quest) {
+    public static boolean checkQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
         
         if (lp.questDone.contains(quest)) {
 p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
@@ -192,67 +186,91 @@ p.sendMessage("§8log: checkQuest "+quest);
         switch (quest) {
             
             case DiscoverAllArea:
-                int discoverCount=0;
-                for (int id:AreaManager.getCuboidIds()) {
-                    if (lp.isAreaDiscovered(id)) discoverCount++;
-                }
-                if (discoverCount>=AreaManager.getCuboidIds().size()) {
+            	final int dsc = getDiscAreas(lp);
+            	progressAdv(p, String.valueOf(quest.code), dsc);
+                if (dsc>=AreaManager.getCuboidIds().size()) {
                     lp.questDone(p, quest, true);
+                    Main.pipboy.give(p);
                     return true;
                 } else {
-p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+discoverCount);
+                	p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+dsc);
                 }
-                return false;
+	            break;
                 
             case LeavePandora: //будет вызвано при выходе из кубоида пандоры
                 if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
+                	completeAdv(p, String.valueOf(quest.code));
                     lp.questDone(p, quest, true);
                     Main.cosmeticMenu.give(p);
                     return true;
                 } else {
-p.sendMessage("§8log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
+                	p.sendMessage("§8log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
                 }
-                return false;
+	            break;
                 
                 
             case ReachSpawn: //сработает при входе в зону спавн
                 if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+                	completeAdv(p, String.valueOf(quest.code));
                     lp.setFlag(LobbyFlag.NewBieDone, true);
-                    lp.questDone(p, Quest.SpeakWithNPC, true);
+                	completeAdv(p, String.valueOf(Quest.SpeakWithNPC.code));
                     lp.questDone(p, Quest.SpeakWithNPC, false);
-                    lp.questDone(p, Quest.openQuestMenu, false);
+                    //lp.questDone(p, Quest.openQuestMenu, false);
                     if (PM.exist(p.getName())) {
                         PM.getOplayer(p).showScore();
                     }
                     return true;
                 }
-                return false;
-                
-            case GreetNewBie:
-                lp.questDone(p, quest, true);
-                Main.pipboy.give(p);
-                return true;
-                
-            default:
-                lp.questDone(p, quest, true);
-                return true;
+	            break;
+			case CobbleGen:
+				break;
+			case CollectTax:
+				break;
+			case FindBlock:
+				break;
+			case GreetNewBie:
+				break;
+			case MineDiam:
+				break;
+			case MiniPark:
+				break;
+			case MiniRace:
+				if (lp.raceTime>0) {
+	                p.sendMessage("§5[§eСостязание§5] §f>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(lp.raceTime));
+	                lp.raceTime = -1;
+                	completeAdv(p, String.valueOf(quest.code));
+	                lp.questDone(p, Quest.MiniRace, true);
+	                return true;
+				}
+				break;
+			case OpenTreassureChest:
+				break;
+			case SpeakWithNPC:
+				break;
+			case SumoVoid:
+				break;
         }
         
-        //return false;
+        return false;
     }
-
-
-
-
     
-
-
+	public static void completeAdv(final Player p, final String key) {
+		if (Main.advancements) {
+			QuestAdvance.completeAdv(p, key);
+		}
+	}
     
-    
-
-
-
-    
-    
-    
+	public static void progressAdv(final Player p, final String key, final int prg) {
+		if (Main.advancements) {
+			QuestAdvance.progressAdv(p, key, prg);
+		}
+	}
+	
+	public static int getDiscAreas(final LobbyPlayer lp) {
+        int dC = 0;
+        for (final int id : AreaManager.getCuboidIds()) {
+            if (lp.isAreaDiscovered(id)) dC++;
+        }
+        return dC;
+	}
 }

@@ -24,10 +24,6 @@ public class LobbyPlayer {
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime; //таймер гонки
 
-    
-    
-    
-    
     LobbyPlayer(final String name) {
         this.name = name;
         questDone = EnumSet.noneOf(Quest.class);

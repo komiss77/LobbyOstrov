@@ -3,6 +3,7 @@ package ru.ostrov77.lobby;
 import java.util.EnumSet;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -23,11 +24,15 @@ public class LobbyPlayer {
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime; //таймер гонки
+    public int taxed; //кол-во собраных налогов
+    public final EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
 
     LobbyPlayer(final String name) {
         this.name = name;
+        raceTime = -1;
         questDone = EnumSet.noneOf(Quest.class);
         questAccept = EnumSet.noneOf(Quest.class);
+        foundBlocks = EnumSet.noneOf(Material.class);
     }
     
     

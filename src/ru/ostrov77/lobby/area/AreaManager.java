@@ -11,6 +11,8 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -22,8 +24,10 @@ import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
+import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 public class AreaManager {
@@ -141,10 +145,8 @@ public class AreaManager {
         
         playerMoveTask = new BukkitRunnable() {     //   !!!!ASYNC !!!!    каждую секунду
             
-            LobbyPlayer lp;
+            
             int currentCuboidId;
-            LCuboid previos;
-            LCuboid current;
             
             @Override
             public void run() {
@@ -153,12 +155,12 @@ public class AreaManager {
                     if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
-                    lp = Main.getLobbyPlayer(p);
+                    final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     
                     //чек если игрок проходит состязание
                     //final Integer time = racePlayers.get(p.getName());
                     //if (time != null) {
-                    	if (lp.raceTime > 0) { //>0 значит гонка активна
+                    	if (lp.raceTime >= 0) { //>0 значит гонка активна
                             lp.raceTime++;
                             if (lp.raceTime>=300) {
                                 p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!");
@@ -178,7 +180,7 @@ public class AreaManager {
                         
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
                             
-                            previos = cuboids.get(lp.lastCuboidId);
+                        	final LCuboid previos = cuboids.get(lp.lastCuboidId);
                             if (previos!=null) { //сработало при удалении? пропускаем
 //ApiOstrov.sendActionBar(p, "вышел из кубоида "+previos.displayName);
                                 Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
@@ -186,7 +188,7 @@ public class AreaManager {
                             
                         } else if(lp.lastCuboidId==0) { //из пространства в кубоид
                             
-                            current = cuboids.get(currentCuboidId);
+                        	final LCuboid current = cuboids.get(currentCuboidId);
                             if (current!=null) { //сработало при удалении? пропускаем
 //ApiOstrov.sendActionBar(p, "вошел в кубоид "+current.displayName);
                                 Ostrov.sync(()-> {
@@ -198,8 +200,8 @@ public class AreaManager {
                             
                         } else { //из кубоида в кубоил
                             
-                            previos = cuboids.get(lp.lastCuboidId);
-                            current = cuboids.get(currentCuboidId);
+                        	final LCuboid previos = cuboids.get(lp.lastCuboidId);
+                        	final LCuboid current = cuboids.get(currentCuboidId);
                             Ostrov.sync(()-> {
                                 Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
                                 if (current!=null) { //если есть кубоид входа, ставим метку времени
@@ -216,9 +218,33 @@ public class AreaManager {
             }
 
              
-        }.runTaskTimerAsynchronously(Main.instance, 20, 9);
+        }.runTaskTimerAsynchronously(Main.instance, 20, 12);
         
-        
+        new BukkitRunnable() {
+			@Override
+			public void run() { //паркуристы
+                for (final Player p : Bukkit.getOnlinePlayers()) {
+                	final PKrist pr = PKrist.getPK(p.getName());
+                	if (pr != null) {
+                		final Location loc = p.getLocation();
+                		if (loc.getY() < pr.bLast.y) { //упал
+                            p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
+                            Main.miniParks.remove(pr);
+                            if (pr.jumps >= 12) {
+                            	QuestManager.checkQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark, true);
+                            }
+                            loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setType(Material.AIR, false);
+                            loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setType(Material.AIR, false);
+                            p.teleport(getCuboid("parkur").spawnPoint);
+                			p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
+                		} else if (loc.getBlockX() == pr.bNext.x && loc.getBlockZ() == pr.bNext.z) {
+                			p.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_HIT, 2f, 0.1f * pr.jumps + 0.5f);
+							pr.nextBlock();
+						}
+                	}
+                }
+			}
+		}.runTaskTimer(Main.instance, 8, 8);
     }
     
     
@@ -263,6 +289,18 @@ public class AreaManager {
         if (cc==null || !cc.hasCuboids()) return null;
         for (int cuboidId : cc.getCuboidsIds()) {
             if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc)) {
+                return cuboids.get(cuboidId);
+            }
+        }
+        return null;
+    }
+
+    public static LCuboid getCuboid(final XYZ loc) {
+        int cLoc = getcLoc(loc);
+        final ChunkContent cc = chunkContetnt.get(cLoc);
+        if (cc==null || !cc.hasCuboids()) return null;
+        for (int cuboidId : cc.getCuboidsIds()) {
+            if (cuboids.containsKey(cuboidId) && cuboids.get(cuboidId).contains(loc.x, loc.y, loc.z)) {
                 return cuboids.get(cuboidId);
             }
         }

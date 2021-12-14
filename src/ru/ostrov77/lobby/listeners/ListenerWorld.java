@@ -3,8 +3,6 @@ package ru.ostrov77.lobby.listeners;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -12,11 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Event;
@@ -30,6 +30,7 @@ import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
@@ -69,8 +70,11 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
+import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 
@@ -191,10 +195,6 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
             }
             
         }, 0);
-        
-        if (Main.advancements) {
-            QuestAdvance.load(p);
-        }
 
     }
     
@@ -202,6 +202,11 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
 
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
         Ostrov.sync(()-> {
+
+            if (Main.advancements) {
+                QuestAdvance.load(p);
+            }
+            
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
                 //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
@@ -512,15 +517,6 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         } 
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onPlayerInteractAtEntityEvent(final PlayerInteractAtEntityEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
@@ -531,8 +527,9 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         if (e.getRightClicked().getType()==EntityType.PLAYER) {
             final LobbyPlayer lp = Main.getLobbyPlayer(p);
             final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
-p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.hasFlag(LobbyFlag.NewBieDone));
-            if (lp!=null && lp.questAccept.contains(Quest.GreetNewBie) && clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
+p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
+            if (lp!=null && lp.questAccept.contains(Quest.GreetNewBie) && clickedLp!=null && !clickedLp.questDone.contains(Quest.DiscoverAllArea)) {
+            	QuestManager.completeAdv(p, String.valueOf(Quest.GreetNewBie.code));
                 lp.questDone(p, Quest.GreetNewBie, true);
             }
         }
@@ -569,12 +566,17 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
     public void onEntityDamage(final EntityDamageEvent e) { 
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
-        if ( e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
-                    
+        if (e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
+            final LivingEntity le = (LivingEntity) e.getEntity();
             switch (e.getCause()) {
                 case VOID:
                     e.setDamage(0);
-                    ((Player) e.getEntity()).teleport (Main.spawnLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+                    le.teleport(Main.spawnLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+                    final EntityDamageEvent de = le.getLastDamageCause();
+                    if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
+                    	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
+                    	QuestManager.checkQuest(dp, Main.getLobbyPlayer(dp), Quest.SumoVoid, true);
+                    }
                     return;
                     
                 case FALL:
@@ -588,13 +590,29 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                 case CRAMMING:      //EntityVex
                 case DROWNING:      //утопление
                 case STARVATION:    //голод
-                case LAVA:
+                case LAVA:			//лава
                     e.setCancelled(true);
                     return;
                     //break;
-                    
+
+                case ENTITY_ATTACK: //ентити ударяет
+                	if (e instanceof EntityDamageByEntityEvent) {
+                		final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
+                		if (ee.getDamager().getType() == EntityType.PLAYER) {
+                			final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
+                			if (vCub != null && vCub.name.equals("sumo")) {
+                    			final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
+                    			if (dCub != null && dCub.name.equals("sumo")) {
+                    				Ostrov.sync(() -> le.setHealth(le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), 2);
+                    				return;//сумо
+                    			}
+                			}
+                			
+                		}
+                	}
                 default:
                     e.setCancelled(true);
+                    
                     //return;
             }
         } else {
@@ -742,58 +760,94 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInter(final PlayerInteractEvent e) {
-        if (e.hasItem() && e.getClickedBlock() != null && e.getItem().getType()==Material.FIREWORK_ROCKET) {
-            e.setUseItemInHand(Event.Result.DENY);
-            return;
+        final Player p = e.getPlayer();
+        if (e.getClickedBlock() != null) {
+        	if (e.hasItem() && e.getItem().getType()==Material.FIREWORK_ROCKET) {
+	            e.setUseItemInHand(Event.Result.DENY);
+	            return;
+            } else if (e.hasItem() && e.getItem().getType()==Material.DIAMOND_PICKAXE && e.getAction() == Action.LEFT_CLICK_BLOCK) {
+            	final Block b = e.getClickedBlock();
+				final Material m = b.getType();
+            	switch (m) {
+				case DIAMOND_ORE, COBBLESTONE:
+					b.setType(Material.AIR, false);
+					Ostrov.sync(() -> b.setType(m, false), 50);
+					QuestManager.checkQuest(p, Main.getLobbyPlayer(p), m == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam, true);
+					break;
+				default:
+					break;
+				}
+	            return;
+            } else {
+            	final LobbyPlayer lp = Main.getLobbyPlayer(p);
+            	if (lp.questAccept.contains(Quest.FindBlock) && !lp.questDone.contains(Quest.FindBlock) && lp.foundBlocks.add(e.getClickedBlock().getType())) {
+                	final int sz = lp.foundBlocks.size();
+                	QuestManager.progressAdv(p, String.valueOf(Quest.FindBlock.code), sz);
+    				if (sz < 50) {
+    					ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
+                	} else {
+        				lp.foundBlocks.clear();
+                        lp.questDone(p, Quest.FindBlock, true);
+					}
+    				//QuestManager.checkQuest(p, lp, Quest.FindBlock);
+            	}
+			}
         }
         
-        final Player p = e.getPlayer();
         
         if (e.getAction() == Action.PHYSICAL) {
+        	final LobbyPlayer lp = Main.getLobbyPlayer(p);
             final Location loc = e.getClickedBlock().getLocation();
 
             final ChunkContent cc = AreaManager.getChunkContent(loc);
             if (cc.hasPlate()) {
                 final XYZ second = cc.getPlate(loc);
+                final LCuboid sCub = AreaManager.getCuboid(second);
                 if (second!=null) { //пункт назначения назначен - значит плата есть
-//e.getPlayer().sendMessage("§aПлита на коорд. -> "+second.toString());
-                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
-                    loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-                    loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
-                    final GameMode gm = p.getGameMode();
-                    p.setGameMode(GameMode.SPECTATOR);
-                    //p.setFlying(true);
-                        
-                    new BukkitRunnable() {
-			final String name = p.getName();
-                        int count;
-                        
-			@Override
-			public void run() {
+                	if (sCub == null || lp.isAreaDiscovered(sCub.id)) {//обратная территория изучена?
+                		//e.getPlayer().sendMessage("§aПлита на коорд. -> "+second.toString());
+                        loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                        loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
+                        loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
+                        final GameMode gm = p.getGameMode();
+                        p.setGameMode(GameMode.SPECTATOR);
+                        //p.setFlying(true);
                             
-                            final Player p = Bukkit.getPlayerExact(name);
-                            if (count==100 || p==null || !p.isOnline()) {
-                                this.cancel();
-                                return;
+                        new BukkitRunnable() {
+    						final String name = p.getName();
+    						int count;
+    			                        
+    						@Override
+    						public void run() {
+                                
+                                final Player p = Bukkit.getPlayerExact(name);
+                                if (count==100 || p==null || !p.isOnline()) {
+                                    this.cancel();
+                                    return;
+                                }
+                                
+                                final Location loc = p.getLocation();
+                               
+                                if (Math.abs(loc.getBlockX() - second.x) < 2 && loc.getBlockY() == second.y && Math.abs(loc.getBlockZ() - second.z) < 2) {
+                                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                                    loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
+                                    p.setGameMode(gm);
+                                    p.setFlying(false);
+                                    p.setVelocity(new Vector(0, 0, 0));
+                                    //p.setFlying(false);
+                                    this.cancel();
+                                } else {
+                                    p.setVelocity(new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
+                                    loc.getWorld().spawnParticle(Particle.NAUTILUS, loc, 40, 0.2d, 0.2d, 0.2d);
+                                }
+                                count++;
                             }
-                            
-                            final Location loc = p.getLocation();
-                           
-                            if (Math.abs(loc.getBlockX() - second.x) < 2 && loc.getBlockY() == second.y && Math.abs(loc.getBlockZ() - second.z) < 2) {
-                                loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
-                                loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
-                                p.setGameMode(gm);
-                                p.setFlying(false);
-                                p.setVelocity(new Vector(0, 0, 0));
-                                //p.setFlying(false);
-                                this.cancel();
-                            } else {
-                                p.setVelocity(new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
-                                loc.getWorld().spawnParticle(Particle.NAUTILUS, loc, 40, 0.2d, 0.2d, 0.2d);
-                            }
-                            count++;
-                        }
-                    }.runTaskTimer(Main.instance, 3, 3);
+                        }.runTaskTimer(Main.instance, 3, 3);
+                        return;
+                	} else {
+						ApiOstrov.sendActionBarDirect(p, "§cСначала разведайте пункт назначения!");
+                        return;
+					}
              /*   final BaseBlockPosition lp = PlateManager.plts.get(new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 if (lp != null) {
                         e.setCancelled(true);
@@ -806,19 +860,25 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                 }*/                
                 }
             }
-
-
-
-                
-        } else if (e.getClickedBlock() != null) {
-                final HashSet<Material> ms = Main.mts.get(p.getName());
-                if (ms != null) {
-                        final Material m = e.getClickedBlock().getType();
-                        if (ms.size() < 50 && ms.add(m)) {
-                                ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + m.toString().replace('_', ' ').toLowerCase() + "§7, осталось: §6" + (50 - ms.size()));
-                                //bossbar???
-                        }
-                }
+            
+            if (e.getClickedBlock().getType() == Material.WARPED_PRESSURE_PLATE && PKrist.getPK(lp.name) == null) { //новый паркурист
+				final PKrist pr = new PKrist(p);
+				
+				pr.bLast = new XYZ(loc.add(0d, 30d, 0d));
+				final Block b = loc.getBlock();
+				b.setType(Material.LIME_CONCRETE, false);
+				final BlockFace sd = PKrist.sds[Ostrov.random.nextInt(4)];
+				final Block n = ApiOstrov.randBoolean() ? 
+					b.getRelative(sd, 2).getRelative(sd.getModZ() == 0 ? (ApiOstrov.randBoolean() ? BlockFace.NORTH : BlockFace.SOUTH) : (ApiOstrov.randBoolean() ? BlockFace.WEST : BlockFace.EAST)) 
+					: 
+					b.getRelative(sd, 2).getRelative(BlockFace.UP);
+				n.setType(Material.LIME_CONCRETE, false);
+				pr.bNext = new XYZ(n.getLocation());
+				p.teleport(loc.add(0.5d, 1.1d, 0.5d));
+    			p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 1.4f);
+				
+				Main.miniParks.add(pr);
+			}
         }
     }
     // ---------------------------------------- 

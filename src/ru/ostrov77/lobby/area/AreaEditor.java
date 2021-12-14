@@ -147,9 +147,11 @@ public class AreaEditor implements InventoryProvider{
                 .lore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
+                    sm.pos1=p.getLocation();
                     sm.spawnPoint=p.getLocation();
                     sm.spawnPoint.setY(p.getLocation().getYaw());
                     sm.spawnPoint.setPitch(p.getLocation().getPitch());
+                    sm.checkPosition(p);
                     reopen(p, contents);
                 }));
         } else {
@@ -164,9 +166,11 @@ public class AreaEditor implements InventoryProvider{
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
+                        sm.pos1=p.getLocation();
                         sm.spawnPoint=p.getLocation();
                         sm.spawnPoint.setY(p.getLocation().getYaw());
                         sm.spawnPoint.setPitch(p.getLocation().getPitch());
+                        sm.checkPosition(p);
                         reopen(p, contents);
                     }
                 }));

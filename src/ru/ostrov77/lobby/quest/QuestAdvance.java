@@ -1,28 +1,30 @@
 package ru.ostrov77.lobby.quest;
 
 import java.util.HashSet;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+
 import eu.endercentral.crazy_advancements.NameKey;
 import eu.endercentral.crazy_advancements.advancement.Advancement;
 import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay;
-import eu.endercentral.crazy_advancements.advancement.AdvancementFlag;
 import eu.endercentral.crazy_advancements.advancement.AdvancementDisplay.AdvancementFrame;
-import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.LCuboid;
+import eu.endercentral.crazy_advancements.advancement.AdvancementFlag;
 import eu.endercentral.crazy_advancements.advancement.AdvancementVisibility;
 import eu.endercentral.crazy_advancements.advancement.criteria.Criteria;
 import eu.endercentral.crazy_advancements.manager.AdvancementManager;
 import ru.komiss77.Ostrov;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.LCuboid;
 
 
 public class QuestAdvance {
 
-	public static final HashSet<Advancement> adm = new HashSet<>();
-	public static final AdvancementManager mgr = new AdvancementManager(new NameKey("pls"));
-	public static final Criteria c0 = new Criteria(0);
+	private static final HashSet<Advancement> adm = new HashSet<Advancement>();
+	private static final AdvancementManager mgr = new AdvancementManager(new NameKey("pls"));
+	private static final Criteria c0 = new Criteria(0);
 
 	public static Advancement crtAdv(final String key, final String name, final String desc, final Criteria crt, final Material icon, final float x2, final float y2, final String back, final Advancement parent, final AdvancementFrame frame, final AdvancementVisibility vis, final AdvancementFlag... flags) {
     	final AdvancementDisplay dis = new AdvancementDisplay(icon, name, desc, frame, back, vis);
@@ -46,40 +48,38 @@ public class QuestAdvance {
     
 
     public static void load (final Player p) {
-            Ostrov.sync( () -> {
-            		mgr.removePlayer(p);
-            		mgr.addPlayer(p);
-            		final LobbyPlayer lp = Main.getLobbyPlayer(p);
-            		mgr.grantAdvancement(p, getAdvByKey("newbie"));
-            		for (final Advancement ad : mgr.getAdvancements()) {
-            			if (ad.getChildren().isEmpty()) {
-            				//квесты
-            				final Quest q = Quest.byCode(ad.getName().getKey().charAt(0));
-            				if (q != null) {
-            					if (lp.questDone.contains(q)) {
-                					mgr.grantAdvancement(p, ad);
-            					} else {
-									QuestManager.checkQuest(p, lp, q);
-								}
-            				}
-            			} else {
-							//локации
-            				final LCuboid lc = AreaManager.getCuboid(ad.getName().getKey());
-            				if (lc != null && lp.isAreaDiscovered(lc.id)) {
-            					mgr.grantAdvancement(p, ad);
-            				}
+    	
+		mgr.removePlayer(p);
+		mgr.addPlayer(p);
+    		final LobbyPlayer lp = Main.getLobbyPlayer(p);
+    		mgr.grantAdvancement(p, getAdvByKey("newbie"));
+    		for (final Advancement ad : mgr.getAdvancements()) {
+    			if (ad.getChildren().isEmpty()) {
+    				//квесты
+    				final Quest q = Quest.byCode(ad.getName().getKey().charAt(0));
+    				if (q != null) {
+    					if (lp.questDone.contains(q)) {
+        					mgr.grantAdvancement(p, ad);
+    					} else {
+							QuestManager.checkQuest(p, lp, q, false);
 						}
-            		}
-        			Ostrov.sync(() -> mgr.updateVisibility(p), 10);
+    				}
+    			} else {
+					//локации
+    				final LCuboid lc = AreaManager.getCuboid(ad.getName().getKey());
+    				if (lc != null && lp.isAreaDiscovered(lc.id)) {
+    					mgr.grantAdvancement(p, ad);
+    				}
+				}
+    		}
+			Ostrov.sync(() -> mgr.updateVisibility(p), 10);
 //                    final Advancement ad = QuestAdvance.adm.toArray(aa)[0];
 //                    mgr.grantAdvancement(p, ad);
 //                    ad.displayToast(p);
-            }, 10);
     }
     
     
 	public static void loadQuestAdv() {
-		adm.clear();
         final Advancement parent = QuestAdvance.crtAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.GOAL, AdvancementVisibility.ALWAYS);
         adm.add(parent);
         adm.add(QuestAdvance.crtAdv("newbie", "§6§lМесто Прибытия          ", "Наконец-то здесь...", c0, Material.OAK_BOAT, -4f, 0, "", parent, AdvancementFrame.TASK, AdvancementVisibility.ALWAYS));
@@ -95,7 +95,7 @@ public class QuestAdvance {
         for (final Quest q : Quest.values()) {
         	adm.add(crtAdv(String.valueOf(q.code), q.displayName, q.description, new Criteria(q.num), q.icon, q.dx2, q.dy2, "", getParentAdv(q.attachedArea), AdvancementFrame.TASK, visOnDisc(q.attachedArea)));
         }
-        mgr.addAdvancement(QuestAdvance.adm.toArray(new Advancement[0]));
+        mgr.addAdvancement(adm.toArray(new Advancement[0]));
 	}
 
 	public static Advancement getParentAdv(final String area) {
@@ -130,7 +130,9 @@ public class QuestAdvance {
 
 	public static void completeAdv(final Player p, final String key) {
 		final Advancement ad = getAdvByKey(key);
-		if (ad != null) {
+		if (ad == null) {
+			p.sendMessage("§8Ачивка " + key + " null");
+		} else {
 			mgr.grantAdvancement(p, ad);
 			ad.displayToast(p);
 			if (key.length() > 1) {
@@ -141,11 +143,17 @@ public class QuestAdvance {
     
 	public static void progressAdv(final Player p, final String key, final int prg) {
 		final Advancement ad = getAdvByKey(key);
-		if (ad != null) {
+		if (ad == null) {
+			p.sendMessage("§8Ачивка " + key + " null");
+		} else {
 			mgr.setCriteriaProgress(p, ad, prg);
 			if (ad.getCriteria().getRequiredNumber() == prg) {
 				ad.displayToast(p);
 			}
 		}
+	}
+	
+	public static void removeLPl(final Player p) {
+		mgr.removePlayer(p);
 	}
 }

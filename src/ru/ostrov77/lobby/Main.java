@@ -1,9 +1,6 @@
 package ru.ostrov77.lobby;
 
 
-import ru.ostrov77.lobby.listeners.ListenerWorld;
-import ru.ostrov77.lobby.area.AreaCmd;
-import ru.ostrov77.lobby.newbie.OsComCmd;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
@@ -28,8 +26,13 @@ import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
+import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
+import ru.ostrov77.lobby.listeners.ListenerWorld;
+import ru.ostrov77.lobby.newbie.OsComCmd;
+import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -63,6 +66,7 @@ public class Main extends JavaPlugin {
     public static MenuItem pipboy;
     public static MenuItem cosmeticMenu;
     public static MenuItem elytra;
+    public static MenuItem pickaxe;
     
     public static boolean advancements = false;
     
@@ -71,7 +75,7 @@ public class Main extends JavaPlugin {
     private static OstrovConfig serverPortalsConfig;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
-    public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+    public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();//порталы по типу точка портала : сервер
 
     
     
@@ -251,6 +255,11 @@ savePortals();
             p.getInventory().setItem(2, fw); //2
             elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
+        
+        final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+        if (lc != null && lc.name.equals("daaria") && lc.name.equals("skyworld")) {
+            pickaxe.give(p);
+        }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
         oscom.give(p);
         if (lp.questDone.contains(Quest.LeavePandora)) {
@@ -262,6 +271,8 @@ savePortals();
         p.updateInventory();
         PM.getOplayer(p).showScore();
     }
+    
+    public static final ItemStack air = new ItemStack(Material.AIR);
     
     public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
         .setName("§7Топливо для §bКрыльев")
@@ -391,9 +402,36 @@ savePortals();
             .rightClickCmd("cosmetics")
             .leftClickCmd("oscom unequipCosmetics")
             .create();
+        
+        final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
+            .setName("§bРазрушитель 3000")
+            .lore("§7Cносит блоки с одного удара!,")
+            .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
+            .build();
+        pickaxe = new MenuItemBuilder("pickaxe", pckx)
+            .slot(2)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .create();
     }
-    
-    
+    //делает "String Text" из "STRING_TEXT"
+	public static String nrmlzStr(final String s) {
+		final char[] ss = s.toLowerCase().toCharArray();
+		ss[0] = (char) (ss[0] & 0x5f);
+		for (byte i = (byte) (ss.length - 1); i > 0; i--) {
+			if (ss[i] == '_') {
+				ss[i] = ' ';
+				ss[i + 1] = (char) (ss[i + 1] & 0x5f);
+			}
+		}
+		return String.valueOf(ss);
+	}
     
 }
 

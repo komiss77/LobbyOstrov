@@ -148,6 +148,9 @@ public class AreaEditor implements InventoryProvider{
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                     sm.pos1=p.getLocation();
+                    sm.spawnPoint=p.getLocation();
+                    sm.spawnPoint.setY(p.getLocation().getYaw());
+                    sm.spawnPoint.setPitch(p.getLocation().getPitch());
                     sm.checkPosition(p);
                     reopen(p, contents);
                 }));
@@ -159,17 +162,44 @@ public class AreaEditor implements InventoryProvider{
                 .lore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
-                        p.teleport(sm.pos1);
+                        p.teleport(sm.spawnPoint);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                         sm.pos1=p.getLocation();
+                        sm.spawnPoint=p.getLocation();
+                        sm.spawnPoint.setY(p.getLocation().getYaw());
+                        sm.spawnPoint.setPitch(p.getLocation().getPitch());
                         sm.checkPosition(p);
                         reopen(p, contents);
                     }
                 }));
         }
 
+        
+    
+        contents.set(1, 6, ClickableItem.of( new ItemBuilder(sm.spawnPoint==null ? Material.BARRIER : Material.ENDER_EYE)
+            .name("§7точка спавна кубоида.")
+            .lore("§7")
+            .lore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
+            .lore("§7ПКМ-установить")
+            .build(), e -> {
+                if (e.isLeftClick() && sm.spawnPoint!=null) {
+                    p.teleport(sm.spawnPoint);
+                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
+                } else if (e.isRightClick()) {
+                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
+                    sm.spawnPoint=p.getLocation();
+                    reopen(p, contents);
+                } else {
+                    PM.soundDeny(p);
+                }
+            }));        
+        
+        
+        
+        
+        
         
         
         

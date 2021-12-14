@@ -24,7 +24,8 @@ public class LobbyPlayer {
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime; //таймер гонки
-    public EnumSet<Material> findBlocks; //найденые материалы для задания
+    public int taxed; //кол-во собраных налогов
+    public final EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
 
     
     
@@ -32,8 +33,10 @@ public class LobbyPlayer {
     
     LobbyPlayer(final String name) {
         this.name = name;
+        raceTime = -1;
         questDone = EnumSet.noneOf(Quest.class);
         questAccept = EnumSet.noneOf(Quest.class);
+        foundBlocks = EnumSet.noneOf(Material.class);
     }
     
     

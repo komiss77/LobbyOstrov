@@ -19,6 +19,7 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 import ru.komiss77.utils.inventory.Pagination;
 import ru.komiss77.utils.inventory.SlotIterator;
 import ru.komiss77.utils.inventory.SlotPos;
+import ru.ostrov77.lobby.quest.QuestAdvance;
 
 
 
@@ -103,6 +104,9 @@ public class DebugMenu implements InventoryProvider {
 //System.out.println("ClaimFlags "+e.getClick()+" isSet="+isSet);
             if (e.getClick()==ClickType.SHIFT_RIGHT) {
                 p.closeInventory();
+                if (Main.advancements) {
+                	QuestAdvance.removeLPl(p);
+                }
                 ApiOstrov.sendToServer(p, "arcaim", "");
                 Ostrov.async(()-> LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';"), 20);
                 //reopen(p, contents);

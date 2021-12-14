@@ -3,6 +3,7 @@ package ru.ostrov77.lobby.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.quest.Quest;
@@ -20,7 +21,7 @@ public class CosmeticListener implements Listener {
         final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
 e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (lp!=null) {
-            QuestManager.checkQuest(e.getPlayer(), lp, Quest.OpenTreassureChest);
+            QuestManager.checkQuest(e.getPlayer(), lp, Quest.OpenTreassureChest, true);
         }
     }
     

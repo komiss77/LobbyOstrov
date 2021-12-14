@@ -27,18 +27,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.utils.DonatEffect;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
+import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
-import ru.ostrov77.lobby.listeners.QuestAdvance;
+import ru.ostrov77.lobby.listeners.ListenerWorld;
+import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -73,20 +74,16 @@ public class Main extends JavaPlugin {
     public static MenuItem pipboy;
     public static MenuItem cosmeticMenu;
     public static MenuItem elytra;
+    public static MenuItem pickaxe;
     
     public static boolean advancements = false;
     
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     
     private static OstrovConfig serverPortalsConfig;
+    
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
-    //public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
-
-
-
-
-
-
+    public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();//порталы по типу точка портала : сервер
 
     
     
@@ -118,9 +115,9 @@ public class Main extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
-        if ( Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
+        if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
             advancements =  true;
-            getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
+            //getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
         }
         
         areaManager = new AreaManager();
@@ -204,6 +201,10 @@ p.sendMessage("§8log: прибыли своим ходом");
 
 
 
+    
+    
+    
+    
     
     
     
@@ -328,6 +329,11 @@ savePortals();
             p.getInventory().setItem(2, fw); //2
             elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
+        
+        final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+        if (lc != null && lc.name.equals("daaria") && lc.name.equals("skyworld")) {
+            pickaxe.give(p);
+        }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
         oscom.give(p);
         if (lp.questDone.contains(Quest.LeavePandora)) {
@@ -339,6 +345,8 @@ savePortals();
         p.updateInventory();
         PM.getOplayer(p).showScore();
     }
+    
+    public static final ItemStack air = new ItemStack(Material.AIR);
     
     public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
         .setName("§7Топливо для §bКрыльев")
@@ -359,12 +367,11 @@ savePortals();
     
     
     
-        public static boolean chckAKTsk(final Player p) {
+    /*public static boolean chckAKTsk(final Player p) {
 		final LobbyPlayer lp = Main.getLobbyPlayer(p);
-		if (lp != null && !lp.hasFlag(LobbyFlag.Arcaim)) {
-			//final HashSet<Material> ms = mts.get(p.getName());
-			if (lp.findBlocks == null) {
-                            lp.findBlocks = EnumSet.noneOf(Material.class);
+		if (lp != null && lp.questAccept.contains(Quest.FindBlock)) {
+			final HashSet<Material> ms = mts.get(p.getName());
+			if (ms == null) {
 				p.sendMessage("§9[§eНПС§9] §fЗдравствуй, будующий §eстроитель§f!");
 				Ostrov.sync(new Runnable() {
 					@Override
@@ -382,14 +389,14 @@ savePortals();
 				}, 80);
 			} else if (lp.findBlocks.size() > 50) {
 				p.sendMessage("§9[§eНПС§9] §fМолодец, тебе удалось найти различные §eблоки §fв этом лобби! Теперь ты можешь §dмгновенно §fперемещатся на §e§lАркаим§f!");
-				lp.setFlag(LobbyFlag.Arcaim, true);
-				lp.findBlocks = null; //mts.remove(p.getName());
+				lp.questDone(LobbyFlag.Arcaim, true);
+				mts.remove(p.getName());
 			} else {
 				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - lp.findBlocks.size()) + " §fблок(ов)!");
 			}
 		}
 		return false;
-	}
+	}*/
 
     private void createMenuItems() {
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
@@ -469,9 +476,36 @@ savePortals();
             .rightClickCmd("cosmetics")
             .leftClickCmd("oscom unequipCosmetics")
             .create();
+        
+        final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
+            .setName("§bРазрушитель 3000")
+            .lore("§7Cносит блоки с одного удара!,")
+            .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
+            .build();
+        pickaxe = new MenuItemBuilder("pickaxe", pckx)
+            .slot(2)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .create();
     }
-    
-    
+    //делает "String Text" из "STRING_TEXT"
+	public static String nrmlzStr(final String s) {
+		final char[] ss = s.toLowerCase().toCharArray();
+		ss[0] = (char) (ss[0] & 0x5f);
+		for (byte i = (byte) (ss.length - 1); i > 0; i--) {
+			if (ss[i] == '_') {
+				ss[i] = ' ';
+				ss[i + 1] = (char) (ss[i + 1] & 0x5f);
+			}
+		}
+		return String.valueOf(ss);
+	}
     
 }
 

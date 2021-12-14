@@ -1,9 +1,10 @@
 package ru.ostrov77.lobby.listeners;
 
+import com.meowj.langutils.lang.LanguageHelper;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
@@ -57,6 +58,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.spigotmc.event.entity.EntityDismountEvent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -66,9 +68,12 @@ import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.XYZ;
+import ru.ostrov77.lobby.area.XYZ;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
+import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.event.CuboidEvent;
+import ru.ostrov77.lobby.newbie.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -91,7 +96,7 @@ public class ListenerWorld implements Listener {
             Timer.add(p.getEntityId(), 5);
             
             for (final XYZ xyzw : Main.serverPortals.keySet()) {
-                if (xyzw.nearly(e.getLocation())) {
+                if (xyzw.nearly(e.getLocation(), 16)) {
                     p.performCommand("server "+Main.serverPortals.get(xyzw));
                 }
             }
@@ -167,10 +172,6 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
                 } else { //создать сразу запись, или не будут работать save : executePstAsync UPDATE
                     LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name) VALUES ('"+lp.name+"') ");
                 }
-                
-                //Ostrov.sync(()-> {
-                //    onDataLoad(p, lp, l);
-                //}, 0);
 
             } catch (SQLException ex) {
 
@@ -178,9 +179,8 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
 
             } finally {
                 
-                //Ostrov.sync(()-> {
-                    onDataLoad(p, lp, logoutLoc);
-                //}, 0);
+                onDataLoad(p, lp, logoutLoc);
+                
                 try{
                     if (rs!=null && !rs.isClosed()) rs.close();
                     if (stmt!=null) stmt.close();
@@ -254,16 +254,83 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
     
     
     
-   // @EventHandler (ignoreCancelled = true)
-   // public void onPlayerChat(AsyncChatEvent e) {
-      //  if (!e.getPlayer().getWorld().getName().equals("world")) return;
-       // if (NewBie__.hasNewBieTask(e.getPlayer())) {
-            
-        //}
-        //e.setCancelled(true);
-        //e.viewers().clear();
-        //e.getPlayer().sendMessage("§6Для пропуска интро просто перезайдите.");
-   // }      
+    
+    
+    
+    
+    
+    
+    // ******** эвенты по новичку
+    
+    @EventHandler
+    public static void onCuboidEvent(final CuboidEvent e) {
+        if (e.previos!=null && e.previos.name.equals("newbie")) { //выход из кубоида новичка
+            final Player p = e.p;
+            for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.previos.id) continue; //самого себя и тех, кто не на кораблике пропускаем
+                lp.getPlayer().showPlayer(Main.instance, p);
+                p.showPlayer(Main.instance, lp.getPlayer());
+            }
+        }
+        if (e.current!=null && e.current.name.equals("newbie")) { //вход в кубоида новичка
+            final Player p = e.p;
+            for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.current.id) continue; //самого себя и тех, кто не на кораблике пропускаем
+                lp.getPlayer().showPlayer(Main.instance, p);
+                p.showPlayer(Main.instance, lp.getPlayer());
+lp.getPlayer().sendMessage("§8log: showPlayer "+p.getName());
+p.sendMessage("§8log: showPlayer "+lp.name);
+            }
+        }
+    }    
+    
+    
+    
+    
+    
+    @EventHandler (ignoreCancelled = true)
+    public void onPlayerChat(AsyncChatEvent e) {
+        if (!e.getPlayer().getWorld().getName().equals("world")) return;
+        final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
+        if (lc!=null && lc.name.equals("newbie")) {
+e.getPlayer().sendMessage("§8log: чат новичка "+e.viewers());            
+            //e.setCancelled(true);
+            //e.viewers().clear();
+        }
+    }      
+    
+    
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onDismount(final EntityDismountEvent e) {
+//e.getEntity().sendMessage("§7log: onDismount getEntityType="+e.getEntityType()+" getDismountedType="+e.getDismounted().getType()+" getEntityType"+e.getEntity().getType());
+        if (e.getEntityType()==EntityType.PLAYER && e.getDismounted().getType()==EntityType.BLAZE) {
+            //final Player p = (Player) e.getEntity();
+            if (e.getDismounted().isCustomNameVisible() && e.getDismounted().getCustomName().equals(JinGoal.ginName)) {
+                e.setCancelled(true);
+                if (!Timer.has(e.getEntity().getEntityId())) {
+                    e.getEntity().sendMessage("§6Погодите, уже скоро будем на месте!");
+                    Timer.add(e.getEntity().getEntityId(), 3);
+                }
+            }
+            //final LobbyPlayer lp = Main.getLobbyPlayer(p);
+            //if (!lp.hasFlag(LobbyFlag.NewBieDone))
+        }
+    }
+    
+    
+    //***************************    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -274,101 +341,111 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         
-		final Block b = e.getBlockPlaced();
+        final Block b = e.getBlockPlaced();
 		
-		if (b.getType() == Material.FIRE) {
+        switch (b.getType()) {
+            
+            case FIRE:
+                if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
                     
-                    if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
+                    final ItemStack it = e.getItemInHand();
+                    if (it.getType()!=Material.AIR && it.hasItemMeta()) {
+                        final String servername = ((TextComponent) it.getItemMeta().displayName()).content();
+                        final Location loc = b.getLocation();
                         
-                        final ItemStack it = e.getItemInHand();
-                        if (it.getType()!=Material.AIR && it.hasItemMeta()) {
-                            final String servername = ((TextComponent) it.getItemMeta().displayName()).content();
-                            final Location loc = b.getLocation();
-                            
-                            Main.serverPortals.put(new XYZ(loc), servername);
-                            Main.savePortals();
-                            
-
-                            /*final FileConfiguration cfg = Main.instance.getConfig();
-                            final ConfigurationSection cs = cfg.getConfigurationSection("prtls");
-                            if (cs == null) {
-                                    cfg.set("prtls.x", loc.getBlockX());
-                                    cfg.set("prtls.y", loc.getBlockY());
-                                    cfg.set("prtls.z", loc.getBlockZ());
-                                    cfg.set("prtls.s", nm);
-                            } else {
-                                    cs.set("x", cs.getString("x") + ":" + loc.getBlockX());
-                                    cs.set("y", cs.getString("y") + ":" + loc.getBlockY());
-                                    cs.set("z", cs.getString("z") + ":" + loc.getBlockZ());
-                                    cs.set("s", cs.getString("s") + ":" + nm);
-                            }
-
-                            try {
-                                    cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
-                                    e.getPlayer().sendMessage("§eПортал " + nm + " создан!");
-                            } catch (IOException ex) {
-                                    ex.printStackTrace();
-                            }*/
+                        Main.serverPortals.put(new XYZ(loc), servername);
+                        Main.savePortals();
+                        
+                        
+                        /*final FileConfiguration cfg = Main.instance.getConfig();
+                        final ConfigurationSection cs = cfg.getConfigurationSection("prtls");
+                        if (cs == null) {
+                        cfg.set("prtls.x", loc.getBlockX());
+                        cfg.set("prtls.y", loc.getBlockY());
+                        cfg.set("prtls.z", loc.getBlockZ());
+                        cfg.set("prtls.s", nm);
+                        } else {
+                        cs.set("x", cs.getString("x") + ":" + loc.getBlockX());
+                        cs.set("y", cs.getString("y") + ":" + loc.getBlockY());
+                        cs.set("z", cs.getString("z") + ":" + loc.getBlockZ());
+                        cs.set("s", cs.getString("s") + ":" + nm);
                         }
+                        
+                        try {
+                        cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
+                        e.getPlayer().sendMessage("§eПортал " + nm + " создан!");
+                        } catch (IOException ex) {
+                        ex.printStackTrace();
+                        }*/
                     }
-                    
-                    
-		} else if (b.getType() == Material.HEAVY_WEIGHTED_PRESSURE_PLATE) {
-                    
-			final Player p = e.getPlayer();
-			final Location loc = b.getLocation();
-                        
-			if (p.hasMetadata("tp")) {
-                            
-                            final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
-                            final XYZ secondPlateXYZ = new XYZ(loc);
-                                    
-                            final ChunkContent cc = AreaManager.getChunkContent(loc, true); //берём чанк по второй плите
-                            cc.addPlate(firstPlateXYZ, secondPlateXYZ);
-                            AreaManager.savePlate(firstPlateXYZ, secondPlateXYZ);
-                            
-				/*final FileConfiguration cfg = Main.instance.getConfig();
-				final ConfigurationSection cs = cfg.getConfigurationSection("plts");
-				final BaseBlockPosition fst = (BaseBlockPosition) p.getMetadata("tp").get(0).value();
-				if (cs == null) {
-					cfg.set("Rom.plts.bx", fst.getX());
-					cfg.set("Rom.plts.by", fst.getY());
-					cfg.set("Rom.plts.bz", fst.getZ());
-					cfg.set("Rom.plts.ex", loc.getBlockX());
-					cfg.set("Rom.plts.ey", loc.getBlockY());
-					cfg.set("Rom.plts.ez", loc.getBlockZ());
-				} else {
-					cs.set("bx", cs.getString("bx") + ":" + fst.getX());
-					cs.set("by", cs.getString("by") + ":" + fst.getY());
-					cs.set("bz", cs.getString("bz") + ":" + fst.getZ());
-					cs.set("ex", cs.getString("ex") + ":" + loc.getBlockX());
-					cs.set("ey", cs.getString("ey") + ":" + loc.getBlockY());
-					cs.set("ez", cs.getString("ez") + ":" + loc.getBlockZ());
-				}
-				PlateManager.plts.put(fst, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-				
-				try {
-					cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}*/
-				
-				p.sendMessage("§2Вторая плита поставлена на координатах (§7" + loc.getBlockX() + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
-				p.removeMetadata("tp", Main.instance);
-				e.setCancelled(true);
-				p.sendMessage("§2Плита создана!");
-			} else {
-				//p.setMetadata("tp", new FixedMetadataValue(Main.instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
-				p.setMetadata("tp", new FixedMetadataValue(Main.instance, new XYZ(loc)));
-				p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
-			}
-                        
-		} else if (b.getType() == Material.BEDROCK) {
-			Main.loadCfgs();
-			e.getPlayer().sendMessage("§eПерезагружено!");
-		}
+                }
+                break;
+                
+                
         //else if (!clear_stats) PM.Addbplace(e.getPlayer().getName());
+            case HEAVY_WEIGHTED_PRESSURE_PLATE:
+                final Player p = e.getPlayer();
+                final Location loc = b.getLocation();
+                if (p.hasMetadata("tp")) {
+                    
+                    final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
+                    final XYZ secondPlateXYZ = new XYZ(loc);
+                    
+                    final ChunkContent cc = AreaManager.getChunkContent(loc, true); //берём чанк по второй плите
+                    cc.addPlate(firstPlateXYZ, secondPlateXYZ);
+                    AreaManager.savePlate(firstPlateXYZ, secondPlateXYZ);
+                    
+                    /*final FileConfiguration cfg = Main.instance.getConfig();
+                    final ConfigurationSection cs = cfg.getConfigurationSection("plts");
+                    final BaseBlockPosition fst = (BaseBlockPosition) p.getMetadata("tp").get(0).value();
+                    if (cs == null) {
+                    cfg.set("Rom.plts.bx", fst.getX());
+                    cfg.set("Rom.plts.by", fst.getY());
+                    cfg.set("Rom.plts.bz", fst.getZ());
+                    cfg.set("Rom.plts.ex", loc.getBlockX());
+                    cfg.set("Rom.plts.ey", loc.getBlockY());
+                    cfg.set("Rom.plts.ez", loc.getBlockZ());
+                    } else {
+                    cs.set("bx", cs.getString("bx") + ":" + fst.getX());
+                    cs.set("by", cs.getString("by") + ":" + fst.getY());
+                    cs.set("bz", cs.getString("bz") + ":" + fst.getZ());
+                    cs.set("ex", cs.getString("ex") + ":" + loc.getBlockX());
+                    cs.set("ey", cs.getString("ey") + ":" + loc.getBlockY());
+                    cs.set("ez", cs.getString("ez") + ":" + loc.getBlockZ());
+                    }
+                    PlateManager.plts.put(fst, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                    
+                    try {
+                    cfg.save(Main.instance.getDataFolder() + File.separator + "config.yml");
+                    } catch (IOException ex) {
+                    ex.printStackTrace();
+                    }*/
+                    
+                    p.sendMessage("§2Вторая плита поставлена на координатах (§7" + loc.getBlockX() + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
+                    p.removeMetadata("tp", Main.instance);
+                    e.setCancelled(true);
+                    p.sendMessage("§2Плита создана!");
+                } else {
+                    //p.setMetadata("tp", new FixedMetadataValue(Main.instance, new BaseBlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
+                    p.setMetadata("tp", new FixedMetadataValue(Main.instance, new XYZ(loc)));
+                    p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
+                }
+                break;
+                
+                
+            case BEDROCK:
+                Main.loadCfgs();
+                e.getPlayer().sendMessage("§eПерезагружено!");
+                break;
+                
+            default:
+                break;
+                
+        }
+        
     }
+    
+    
     
     
     
@@ -379,20 +456,25 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         
-		if (e.getBlock().getType() == Material.NETHER_PORTAL && !Main.serverPortals.isEmpty()) {
+		if (e.getBlock().getType() == Material.NETHER_PORTAL ) {
                     
+                    if (!Main.serverPortals.isEmpty()) {
+                        
 			final Location loc = e.getBlock().getLocation();
                         XYZ find = null;
                         for (final XYZ xyzw : Main.serverPortals.keySet()) {
-                            if (xyzw.nearly(loc)) {
+                            if (xyzw.nearly(loc, 16)) {
                                 find = xyzw;
                                 break;
                             }
                         }
+                        
                         if (find!=null) {
                             Main.serverPortals.remove(find);
                             Main.savePortals();
                         }
+                        
+                    }
                         
 			//final FileConfiguration cfg = Main.instance.getConfig();
 			/*int d = Integer.MAX_VALUE;
@@ -573,7 +655,13 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
             switch (e.getCause()) {
                 case VOID:
                     e.setDamage(0);
-                    ((Player) e.getEntity()).teleport (Main.spawnLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+                    final Player p = (Player) e.getEntity();
+                    final LobbyPlayer lp = Main.getLobbyPlayer(p);
+                    if (lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
+                        p.teleport (Main.spawnLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+                    } else { //новичков - если прыгнул за борт - на точку прибытия
+                        Main.arriveNewBie(p);
+                    }
                     return;
                     
                 case FALL:
@@ -739,20 +827,26 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
             }
     }
 
+    
+    
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onInter(final PlayerInteractEvent e) {
+    public void onInteract(final PlayerInteractEvent e) {
+        
+        //для элитр
         if (e.hasItem() && e.getClickedBlock() != null && e.getItem().getType()==Material.FIREWORK_ROCKET) {
             e.setUseItemInHand(Event.Result.DENY);
             return;
         }
         
         final Player p = e.getPlayer();
+//p.sendMessage("§8log: InteractEvent "+e.getAction()+" getItem="+e.getItem()+" getMaterial="+e.getMaterial()+" getClickedBlock="+e.getClickedBlock());
         
+        //плита рома
         if (e.getAction() == Action.PHYSICAL) {
             final Location loc = e.getClickedBlock().getLocation();
 
             final ChunkContent cc = AreaManager.getChunkContent(loc);
-            if (cc.hasPlate()) {
+            if (cc!=null && cc.hasPlate()) {
                 final XYZ second = cc.getPlate(loc);
                 if (second!=null) { //пункт назначения назначен - значит плата есть
 //e.getPlayer().sendMessage("§aПлита на коорд. -> "+second.toString());
@@ -765,6 +859,7 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                         
                     new BukkitRunnable() {
 			final String name = p.getName();
+                        Vector moveVector;
                         int count;
                         
 			@Override
@@ -786,7 +881,8 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                                 //p.setFlying(false);
                                 this.cancel();
                             } else {
-                                p.setVelocity(new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
+                                moveVector = new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f);
+                                p.setVelocity(moveVector); //поддавать газу
                                 loc.getWorld().spawnParticle(Particle.NAUTILUS, loc, 40, 0.2d, 0.2d, 0.2d);
                             }
                             count++;
@@ -805,157 +901,194 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.has
                 }
             }
 
-
-
-                
-        } else if (e.getClickedBlock() != null) {
-                final HashSet<Material> ms = Main.mts.get(p.getName());
-                if (ms != null) {
-                        final Material m = e.getClickedBlock().getType();
-                        if (ms.size() < 50 && ms.add(m)) {
-                                ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + m.toString().replace('_', ' ').toLowerCase() + "§7, осталось: §6" + (50 - ms.size()));
-                                //bossbar???
-                        }
+            return;
+        } 
+        
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        
+        if (e.getClickedBlock() != null) {
+            
+            //final HashSet<Material> ms = Main.mts.get(p.getName());
+            //счётчик блоков для игры аркаим
+            if (lp.findBlocks != null && lp.findBlocks.size() < 50) {
+                final Material mat = e.getClickedBlock().getType();
+                if (lp.findBlocks.add(mat)) {
+                        ApiOstrov.sendTitle(p, "", "§7Найден блок §6" + LanguageHelper.getMaterialName(mat, "RU_ru") + "§7, осталось: §6" + (50 - lp.findBlocks.size()));
+                        //bossbar???
                 }
+            }
+            
+            //спавн джина для новичка
+            if (e.getAction()==Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType()==Material.SOUL_LANTERN) {
+            //if (e.getAction()==Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType()==Material.SOUL_LANTERN && p.getVehicle()==null ) {
+                final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+                if (lc!=null && lc.name.equals("newbie")) {
+                    p.performCommand("oscom gin");
+                }
+            }
+            
+           /* if (e.getAction()==Action.RIGHT_CLICK_BLOCK && ApiOstrov.isLocalBuilder(p)) {
+                if (p.getInventory().getItemInMainHand().getType()==Material.STONE) {
+                    DonatEffect.displayHelix(e.getClickedBlock().getLocation().clone().add(0, 2, 0));
+                    p.sendMessage("displayHelix");
+                }
+            }*/
         }
+        
+        //if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
+            //чек кубоид
+        //}
+
     }
     // ---------------------------------------- 
 
-	public boolean plcAtmpt(Block b, final BlockFace bf) {
-		byte i = 0;
-		while (b.getRelative(bf.getOppositeFace()).getType().isAir() && i < 10) {
-			i++;
-			b = b.getRelative(bf.getOppositeFace());
-		}
+    
 
-		byte h = 1;
-		byte w = 1;
 
-		hh : while (h < 20) {
-			switch (b.getRelative(BlockFace.UP, h).getType()) {
-			case AIR:
-			case CAVE_AIR:
-			case FIRE:
-				h++;
-				break;
-			default:
-				break hh;
-			}
-		}
+    
+    
+    
+    
+    
+    
+    
+    
 
-		ww : while (w < 20) {
-			switch (b.getRelative(bf, w).getType()) {
-			case AIR:
-			case CAVE_AIR:
-			case FIRE:
-				w++;
-				break;
-			default:
-				break ww;
-			}
-		}
-		
-		if (bf.getModX() == 0) {
-			if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 2) || 
-				!ntAirMinBlck(b.getRelative(0, h - 1, 0), (byte) 2) || 
-				!ntAirMinBlck(b.getRelative(0, 0, w - 1), (byte) 2) || 
-				!ntAirMinBlck(b.getRelative(0, h - 1, w - 1), (byte) 2)) {
-				return false;
-			}
-			for (byte y = 1; y < h - 1; y++) {
-				if (!ntAirMinBlck(b.getRelative(0, y, 0), (byte) 1) || 
-					!ntAirMinBlck(b.getRelative(0, y, w - 1), (byte) 1)) {
-					return false;
-				}
-			}
-			for (byte xz = 1; xz < w - 1; xz++) {
-				if (!ntAirMinBlck(b.getRelative(0, 0, xz), (byte) 1) || 
-					!ntAirMinBlck(b.getRelative(0, h - 1, xz), (byte) 1)) {
-					return false;
-				}
-			}
-			if (w < 2 || h < 3) {
-				return false;
-			}
-			final Block[] pbs = new Block[w * h];
-			short j = 0;
-			for (byte xz = 0; xz < w; xz++) {
-				for (byte y = 0; y < h; y++) {
-					final Block bl = b.getRelative(0, y, xz);
-					switch (bl.getType()) {
-					case AIR:
-					case CAVE_AIR:
-					case FIRE:
-						pbs[j] = bl;
-						j++;
-						break;
-					default:
-						return false;
-					}
-				}
-			}
-			
-			for (final Block pb : pbs) {
-				pb.setType(Material.NETHER_PORTAL);
-				final Orientable or = (Orientable) pb.getBlockData();
-				or.setAxis(Axis.Z);
-				pb.setBlockData(or);
-			}
-		} else {
-			if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 3) || 
-				!ntAirMinBlck(b.getRelative(0, h - 1, 0), (byte) 3) || 
-				!ntAirMinBlck(b.getRelative(w - 1, 0, 0), (byte) 3) || 
-				!ntAirMinBlck(b.getRelative(w - 1, h - 1, 0), (byte) 3)) {
-				return false;
-			}
-			for (byte y = 1; y < h - 1; y++) {
-				if (!ntAirMinBlck(b.getRelative(0, y, 0), (byte) 2) || 
-					!ntAirMinBlck(b.getRelative(w - 1, y, 0), (byte) 2)) {
-					return false;
-				}
-			}
-			for (byte xz = 1; xz < w - 1; xz++) {
-				if (!ntAirMinBlck(b.getRelative(xz, 0, 0), (byte) 2) || 
-					!ntAirMinBlck(b.getRelative(xz, h - 1, 0), (byte) 2)) {
-					return false;
-				}
-			}
-			if (w < 2 || h < 3) {
-				return false;
-			}
-			final Block[] pbs = new Block[w * h];
-			short j = 0;
-			for (byte xz = 0; xz < w; xz++) {
-				for (byte y = 0; y < h; y++) {
-					final Block bl = b.getRelative(xz, y, 0);
-					switch (bl.getType()) {
-					case AIR:
-					case CAVE_AIR:
-					case FIRE:
-						pbs[j] = bl;
-						j++;
-						break;
-					default:
-						return false;
-					}
-				}
-			}
-			
-			for (final Block pb : pbs) {
-				pb.setType(Material.NETHER_PORTAL);
-			}
-		}
-		return true;
-	}
+    public boolean plcAtmpt(Block b, final BlockFace bf) {
+        byte i = 0;
+        while (b.getRelative(bf.getOppositeFace()).getType().isAir() && i < 10) {
+                i++;
+                b = b.getRelative(bf.getOppositeFace());
+        }
 
-	public boolean ntAirMinBlck(final Block b, byte amt) {
-		for (final BlockFace bf : nr) {
-			if (!b.getRelative(bf).getType().isAir()) {
-				amt--;
-			}
-		}
-		return amt <= 0;
-	}
+        byte h = 1;
+        byte w = 1;
+
+        hh : while (h < 20) {
+                switch (b.getRelative(BlockFace.UP, h).getType()) {
+                case AIR:
+                case CAVE_AIR:
+                case FIRE:
+                        h++;
+                        break;
+                default:
+                        break hh;
+                }
+        }
+
+        ww : while (w < 20) {
+                switch (b.getRelative(bf, w).getType()) {
+                case AIR:
+                case CAVE_AIR:
+                case FIRE:
+                        w++;
+                        break;
+                default:
+                        break ww;
+                }
+        }
+
+        if (bf.getModX() == 0) {
+                if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 2) || 
+                        !ntAirMinBlck(b.getRelative(0, h - 1, 0), (byte) 2) || 
+                        !ntAirMinBlck(b.getRelative(0, 0, w - 1), (byte) 2) || 
+                        !ntAirMinBlck(b.getRelative(0, h - 1, w - 1), (byte) 2)) {
+                        return false;
+                }
+                for (byte y = 1; y < h - 1; y++) {
+                        if (!ntAirMinBlck(b.getRelative(0, y, 0), (byte) 1) || 
+                                !ntAirMinBlck(b.getRelative(0, y, w - 1), (byte) 1)) {
+                                return false;
+                        }
+                }
+                for (byte xz = 1; xz < w - 1; xz++) {
+                        if (!ntAirMinBlck(b.getRelative(0, 0, xz), (byte) 1) || 
+                                !ntAirMinBlck(b.getRelative(0, h - 1, xz), (byte) 1)) {
+                                return false;
+                        }
+                }
+                if (w < 2 || h < 3) {
+                        return false;
+                }
+                final Block[] pbs = new Block[w * h];
+                short j = 0;
+                for (byte xz = 0; xz < w; xz++) {
+                        for (byte y = 0; y < h; y++) {
+                                final Block bl = b.getRelative(0, y, xz);
+                                switch (bl.getType()) {
+                                case AIR:
+                                case CAVE_AIR:
+                                case FIRE:
+                                        pbs[j] = bl;
+                                        j++;
+                                        break;
+                                default:
+                                        return false;
+                                }
+                        }
+                }
+
+                for (final Block pb : pbs) {
+                        pb.setType(Material.NETHER_PORTAL);
+                        final Orientable or = (Orientable) pb.getBlockData();
+                        or.setAxis(Axis.Z);
+                        pb.setBlockData(or);
+                }
+        } else {
+                if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 3) || 
+                        !ntAirMinBlck(b.getRelative(0, h - 1, 0), (byte) 3) || 
+                        !ntAirMinBlck(b.getRelative(w - 1, 0, 0), (byte) 3) || 
+                        !ntAirMinBlck(b.getRelative(w - 1, h - 1, 0), (byte) 3)) {
+                        return false;
+                }
+                for (byte y = 1; y < h - 1; y++) {
+                        if (!ntAirMinBlck(b.getRelative(0, y, 0), (byte) 2) || 
+                                !ntAirMinBlck(b.getRelative(w - 1, y, 0), (byte) 2)) {
+                                return false;
+                        }
+                }
+                for (byte xz = 1; xz < w - 1; xz++) {
+                        if (!ntAirMinBlck(b.getRelative(xz, 0, 0), (byte) 2) || 
+                                !ntAirMinBlck(b.getRelative(xz, h - 1, 0), (byte) 2)) {
+                                return false;
+                        }
+                }
+                if (w < 2 || h < 3) {
+                        return false;
+                }
+                final Block[] pbs = new Block[w * h];
+                short j = 0;
+                for (byte xz = 0; xz < w; xz++) {
+                        for (byte y = 0; y < h; y++) {
+                                final Block bl = b.getRelative(xz, y, 0);
+                                switch (bl.getType()) {
+                                case AIR:
+                                case CAVE_AIR:
+                                case FIRE:
+                                        pbs[j] = bl;
+                                        j++;
+                                        break;
+                                default:
+                                        return false;
+                                }
+                        }
+                }
+
+                for (final Block pb : pbs) {
+                        pb.setType(Material.NETHER_PORTAL);
+                }
+        }
+        return true;
+    }
+
+    public boolean ntAirMinBlck(final Block b, byte amt) {
+            for (final BlockFace bf : nr) {
+                    if (!b.getRelative(bf).getType().isAir()) {
+                            amt--;
+                    }
+            }
+            return amt <= 0;
+    }
 
 
     

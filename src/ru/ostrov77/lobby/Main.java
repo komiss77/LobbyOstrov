@@ -1,10 +1,11 @@
 package ru.ostrov77.lobby;
 
 
+import ru.ostrov77.lobby.area.XYZ;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.area.AreaCmd;
-import ru.ostrov77.lobby.newbie.OsComCmd;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,16 +16,23 @@ import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.utils.DonatEffect;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
@@ -54,8 +62,9 @@ COMMIT;
 public class Main extends JavaPlugin {
     
     public static Main instance;
-    public static Location newBieSpawnLocation;
     public static Location spawnLocation;
+    public static Location newBieSpawnLocation;
+    public static Location newBieArriveLocation;
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
@@ -70,9 +79,12 @@ public class Main extends JavaPlugin {
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     
     private static OstrovConfig serverPortalsConfig;
-    
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
-    public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+    //public static final HashMap<String, HashSet<Material>> mts = new HashMap<String, HashSet<Material>>();//найденые блоки по типу ник : найденые материалы
+
+
+
+
 
 
 
@@ -96,8 +108,9 @@ public class Main extends JavaPlugin {
 
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
         
-        newBieSpawnLocation = new Location(world, 30.5, 160, 50.5, 0, 0);
-        spawnLocation = new Location(world, .5, 100, .5, 0, 0);
+        spawnLocation = new Location(world, 0.5, 100, 0.5, 0, 0);
+        newBieSpawnLocation = new Location(world, 38.5, 160, -79.5, -90, 0);
+        newBieArriveLocation = new Location(world, 16.5, 100, 25.5, 150, 0);
         
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
         //getServer().getPluginManager().registerEvents(new NewBie__(), instance);
@@ -128,10 +141,69 @@ public class Main extends JavaPlugin {
     
     
     
+    public static void arriveNewBie(final Player p) {
+        
+        
+        if (p.getVehicle()!=null) {
+            final Entity gin = p.getVehicle();
+            gin.setCustomName("§cРаб лампы"); //!! сначала сменит имя, или сработает onDismount cancel!!
+            p.getVehicle().eject();
+            
+//p.sendMessage("loc="+gin.getLocation()); 13.8 102.72 24.8
+            //final Location ginLampLocation = new Location(newBieArriveLocation.getWorld(), 13.5, 100, 26.5);
+            final Location ginLampLocation = new Location(newBieArriveLocation.getWorld(), 13.8, 100, 24.8);
+            showGinHopper(ginLampLocation); //партиклами воронка, уходящая в лампу
+            //gin.setVelocity(new Vector(0, -1, 0)); //всасывание джина в лампу 
+            gin.setGravity(true);
+            
+            ginLampLocation.getWorld().playSound(ginLampLocation, Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+
+            Ostrov.sync( ()-> {
+                if (!gin.isDead()) {
+                    gin.remove();
+                    ginLampLocation.getWorld().playSound(ginLampLocation, Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
+                }
+            }, 100);
+p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
+
+        } else {
+            p.teleport (Main.newBieArriveLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+p.sendMessage("§8log: прибыли своим ходом");
+            
+        }
+        //эффект, музыка 
+        //DonatEffect.spawnRandomFirework(p.getLocation());
+    }
+
     
     
-    
-    
+    private static void showGinHopper(Location loc) {
+        new BukkitRunnable() {
+            double radius = 2.043476540885901; //нисходящая спираль
+            double y = 4; //нисходящая спираль
+            @Override
+            public void run() {
+
+                for (int t= 0; t <= 40; t++) {
+                    y-=0.002;
+                    radius/=1.0015;
+                    double x = radius * Math.cos(Math.pow(y, 2)*10);
+                    double z = radius * Math.sin(Math.pow(y, 2)*10);
+                    loc.add(x,y,z);
+                    loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 1, 0, 0, 0);
+                    loc.subtract(x,y,z);
+                }
+                if (y<=0) {
+                    this.cancel();
+                }           
+            }
+        }.runTaskTimerAsynchronously(Ostrov.instance, 0, 1);
+    }
+
+
+
+
+
     
     
     
@@ -243,8 +315,10 @@ savePortals();
     public static LobbyPlayer destroyLobbyPlayer(final String name) {
         return lobbyPlayers.remove(name);
     }
-
-
+    
+    public static Iterable<LobbyPlayer> getLobbyPlayers() {
+        return lobbyPlayers.values();
+    }
 
     
     public static void giveItems(final Player p) {
@@ -285,11 +359,12 @@ savePortals();
     
     
     
-    public static boolean chckAKTsk(final Player p) {
+        public static boolean chckAKTsk(final Player p) {
 		final LobbyPlayer lp = Main.getLobbyPlayer(p);
 		if (lp != null && !lp.hasFlag(LobbyFlag.Arcaim)) {
-			final HashSet<Material> ms = mts.get(p.getName());
-			if (ms == null) {
+			//final HashSet<Material> ms = mts.get(p.getName());
+			if (lp.findBlocks == null) {
+                            lp.findBlocks = EnumSet.noneOf(Material.class);
 				p.sendMessage("§9[§eНПС§9] §fЗдравствуй, будующий §eстроитель§f!");
 				Ostrov.sync(new Runnable() {
 					@Override
@@ -302,15 +377,15 @@ savePortals();
 					public void run() {
 						p.sendMessage("§fОднако, перед разблокировкой §dмгновенного перемещения §fтуда, тебе нужно изучить блоки в этом лобби!\n§6[§fНайди §e50 §fразных §eблоков §fв этом лобби§6]");
 						//bossbar???
-						mts.put(p.getName(), new HashSet<Material>());
+						//mts.put(p.getName(), new HashSet<Material>());
 					}
 				}, 80);
-			} else if (ms.size() > 50) {
+			} else if (lp.findBlocks.size() > 50) {
 				p.sendMessage("§9[§eНПС§9] §fМолодец, тебе удалось найти различные §eблоки §fв этом лобби! Теперь ты можешь §dмгновенно §fперемещатся на §e§lАркаим§f!");
 				lp.setFlag(LobbyFlag.Arcaim, true);
-				mts.remove(p.getName());
+				lp.findBlocks = null; //mts.remove(p.getName());
 			} else {
-				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - ms.size()) + " §fблок(ов)!");
+				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - lp.findBlocks.size()) + " §fблок(ов)!");
 			}
 		}
 		return false;

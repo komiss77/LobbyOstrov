@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Location;
-import ru.ostrov77.lobby.XYZ;
 
 
 public class ChunkContent {

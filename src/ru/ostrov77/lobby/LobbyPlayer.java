@@ -3,6 +3,7 @@ package ru.ostrov77.lobby;
 import java.util.EnumSet;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -23,6 +24,7 @@ public class LobbyPlayer {
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime; //таймер гонки
+    public EnumSet<Material> findBlocks; //найденые материалы для задания
 
     
     
@@ -121,6 +123,10 @@ p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.
 
     public void setOpenedArea(int openedArea) {
         this.openedArea = openedArea;
+    }
+
+    public Player getPlayer() {
+        return Bukkit.getPlayerExact(name);
     }
 
     

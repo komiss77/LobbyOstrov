@@ -1,20 +1,32 @@
-package ru.ostrov77.lobby.newbie;
+package ru.ostrov77.lobby;
 
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Blaze;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.DebugMenu;
+import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
+import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.newbie.JinGoal;
+import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestViewMenu;
 
 
@@ -22,7 +34,7 @@ import ru.ostrov77.lobby.quest.QuestViewMenu;
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList(  "debug", "ghast", "quest", "area");
+    private final List <String> subCommands = Arrays.asList(  "debug", "gin", "quest", "area");
 
         
         
@@ -54,6 +66,11 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             return true;
         }
         final Player p = (Player) cs;
+        
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+        
+        
         
         if (arg.length==1) {
             
@@ -128,6 +145,50 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         .open(p);
                         //}
                     return true;
+                    
+                    
+                    
+                case "gin":
+                    if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.NewBieDone)) {
+                        if (ApiOstrov.canBeBuilder(p)) {
+                            p.sendMessage("§cвключи гм1!");
+                        } else {
+                            p.sendMessage("§cМогут только новички!");
+                        }
+                        //p.sendMessage("§cМогут только новички!");
+                        return true;
+                    }
+                    if (p.getVehicle()!=null) {
+                        p.sendMessage("§cНадо спешиться!");
+                        return true;
+                    }
+                    if (lc==null || !lc.name.equals("newbie")) {
+                        p.sendMessage("§cНадо быть на кораблике!");
+                        return true;
+                    }
+                    final Entity entity = p.getWorld().spawnEntity(p.getWorld().getBlockAt(30, 160, -79).getLocation(), EntityType.BLAZE);
+                    final Blaze gin = (Blaze) entity;
+                    
+                    gin.setGlowing(true);
+                    gin.setGravity(false);
+                    gin.setInvulnerable(true);
+                    gin.setCustomName(JinGoal.ginName);
+                    gin.setCustomNameVisible(true);
+                    
+                    Bukkit.getMobGoals().removeAllGoals(gin);
+                    final Mob mob = (Mob) gin;
+                    final JinGoal goal = new JinGoal(mob);
+                    Bukkit.getMobGoals().addGoal(gin, 1, goal);
+                    gin.addPassenger(p);
+                    
+                    for (final LobbyPlayer lp_ : Main.getLobbyPlayers()) {
+                        if (lp_.questAccept.contains(Quest.GreetNewBie)) {
+                            lp_.getPlayer().sendMessage("§6Ожидается прибытие новичка через 15 секунд!");
+                        }
+                    }
+                    
+                    return true;
+                    
                     
                 //case "openCosmetics":
                     //ProCosmeticsAPI.openMainMenu(p);

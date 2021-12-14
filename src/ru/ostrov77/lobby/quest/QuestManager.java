@@ -39,6 +39,7 @@ public class QuestManager implements Listener {
        
         
     	if (e.current == null) {
+            
             ApiOstrov.sendActionBarDirect(e.p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
     		
     	} else {
@@ -57,7 +58,7 @@ public class QuestManager implements Listener {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> Вы уже участвовали в состязании!");
                 } else {
                     e.p.sendMessage("§5[§eСостязание§5] §f>> Перед началом, возьмите задание у §eИгромана§f!");
-                    }
+                }
             } else if (e.current.name.equals("end") && e.lp.questAccept.contains(Quest.MiniRace)) {
                 //final Integer time = AreaManager.racePlayers.remove(e.lp.name);
                 if (e.lp.raceTime>0) { //if (time != null) {

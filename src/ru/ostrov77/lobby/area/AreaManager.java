@@ -20,7 +20,6 @@ import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.listeners.QuestAdvance;
 
@@ -45,7 +44,7 @@ public class AreaManager {
             final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
             for (int ccId : ids) {
                 cc=chunkContetnt.get(ccId);
-                if (cc.deleteCuboidID(cuboidId)) {
+                if (cc.hasCuboids() && cc.deleteCuboidID(cuboidId)) {
                     if (cc.isEmpty()) { //убрать чанк, если нет там никакой инфы
                         chunkContetnt.remove(ccId);
                     }
@@ -147,10 +146,7 @@ public class AreaManager {
         
         playerMoveTask = new BukkitRunnable() {     //   !!!!ASYNC !!!!    каждую секунду
             
-            LobbyPlayer lp;
             int currentCuboidId;
-            LCuboid previos;
-            LCuboid current;
             
             @Override
             public void run() {
@@ -159,7 +155,7 @@ public class AreaManager {
                     if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
-                    lp = Main.getLobbyPlayer(p);
+                    final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     
                     //чек если игрок проходит состязание
                     //final Integer time = racePlayers.get(p.getName());
@@ -184,7 +180,7 @@ public class AreaManager {
                         
                         if (currentCuboidId==0) { //вышел из кубоида в пространство
                             
-                            previos = cuboids.get(lp.lastCuboidId);
+                            LCuboid previos = cuboids.get(lp.lastCuboidId);
                             if (previos!=null) { //сработало при удалении? пропускаем
 //ApiOstrov.sendActionBar(p, "вышел из кубоида "+previos.displayName);
                                 Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
@@ -192,7 +188,7 @@ public class AreaManager {
                             
                         } else if(lp.lastCuboidId==0) { //из пространства в кубоид
                             
-                            current = cuboids.get(currentCuboidId);
+                            final LCuboid current = cuboids.get(currentCuboidId);
                             if (current!=null) { //сработало при удалении? пропускаем
 //ApiOstrov.sendActionBar(p, "вошел в кубоид "+current.displayName);
                                 Ostrov.sync(()-> {
@@ -204,8 +200,8 @@ public class AreaManager {
                             
                         } else { //из кубоида в кубоил
                             
-                            previos = cuboids.get(lp.lastCuboidId);
-                            current = cuboids.get(currentCuboidId);
+                            LCuboid previos = cuboids.get(lp.lastCuboidId);
+                            LCuboid current = cuboids.get(currentCuboidId);
                             Ostrov.sync(()-> {
                                 Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
                                 if (current!=null) { //если есть кубоид входа, ставим метку времени

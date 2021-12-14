@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby.newbie;
+package lbb.Romindous;
 
 
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby;
+package ru.ostrov77.lobby.area;
 
 import org.bukkit.Location;
 import ru.komiss77.Ostrov;
@@ -30,15 +30,17 @@ public class XYZ {
         z = loc.getBlockZ();
     }
 
-    XYZ(final String worldName, final int x, final int y, final int z) {
+    public XYZ(final String worldName, final int x, final int y, final int z) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.worldName = worldName;
     }
 
-    public boolean nearly(final Location loc) {
-        return worldName.equals(loc.getWorld().getName()) && square(loc.getBlockX()-x) + square(loc.getBlockY()-y) + square(loc.getBlockZ()-z) < 16; //число подобрать точнее!
+    public boolean nearly(final Location loc, final int distance) {
+//int d =  square(loc.getBlockX()-x) + square(loc.getBlockY()-y) + square(loc.getBlockZ()-z);
+//System.out.println("nearly d="+d);
+        return worldName.equals(loc.getWorld().getName()) && square(loc.getBlockX()-x) + square(loc.getBlockY()-y) + square(loc.getBlockZ()-z) <= distance; //число подобрать точнее!
     }
     
     private static int square(final int num) {

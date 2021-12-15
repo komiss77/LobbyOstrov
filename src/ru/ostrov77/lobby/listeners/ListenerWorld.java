@@ -145,7 +145,6 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
         final LobbyPlayer lp = Main.createLobbyPlayer(p);
-        QuestAdvance.onJoin(p);
         
         Ostrov.async( () -> {
 
@@ -207,10 +206,6 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
 
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
         Ostrov.sync(()-> {
-
-            if (Main.advancements) {
-                QuestAdvance.onDataLoad(p);
-            }
             
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
@@ -255,7 +250,7 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         }
         p.removeMetadata("tp", Main.instance);
         if (Main.advancements) {
-            QuestAdvance.removeLPl(p);
+            QuestAdvance.onQuit(p);
         }
     }    
     

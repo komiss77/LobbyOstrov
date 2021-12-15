@@ -114,7 +114,7 @@ public class QuestManager implements Listener {
            
     	   switch (cuboid.name) {
 			case "spawn"://новичёк дошел до спавна
-                checkQuest(p, lp, Quest.ReachSpawn, true);
+                checkQuest(p, lp, Quest.SpawnGin, true);
 				break;
 			case "newbie"://для кубоида новичков даём первые задания ниже
 				//
@@ -210,13 +210,13 @@ p.sendMessage("§8log: checkQuest "+quest);
 	            break;
                 
                 
-            case ReachSpawn: //сработает при входе в зону спавн
+            case SpawnGin: //сработает при входе в зону спавн
                 if (notPlJoin && !lp.hasFlag(LobbyFlag.NewBieDone)) {
                 	completeAdv(p, String.valueOf(quest.code));
                     lp.setFlag(LobbyFlag.NewBieDone, true);
                 	completeAdv(p, String.valueOf(Quest.SpeakWithNPC.code));
                     lp.questDone(p, Quest.SpeakWithNPC, false);
-                    lp.questDone(p, Quest.ReachSpawn, false);
+                    lp.questDone(p, Quest.SpawnGin, false);
                     //lp.questDone(p, Quest.openQuestMenu, false);
                     if (PM.exist(p.getName())) {
                         PM.getOplayer(p).showScore();

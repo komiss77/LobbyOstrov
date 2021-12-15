@@ -155,7 +155,16 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                    if (p.getTicksLived()<24) {
+                        Ostrov.sync(()-> {
+                        	if (Main.advancements) {
+                        		QuestAdvance.onJoin(p);
+                        		//QuestAdvance.onDataLoad(e.getPlayer());
+                        		QuestAdvance.onDataLoad(p);
+                        	}
+                        }, 0);
+                    	continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                    }
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
                     final LobbyPlayer lp = Main.getLobbyPlayer(p);

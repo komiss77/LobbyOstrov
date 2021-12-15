@@ -19,7 +19,7 @@ public enum Quest {
     OpenTreassureChest      ( 'c',	-3, -3, 0, Material.ENDER_CHEST,	"spawn",   		"Открыть Сундук Сокровищ", 	"Получите примочки из Сундука Сокровищ"), //+по эвенту косметики открытие сундука
     GreetNewBie             ( 'd',	-1, 3, 0, Material.QUARTZ,		"spawn",        	"Поприветствовать Новичка", 	"Нажмите ПКМ на нового игрока"),
     SpeakWithNPC            ('e',	2, 0, 0, Material.GLOBE_BANNER_PATTERN,	"newbie",       	"Разговорить Лоцмана", 		"Выведайте куда вы прибыли у Лоцмана"),
-    ReachSpawn              ( 'f',	1, 2, 0, Material.ENDER_PEARL,		"newbie",       	"Добраться до Спавна", 		"Нажмите на Гаста для перемещения на спавн"),//+при входе в зону спавн
+    SpawnGin           	    ('f',	1, 2, 0, Material.BLAZE_POWDER,	"newbie",      		"Призвать Джина",                  "Нажмите на лампу для призыва Джина"),//+при входе в зону спавн
     MiniRace                ( 'g',	2, -1, 0, Material.TURTLE_HELMET,	"nopvp",       		"Олимпиада", 			"Пройти состязание менее чем за 5 минут"),
     MiniPark                ('h',	2, -1, 0, Material.SMALL_DRIPLEAF,	"parkur",       	"Прыжок за Прыжком", 		"Пропрыгать 10+ блоков на мини-паркурах"),
     CobbleGen               ('i',	2, -1, 12, Material.COBBLESTONE,	"skyworld",       	"Прокачка Острова", 		"Выкопать 12 булыжника в генераторе"),
@@ -27,7 +27,6 @@ public enum Quest {
     MineDiam                ('k',	2, 1, 10, Material.DIAMOND,		"daaria",       	"Зазнавшийся Шахтер", 		"Добыть 10 алмазов в шахте"),
     CollectTax              ('l',	2, 1, 3, Material.RAW_GOLD,		"midgard",       	"Казначей",                     "Собрать налоги с жителей поселка"),
     SumoVoid           	    ('m',	2, 1, 0, Material.SHULKER_SHELL,	"pvp",       		"Сумо Мастер",                  "Сбить человека с сумо платформы"),
-    SpawnGin           	    ('n',	2, 1, 0, Material.SHULKER_SHELL,	"newbie",      		"Сумо Мастер",                  "Сбить человека с сумо платформы"),
     ;
 
 

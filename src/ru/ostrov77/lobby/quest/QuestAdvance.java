@@ -50,17 +50,17 @@ public class QuestAdvance {
         
         
     //из эвента PlayerJoinEvent
-    public static void onJoin(Player p) {
+    public static void onJoin(final Player p) {
         mgr.addPlayer(p);
     }
     
     //после загрузки LobbyPlayerData, SYNC!
-    public static void onDataLoad(Player p) {
+    public static void onDataLoad(final Player p) {
         load(p);
     }
     
     //из эвента PlayerQuitEvent
-    public static void onQuit(Player p) {
+    public static void onQuit(final Player p) {
         mgr.removePlayer(p);
     }
     
@@ -99,7 +99,8 @@ public class QuestAdvance {
     				}
 				}
     		}
-                Ostrov.sync(() -> mgr.updateVisibility(p), 30);
+    		
+			mgr.updateVisibility(p);
 //                    final Advancement ad = QuestAdvance.adm.toArray(aa)[0];
 //                    mgr.grantAdvancement(p, ad);
 //                    ad.displayToast(p);
@@ -125,6 +126,7 @@ public class QuestAdvance {
         	adm.add(crtAdv(String.valueOf(q.code), q.displayName, q.description, new Criteria(q.num), q.icon, q.dx2, q.dy2, "", getParentAdv(q.attachedArea), AdvancementFrame.TASK, visOnDisc(q.attachedArea)));
         }
         mgr.addAdvancement(adm.toArray(new Advancement[0]));
+        mgr.makeAccessible();
 	}
 
 	public static Advancement getParentAdv(final String area) {
@@ -182,10 +184,5 @@ public class QuestAdvance {
 			}
 		}
 	}
-	
-	public static void removeLPl(final Player p) {
-		mgr.removePlayer(p);
-	}
-
 
 }

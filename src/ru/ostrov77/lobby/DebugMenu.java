@@ -103,12 +103,7 @@ public class DebugMenu implements InventoryProvider {
             .build(), e -> {
 //System.out.println("ClaimFlags "+e.getClick()+" isSet="+isSet);
             if (e.getClick()==ClickType.SHIFT_RIGHT) {
-                p.closeInventory();
-                if (Main.advancements) {
-                	QuestAdvance.removeLPl(p);
-                }
-                ApiOstrov.sendToServer(p, "arcaim", "");
-                Ostrov.async(()-> LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';"), 20);
+                p.performCommand("oscom reset");
                 //reopen(p, contents);
                 return;
             } 

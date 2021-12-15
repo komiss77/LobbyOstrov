@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -142,10 +143,13 @@ public class AreaManager {
             playerMoveTask.cancel();
         }
         
+        
+        
+        
         playerMoveTask = new BukkitRunnable() {     //   !!!!ASYNC !!!!    каждую секунду
             
-            
             int currentCuboidId;
+            final LCuboid ship = getCuboid("newbie");
             
             @Override
             public void run() {
@@ -182,7 +186,10 @@ public class AreaManager {
                         	final LCuboid previos = cuboids.get(lp.lastCuboidId);
                             if (previos!=null) { //сработало при удалении? пропускаем
 //ApiOstrov.sendActionBar(p, "вышел из кубоида "+previos.displayName);
-                                Ostrov.sync(()-> Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime)), 0);
+                                Ostrov.sync(()-> {
+                                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime));
+                                    previos.playerNames.remove(lp.name);
+                                }, 0);
                             }
                             
                         } else if(lp.lastCuboidId==0) { //из пространства в кубоид
@@ -193,6 +200,7 @@ public class AreaManager {
                                 Ostrov.sync(()-> {
                                     Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
                                     lp.cuboidEntryTime = Timer.getTime();
+                                    current.playerNames.add(lp.name);
                                 }, 0);
                                 
                             }
@@ -205,23 +213,32 @@ public class AreaManager {
                                 Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, current, lp.cuboidEntryTime)); 
                                 if (current!=null) { //если есть кубоид входа, ставим метку времени
                                     lp.cuboidEntryTime = Timer.getTime();
+                                    previos.playerNames.remove(lp.name);
+                                    current.playerNames.add(lp.name);
                                 }
                             }, 0);
 
                         }
-                        
+                        //еще надо ловить quitEvent
                         lp.lastCuboidId = currentCuboidId;
                     }
                 }
                 
+                if (ship!=null && !ship.playerNames.isEmpty()) {
+                    final Location shipLamp = Main.getLocation(Main.LocType.ginLampShip);
+//Bukkit.broadcastMessage("ship.playerNames="+ship.playerNames);
+                    shipLamp.getWorld().spawnParticle(Particle.SPELL_WITCH, shipLamp, 2,  0.2, 0.1, 0.2, 0.01);
+                }
+                
             }
 
-             
         }.runTaskTimerAsynchronously(Main.instance, 20, 9);
         
+        
+        
         new BukkitRunnable() {
-			@Override
-			public void run() { //паркуристы
+            @Override
+            public void run() { //паркуристы
                 for (final Player p : Bukkit.getOnlinePlayers()) {
                 	final PKrist pr = PKrist.getPK(p.getName());
                 	if (pr != null) {

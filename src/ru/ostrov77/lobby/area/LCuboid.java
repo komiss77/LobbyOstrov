@@ -1,6 +1,12 @@
 package ru.ostrov77.lobby.area;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import ru.komiss77.modules.world.Cuboid;
 import ru.ostrov77.lobby.Main;
 
@@ -11,6 +17,7 @@ public class LCuboid extends Cuboid {
     public final String name;
     public String displayName;
     public Location spawnPoint;
+    public final Set<String>playerNames = new HashSet<>();
     
     //сохранении нового в редакторе
     public LCuboid(final int id, final String name, final String displayName, final Location spawnPoint, final Location pos1, final Location pos2) {
@@ -18,7 +25,7 @@ public class LCuboid extends Cuboid {
         this.id = id;
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
-        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.spawnLocation): spawnPoint;
+        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
     }
     
     //загрузка
@@ -27,6 +34,20 @@ public class LCuboid extends Cuboid {
         this.id = id;
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
-        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.spawnLocation): spawnPoint;
+        this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
     }
+    
+    
+    public List<Player> getCuboidPlayers() {
+        List <Player>list = new ArrayList<>();
+        playerNames.stream().map( (palyerName) -> Bukkit.getPlayerExact(palyerName)).filter( (p) -> (p!=null) ).forEachOrdered( (p) -> {
+            list.add(p);
+        } );
+        return list;
+    }
+    
+    public boolean hasPlayer(final Player p) {
+        return playerNames.contains(p.getName());
+    }
+    
 }

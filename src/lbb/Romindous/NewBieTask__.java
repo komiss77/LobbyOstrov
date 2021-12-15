@@ -30,7 +30,7 @@ public class NewBieTask__ implements Runnable {
         //op.hideScore();
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, NewBieTask__.this, 1, 1);
         //NewBie.tasks.put(name, NewBieTask.this);
-        p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
+        //p.teleport(Main.newBieSpawnLocation);// тп на 30 160 50
         //p.setGameMode(GameMode.SPECTATOR);  //только спектатор! или может выкл полёт и падать
         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
         //ApiOstrov.sendTitle(p, "", "§3Вам доводилось летать во сне?", 80, 20, 40);

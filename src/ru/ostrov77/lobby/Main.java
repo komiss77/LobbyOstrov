@@ -5,6 +5,7 @@ import ru.ostrov77.lobby.area.XYZ;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.area.AreaCmd;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,12 +22,14 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
@@ -63,9 +66,7 @@ COMMIT;
 public class Main extends JavaPlugin {
     
     public static Main instance;
-    public static Location spawnLocation;
-    public static Location newBieSpawnLocation;
-    public static Location newBieArriveLocation;
+
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
@@ -79,11 +80,12 @@ public class Main extends JavaPlugin {
     public static boolean advancements = false;
     
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
+    private static final EnumMap<LocType,Location>locations = new EnumMap(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
-    public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();//порталы по типу точка портала : сервер
+    public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();
 
     
     
@@ -104,13 +106,9 @@ public class Main extends JavaPlugin {
         }
 
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
-        
-        spawnLocation = new Location(world, 0.5, 100, 0.5, 0, 0);
-        newBieSpawnLocation = new Location(world, 38.5, 160, -79.5, -90, 0);
-        newBieArriveLocation = new Location(world, 16.5, 100, 25.5, 150, 0);
+
         
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
-        //getServer().getPluginManager().registerEvents(new NewBie__(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
@@ -130,6 +128,7 @@ public class Main extends JavaPlugin {
         
         
         loadCfgs();
+        loadLocaions(world);
 		
         Ostrov.log_ok("Lobby загружен");
 
@@ -145,26 +144,25 @@ public class Main extends JavaPlugin {
             final Entity gin = p.getVehicle();
             gin.setCustomName("§cРаб лампы"); //!! сначала сменит имя, или сработает onDismount cancel!!
             p.getVehicle().eject();
-            
+            ((LivingEntity)gin).setAI(false);
 //p.sendMessage("loc="+gin.getLocation()); 13.8 102.72 24.8
-            //final Location ginLampLocation = new Location(newBieArriveLocation.getWorld(), 13.5, 100, 26.5);
-            final Location ginLampLocation = new Location(newBieArriveLocation.getWorld(), 13.8, 100, 24.8);
-            showGinHopper(ginLampLocation); //партиклами воронка, уходящая в лампу
-            //gin.setVelocity(new Vector(0, -1, 0)); //всасывание джина в лампу 
-            gin.setGravity(true);
+            gin.teleport(getLocation(LocType.ginFinal));
+            showGinHopper(getLocation(LocType.ginLampArrive).clone()); //партиклами воронка, уходящая в лампу
+            //gin.setVelocity(new Vector(0, -0.5, 0)); //всасывание джина в лампу 
+            //gin.setGravity(true);
             
-            ginLampLocation.getWorld().playSound(ginLampLocation, Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+            p.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
 
             Ostrov.sync( ()-> {
                 if (!gin.isDead()) {
+                    gin.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
                     gin.remove();
-                    ginLampLocation.getWorld().playSound(ginLampLocation, Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
                 }
             }, 100);
 p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
 
         } else {
-            p.teleport (Main.newBieArriveLocation, PlayerTeleportEvent.TeleportCause.COMMAND);
+            p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
 p.sendMessage("§8log: прибыли своим ходом");
             
         }
@@ -174,7 +172,7 @@ p.sendMessage("§8log: прибыли своим ходом");
 
     
     
-    private static void showGinHopper(Location loc) {
+    protected static void showGinHopper(final Location loc) {
         new BukkitRunnable() {
             double radius = 2.043476540885901; //нисходящая спираль
             double y = 4; //нисходящая спираль
@@ -506,7 +504,24 @@ savePortals();
 		}
 		return String.valueOf(ss);
 	}
+
+    private static void loadLocaions(final World world) {
+        locations.put(LocType.Spawn,  new Location(world, 0.5, 100, 0.5, 0, 0));
+        locations.put(LocType.newBieSpawn,  new Location(world, 38.5, 160, -79.5, -90, 0));
+        locations.put(LocType.newBieArrive,  new Location(world, 16.5, 100, 25.5, 150, 0));
+        locations.put(LocType.ginFinal,  new Location(world, 13.5, 102, 26.5));
+        locations.put(LocType.ginLampShip,  new Location(world, 32.5, 162.5, -79.5));
+        locations.put(LocType.ginLampArrive,  new Location(world, 13.5, 100, 26.5));
+    }
     
+    public static Location getLocation(final LocType type) {
+        return locations.get(type);
+    }
+        
+    public enum LocType {
+        Spawn, newBieSpawn, newBieArrive, ginFinal, ginLampShip, ginLampArrive;
+    }
+
 }
 
 

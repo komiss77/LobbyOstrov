@@ -3,8 +3,12 @@ package ru.ostrov77.lobby;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,13 +24,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
 import ru.komiss77.ApiOstrov;
+import ru.komiss77.LocalDB;
+import ru.komiss77.Ostrov;
 import ru.komiss77.utils.inventory.SmartInventory;
-import ru.ostrov77.lobby.DebugMenu;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.newbie.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestManager;
 import ru.ostrov77.lobby.quest.QuestViewMenu;
 
 
@@ -34,8 +40,8 @@ import ru.ostrov77.lobby.quest.QuestViewMenu;
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
     
-    private final List <String> subCommands = Arrays.asList(  "debug", "gin", "quest", "area");
-
+    private final List <String> subCommands = Arrays.asList(  "debug", "gin", "quest", "area", "reset");
+    private static final Set<String>ginOwner = new HashSet<>();
         
         
     @Override
@@ -108,6 +114,14 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
                     return true;
                     
+                case "reset":
+                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                        p.closeInventory();
+                        ApiOstrov.sendToServer(p, "arcaim", "");
+                        Ostrov.async(()-> LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';"), 20);
+                    //}
+                    return true;
+                    
               /*  case "newbieMenu":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {
                     SmartInventory.builder()
@@ -166,23 +180,48 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         p.sendMessage("§cНадо быть на кораблике!");
                         return true;
                     }
-                    final Entity entity = p.getWorld().spawnEntity(p.getWorld().getBlockAt(30, 160, -79).getLocation(), EntityType.BLAZE);
-                    final Blaze gin = (Blaze) entity;
+                    if (ginOwner.contains(p.getName())) {
+                        p.sendMessage("§6Джин уже выходит!");
+                        return true;
+                    }
+                    ginOwner.add(p.getName());
+                    p.sendMessage("§6Кажется, сработало!");
+                    Main.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone());
+                    QuestManager.checkQuest(p, lp, Quest.SpawnGin, true);
+                    p.playSound(Main.getLocation(Main.LocType.ginLampShip), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 5, 1);
                     
-                    gin.setGlowing(true);
-                    gin.setGravity(false);
-                    gin.setInvulnerable(true);
-                    gin.setCustomName(JinGoal.ginName);
-                    gin.setCustomNameVisible(true);
-                    
-                    Bukkit.getMobGoals().removeAllGoals(gin);
-                    final Mob mob = (Mob) gin;
-                    final JinGoal goal = new JinGoal(mob);
-                    Bukkit.getMobGoals().addGoal(gin, 1, goal);
-                    gin.addPassenger(p);
+                    Ostrov.sync( ()->{
+                        if (!p.isOnline() || !AreaManager.getCuboid("newbie").hasPlayer(p)) {
+                            Ostrov.log_warn("spawn gin phase 1 : !p.isOnline()");
+                            ginOwner.remove(p.getName());
+                            return;
+                        }
+                        final Blaze gin = spawnGin();//(Blaze) entity;
+                          
+                            Ostrov.sync( ()->{
+                                if (gin.isDead()) {
+                                    Ostrov.log_warn("spawn gin phase 2 : gin isDead");
+                                    ginOwner.remove(p.getName());
+                                    return;
+                                }
+                                if (!p.isOnline() || !AreaManager.getCuboid("newbie").hasPlayer(p) ) {
+                                    gin.remove();
+                                    Ostrov.log_warn("spawn gin phase 2 : !p.isOnline()");
+                                    ginOwner.remove(p.getName());
+                                    return;
+                                }
+                                final Mob mob = (Mob) gin;
+                                final JinGoal goal = new JinGoal(mob);
+                                gin.addPassenger(p);
+                                Bukkit.getMobGoals().addGoal(gin, 1, goal);
+                                ginOwner.remove(p.getName());
+                            }, 40);
+                            
+                    }, 40);
+
                     
                     for (final LobbyPlayer lp_ : Main.getLobbyPlayers()) {
-                        if (lp_.questAccept.contains(Quest.GreetNewBie)) {
+                        if (!lp_.name.equals(lp.name) && lp_.questAccept.contains(Quest.GreetNewBie)) {
                             lp_.getPlayer().sendMessage("§6Ожидается прибытие новичка через 15 секунд!");
                         }
                     }
@@ -208,6 +247,19 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
 
 
         return true;
+    }
+
+    private Blaze spawnGin() {
+        final Location loc = Main.getLocation(Main.LocType.ginLampShip);
+        final Entity entity = loc.getWorld().spawnEntity(loc, EntityType.BLAZE);
+        final Blaze gin = (Blaze) entity;
+        gin.setGlowing(true);
+        gin.setGravity(false);
+        gin.setInvulnerable(true);
+        gin.setCustomName(JinGoal.ginName);
+        gin.setCustomNameVisible(true);
+        Bukkit.getMobGoals().removeAllGoals(gin);
+        return gin;
     }
     
 

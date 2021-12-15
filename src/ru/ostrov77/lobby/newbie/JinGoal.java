@@ -57,7 +57,7 @@ public class JinGoal implements Goal<Blaze> {
  
     @Override
     public boolean shouldStayActive() {
-        return shouldActivate();
+        return !arrive;//shouldActivate();
     }
  
     @Override
@@ -150,9 +150,9 @@ public class JinGoal implements Goal<Blaze> {
     private void arrive() {
         //mob.setVelocity(new Vector(0, currPointIndex, 0));
         if (mob.getPassengers().get(0).getType()==EntityType.PLAYER) {
+            arrive = true;
             final Player p = (Player) mob.getPassengers().get(0);
             Main.arriveNewBie(p);
-            arrive = true;
         }
     }    
     

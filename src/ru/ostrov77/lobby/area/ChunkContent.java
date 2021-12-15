@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import ru.ostrov77.lobby.XYZ;
 
 
 public class ChunkContent {
@@ -47,19 +47,20 @@ public class ChunkContent {
         }
         final int ccLoc = getCCloc(firstPlateXYZ.x, firstPlateXYZ.y, firstPlateXYZ.z);//
         plate.put( ccLoc, secondPlateXYZ);
- //System.out.println("++addPlate ccloc="+ccLoc+" second="+secondPlateXYZ);
+//System.out.println("++addPlate ccloc="+ccLoc+" second="+secondPlateXYZ);
     }
 
     public XYZ getPlate(final Location loc) {
         if (!hasPlate()) return null;
         final int ccLoc = getCCloc(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());//(loc.getBlockX()&0xF)<<16 | loc.getBlockY()<<8 | (loc.getBlockZ()&0xF);
- //System.out.println("++getPlate ccloc="+ccLoc+" second="+plate.get(ccLoc));
+//System.out.println("++getPlate ccloc="+ccLoc+" plate.get="+plate.get(ccLoc));
         return plate.get(ccLoc);
     }    
 
     public void delPlate(final Location loc) {
         if (!hasPlate()) return;
         final int ccLoc = getCCloc(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());//(loc.getBlockX()&0xF)<<16 | loc.getBlockY()<<8 | (loc.getBlockZ()&0xF);
+//System.out.println("++delPlate ccloc="+ccLoc+" plate.get="+plate.get(ccLoc));
         plate.remove(ccLoc);
         if (plate.isEmpty()) {
             plate=null;

@@ -26,7 +26,6 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestAdvance;
 import ru.ostrov77.lobby.quest.QuestManager;
 
 
@@ -81,7 +80,7 @@ public class AreaManager {
     }
     
     protected static void saveCuboid(final LCuboid lc) {
-        areaConfig.set("areas."+lc.id+".name", lc.name);
+        areaConfig.set("areas."+lc.id+".name", lc.getName());
         areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
         areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.StringFromLocWithYawPitch(lc.spawnPoint));
         areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
@@ -134,11 +133,7 @@ public class AreaManager {
             }
         }
 
-        //подгрузка ачивок
-        if (Main.advancements) {
-            QuestAdvance.loadQuestAdv();
-        }
-       
+        
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();
         }
@@ -155,16 +150,7 @@ public class AreaManager {
             public void run() {
                 
                 for (final Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getTicksLived()<24) {
-                        Ostrov.sync(()-> {
-                        	if (Main.advancements) {
-                        		QuestAdvance.onJoin(p);
-                        		//QuestAdvance.onDataLoad(e.getPlayer());
-                        		QuestAdvance.onDataLoad(p);
-                        	}
-                        }, 0);
-                    	continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
-                    }
+                    if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
                     final LobbyPlayer lp = Main.getLobbyPlayer(p);
@@ -248,28 +234,39 @@ public class AreaManager {
         new BukkitRunnable() {
             @Override
             public void run() { //паркуристы
-                for (final Player p : Bukkit.getOnlinePlayers()) {
-                	final PKrist pr = PKrist.getPK(p.getName());
-                	if (pr != null) {
-                		final Location loc = p.getLocation();
-                		if (loc.getY() < pr.bLast.y) { //упал
-                            p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
-                            Main.miniParks.remove(pr);
-                            if (pr.jumps >= 12) {
-                            	QuestManager.checkQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark, true);
+                for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                	//final PKrist pr = PKrist.getPK(p.getName());
+                        //final LobbyPlayer lp = Main.getLobbyPlayer(p);
+                	if (lp.pkrist != null) {
+                            final Player p = lp.getPlayer();
+                            final PKrist pr = lp.pkrist;
+                            final Location loc = p.getLocation();
+                            if (loc.getY() < pr.bLast.y) { //упал
+                                p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
+                                //Main.miniParks.remove(pr);
+                                //if (pr.jumps >= 12) {
+                                //    QuestManager.tryCompleteQuest(p, lp, Quest.MiniPark);
+                                //}
+                                lp.pkrist = null;
+                                loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setType(Material.AIR, false);
+                                loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setType(Material.AIR, false);
+                                p.teleport(getCuboid("parkur").spawnPoint);
+                                //p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
+                                lp.pkrist = null;
+                                Ostrov.sync(() -> {
+                                    p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
+                                    if (pr.jumps >= 12) {
+                                        QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark);
+                                    }
+                                }, 4);
+                            } else if (loc.getBlockX() == pr.bNext.x && loc.getBlockZ() == pr.bNext.z) {
+                                p.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_HIT, 2f, 0.1f * pr.jumps + 0.5f);
+                                pr.nextBlock();
                             }
-                            loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setType(Material.AIR, false);
-                            loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setType(Material.AIR, false);
-                            p.teleport(getCuboid("parkur").spawnPoint);
-                			p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
-                		} else if (loc.getBlockX() == pr.bNext.x && loc.getBlockZ() == pr.bNext.z) {
-                			p.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_HIT, 2f, 0.1f * pr.jumps + 0.5f);
-							pr.nextBlock();
-						}
                 	}
                 }
 			}
-		}.runTaskTimer(Main.instance, 8, 8);
+            }.runTaskTimer(Main.instance, 8, 8);
     }
     
     
@@ -334,7 +331,7 @@ public class AreaManager {
     
     public static LCuboid getCuboid(final String cuboidName) {
         for (LCuboid lc : cuboids.values()) {
-            if (lc.name.equalsIgnoreCase(cuboidName)) {
+            if (lc.getName().equalsIgnoreCase(cuboidName)) {
                 return lc;
             }
         }

@@ -1,17 +1,12 @@
 package ru.ostrov77.lobby;
 
 
-import ru.ostrov77.lobby.area.XYZ;
-import ru.ostrov77.lobby.listeners.ListenerWorld;
-import ru.ostrov77.lobby.area.AreaCmd;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -27,13 +22,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.utils.DonatEffect;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
@@ -44,7 +40,9 @@ import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.QuestManager;
+import ru.ostrov77.lobby.area.XYZ;
 
     
     
@@ -71,11 +69,7 @@ public class Main extends JavaPlugin {
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
     
-    public static MenuItem oscom;
-    public static MenuItem pipboy;
-    public static MenuItem cosmeticMenu;
-    public static MenuItem elytra;
-    public static MenuItem pickaxe;
+
     
     public static boolean advancements = false;
     
@@ -85,7 +79,7 @@ public class Main extends JavaPlugin {
     private static OstrovConfig serverPortalsConfig;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
-    public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();
+    ///public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();
 
     
     
@@ -113,14 +107,18 @@ public class Main extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
-        if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
-            advancements =  true;
-            //getServer().getPluginManager().registerEvents(new QuestAdvance(), instance);
-        }
         
         areaManager = new AreaManager();
         questManager = new QuestManager();
         
+        //подгрузка ачивок. После AreaManager!!
+        if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
+            advancements =  true;
+            Advance.loadQuestAdv();
+            getServer().getPluginManager().registerEvents(new Advance(), instance);
+        }
+
+       
         createMenuItems();
 
         instance.getCommand("oscom").setExecutor(new OsComCmd());
@@ -147,7 +145,7 @@ public class Main extends JavaPlugin {
             ((LivingEntity)gin).setAI(false);
 //p.sendMessage("loc="+gin.getLocation()); 13.8 102.72 24.8
             gin.teleport(getLocation(LocType.ginFinal));
-            showGinHopper(getLocation(LocType.ginLampArrive).clone()); //партиклами воронка, уходящая в лампу
+            showGinHopper(getLocation(LocType.ginLampArrive).clone(), true); //партиклами воронка, уходящая в лампу
             //gin.setVelocity(new Vector(0, -0.5, 0)); //всасывание джина в лампу 
             //gin.setGravity(true);
             
@@ -172,23 +170,23 @@ p.sendMessage("§8log: прибыли своим ходом");
 
     
     
-    protected static void showGinHopper(final Location loc) {
+    protected static void showGinHopper(final Location loc, final boolean in) {
         new BukkitRunnable() {
-            double radius = 2.043476540885901; //нисходящая спираль
-            double y = 4; //нисходящая спираль
+            double radius = in ? 2.043476540885901 : 0.1; //нисходящая спираль
+            double y = in ? 4 : 0; //нисходящая спираль
             @Override
             public void run() {
 
                 for (int t= 0; t <= 40; t++) {
-                    y-=0.002;
-                    radius/=1.0015;
+                    y= in ? y-0.002 : y+0.002;
+                    radius= in ? radius/1.0015 : radius*1.0015;
                     double x = radius * Math.cos(Math.pow(y, 2)*10);
                     double z = radius * Math.sin(Math.pow(y, 2)*10);
                     loc.add(x,y,z);
                     loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 1, 0, 0, 0);
                     loc.subtract(x,y,z);
                 }
-                if (y<=0) {
+                if ( (in && y<=0) || y>=4) {
                     this.cancel();
                 }           
             }
@@ -320,6 +318,9 @@ savePortals();
     }
 
     
+    
+    
+
     public static void giveItems(final Player p) {
         p.getInventory().clear();
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
@@ -329,7 +330,7 @@ savePortals();
         }
         
         final LCuboid lc = AreaManager.getCuboid(p.getLocation());
-        if (lc != null && lc.name.equals("daaria") && lc.name.equals("skyworld")) {
+        if (lc != null && lc.getName().equals("daaria") && lc.getName().equals("skyworld")) {
             pickaxe.give(p);
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
@@ -396,6 +397,13 @@ savePortals();
 		return false;
 	}*/
 
+    public static MenuItem oscom;
+    public static MenuItem pipboy;
+    public static MenuItem cosmeticMenu;
+    public static MenuItem elytra;
+    public static MenuItem pickaxe;
+    public static MenuItem stick;
+    
     private void createMenuItems() {
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
             .setName("§bКрылья Островитянина")
@@ -481,6 +489,25 @@ savePortals();
             .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
             .build();
         pickaxe = new MenuItemBuilder("pickaxe", pckx)
+            .slot(2)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .duplicate(false)
+            .create();
+        
+         final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
+                .setName("§6Заряженый Жезл")
+                .lore("§7Враги улетят в след. измерение!")
+                .build();
+        final ItemMeta im = st.getItemMeta();
+        im.addEnchant(Enchantment.KNOCKBACK, 1, true);
+        st.setItemMeta(im);
+        stick = new MenuItemBuilder("stick", st)
             .slot(2)
             .giveOnJoin(false)
             .giveOnRespavn(false)

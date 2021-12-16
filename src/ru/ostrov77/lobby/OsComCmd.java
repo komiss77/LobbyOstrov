@@ -16,10 +16,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
@@ -176,7 +173,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         p.sendMessage("§cНадо спешиться!");
                         return true;
                     }
-                    if (lc==null || !lc.name.equals("newbie")) {
+                    if (lc==null || !lc.getName().equals("newbie")) {
                         p.sendMessage("§cНадо быть на кораблике!");
                         return true;
                     }
@@ -186,10 +183,15 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
                     ginOwner.add(p.getName());
                     p.sendMessage("§6Кажется, сработало!");
-                    Main.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone());
-                    QuestManager.checkQuest(p, lp, Quest.SpawnGin, true);
+                    Main.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone(), false);
+                    QuestManager.tryCompleteQuest(p, lp, Quest.SpawnGin);
+                    //if (lp.questAccept.contains(Quest.SpawnGin)) {
+                    //    lp.questDone(p, Quest.SpawnGin, false);
+                     //   QuestManager.completeAdv(p, Quest.SpawnGin);
+                    //}
                     p.playSound(Main.getLocation(Main.LocType.ginLampShip), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 5, 1);
                     
+
                     Ostrov.sync( ()->{
                         if (!p.isOnline() || !AreaManager.getCuboid("newbie").hasPlayer(p)) {
                             Ostrov.log_warn("spawn gin phase 1 : !p.isOnline()");

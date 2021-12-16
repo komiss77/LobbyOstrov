@@ -79,7 +79,7 @@ public class AreaEditor implements InventoryProvider{
             Iterator<Location> it = sm.getCuboid().borderIterator(p.getWorld());
             while (it.hasNext()) {
                 loc = it.next();
-                if ( AreaManager.getCuboid(loc)!=null && !AreaManager.getCuboid(loc).name.equals(sm.schemName)) {
+                if ( AreaManager.getCuboid(loc)!=null && !AreaManager.getCuboid(loc).getName().equals(sm.schemName)) {
                     overlap = AreaManager.getCuboid(loc);
                     break;
                 }
@@ -237,7 +237,7 @@ public class AreaEditor implements InventoryProvider{
         
         
     int id = ApiOstrov.getInteger(sm.param);
-    final boolean wrongID = id<1 || id>32 || (AreaManager.getCuboid(id)!=null && !AreaManager.getCuboid(id).name.equals(sm.schemName));
+    final boolean wrongID = id<1 || id>32 || (AreaManager.getCuboid(id)!=null && !AreaManager.getCuboid(id).getName().equals(sm.schemName));
     
     if (wrongID) {
         
@@ -348,7 +348,7 @@ public class AreaEditor implements InventoryProvider{
                 .name("§6Для сохранения:")
                 .lore(selected ? "" : "§cнет выделения")
                 .lore( wrongID ? "§cневерный ИД" : "")
-                .lore((overlap!=null) ? "§cвыделение пересекается с "+overlap.name+" (ID="+overlap.id+")" : "")
+                .lore((overlap!=null) ? "§cвыделение пересекается с "+overlap.getName()+" (ID="+overlap.id+")" : "")
                 .build()
             ));
             

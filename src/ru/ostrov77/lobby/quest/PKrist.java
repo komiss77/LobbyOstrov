@@ -68,23 +68,24 @@ public class PKrist {
 		}
 		bNext = new XYZ(n.getLocation());
 		
-		if (bNext.y > 250) {
-            p.sendMessage("§7[§bМини-Паркур§7] >> Вы... прошли до конца??! Пропрыгано блоков: §b" + jumps);
-            Main.miniParks.remove(this);
-        	QuestManager.checkQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark, true);
-            p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z).setType(Material.AIR, false);
-            p.getWorld().getBlockAt(bNext.x, bNext.y, bNext.z).setType(Material.AIR, false);
-            p.teleport(AreaManager.getCuboid("parkur").spawnPoint);
-            p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1, 1.2f);
-		}
+            if (bNext.y > 250) {
+                p.sendMessage("§7[§bМини-Паркур§7] >> Вы... прошли до конца??! Пропрыгано блоков: §b" + jumps);
+                QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark);
+                p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z).setType(Material.AIR, false);
+                p.getWorld().getBlockAt(bNext.x, bNext.y, bNext.z).setType(Material.AIR, false);
+                p.teleport(AreaManager.getCuboid("parkur").spawnPoint);
+                p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1, 1.2f);
+                //Main.miniParks.remove(this);
+                Main.getLobbyPlayer(p).pkrist = null;
+            }
 	}
 
-	public static PKrist getPK(final String name) {
+	/*public static PKrist getPK(final String name) {
 		for (final PKrist pr : Main.miniParks) {
 			if (pr.p.getName().equals(name)) {
 				return pr;
 			}
 		}
 		return null;
-	}
+	}*/
 }

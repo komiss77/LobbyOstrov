@@ -77,7 +77,7 @@ import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.newbie.JinGoal;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.QuestManager;
 
 
@@ -89,6 +89,7 @@ public class ListenerWorld implements Listener {
     private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 
 	
+
     	
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEntityPortalEnter(final EntityPortalEnterEvent e) {
@@ -145,7 +146,7 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
         final LobbyPlayer lp = Main.createLobbyPlayer(p);
-        QuestAdvance.onJoin(p);
+        //QuestAdvance.onJoin(p);
         
         Ostrov.async( () -> {
 
@@ -206,10 +207,10 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
     
 
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
-        Ostrov.sync(()-> {
+        Ostrov.sync( ()-> {
 
             if (Main.advancements) {
-                QuestAdvance.onDataLoad(p);
+                Advance.send(p);
             }
             
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
@@ -232,7 +233,7 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
 //ApiOstrov.sendActionBarDirect(p, "§8log: точка выхода опасна, тп на спавн");
                 }
             }
-        }, 0);        
+        }, 2);        
     }
 
     
@@ -255,7 +256,7 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
         }
         p.removeMetadata("tp", Main.instance);
         if (Main.advancements) {
-            QuestAdvance.removeLPl(p);
+            Advance.onQuit(p);
         }
     }    
     
@@ -277,14 +278,15 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
     
     @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
-        if (e.previos!=null && e.previos.name.equals("newbie")) { //выход из кубоида новичка
-            final Player p = e.p;
-            for (final Player cp : e.previos.getCuboidPlayers()) {
+        if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie")) { //выход из кубоида новичка
+            final Player p = e.getPlayer();
+            for (final Player cp : e.getPrevois().getCuboidPlayers()) {
                 if (!cp.getName().equals(p.getName())) {
                     cp.showPlayer(Main.instance, p);
                     p.showPlayer(Main.instance, cp);
-cp.sendMessage("§8log: §c showPlayer "+p.getName());
-p.sendMessage("§8log: §c showPlayer "+cp.getName());                   }
+//cp.sendMessage("§8log: §c showPlayer "+p.getName());
+//p.sendMessage("§8log: §c showPlayer "+cp.getName());                  
+                }
             }
             /*for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
                 if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.previos.id) continue; //самого себя и тех, кто не на кораблике пропускаем
@@ -294,14 +296,15 @@ p.sendMessage("§8log: §c showPlayer "+cp.getName());                   }
 //p.sendMessage("§8log: §ashowPlayer "+lp.name);          
             }*/
         }
-        if (e.current!=null && e.current.name.equals("newbie")) { //вход в кубоида новичка
-            final Player p = e.p;
-            for (final Player cp : e.current.getCuboidPlayers()) {
+        if (e.getCurrent()!=null && e.getCurrent().getName().equals("newbie")) { //вход в кубоида новичка
+            final Player p = e.getPlayer();
+            for (final Player cp : e.getCurrent().getCuboidPlayers()) {
                 if (!cp.getName().equals(p.getName())) {
                     cp.hidePlayer(Main.instance, p);
                     p.hidePlayer(Main.instance, cp);
-cp.sendMessage("§8log: §c hidePlayer "+p.getName());
-p.sendMessage("§8log: §c hidePlayer "+cp.getName());                }
+//cp.sendMessage("§8log: §c hidePlayer "+p.getName());
+//p.sendMessage("§8log: §c hidePlayer "+cp.getName());              
+                }
             }
             /*for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
                 if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.current.id) continue; //самого себя и тех, кто не на кораблике пропускаем
@@ -321,7 +324,7 @@ p.sendMessage("§8log: §c hidePlayer "+cp.getName());                }
     public void onPlayerChat(AsyncChatEvent e) { //только когда новичёк пишет в чат
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
-        if (lc!=null && lc.name.equals("newbie")) {
+        if (lc!=null && lc.getName().equals("newbie")) {
             //e.
 //e.getPlayer().sendMessage("§8log: чат новичка "+e.viewers());            
             //e.setCancelled(true);
@@ -641,10 +644,11 @@ p.sendMessage("§8log: §c hidePlayer "+cp.getName());                }
         if (e.getRightClicked().getType()==EntityType.PLAYER) {
             final LobbyPlayer lp = Main.getLobbyPlayer(p);
             final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
-p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
-            if (lp!=null && lp.questAccept.contains(Quest.GreetNewBie) && clickedLp!=null && !clickedLp.questDone.contains(Quest.DiscoverAllArea)) {
-            	QuestManager.completeAdv(p, String.valueOf(Quest.GreetNewBie.code));
-                lp.questDone(p, Quest.GreetNewBie, true);
+//p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
+            if (lp!=null && clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
+                QuestManager.tryCompleteQuest(p, lp, Quest.GreetNewBie);
+            	//QuestManager.completeAdv(p, Quest.GreetNewBie);
+                //lp.questDone(p, Quest.GreetNewBie, true);
             }
         }
     }
@@ -680,6 +684,7 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
     public void onEntityDamage(final EntityDamageEvent e) { 
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
+        //subo
         if (e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
             final LivingEntity le = (LivingEntity) e.getEntity();
             switch (e.getCause()) {
@@ -695,7 +700,10 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                     final EntityDamageEvent de = le.getLastDamageCause();
                     if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
                     	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
-                    	QuestManager.checkQuest(dp, Main.getLobbyPlayer(dp), Quest.SumoVoid, true);
+                    	QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.SumoVoid);
+                        for (final Player pl : dp.getWorld().getPlayers()) {
+                            pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + " §7 скинул §с" + p.getName() + "§7 в пустоту!");
+                        }                    
                     }
                     return;
                     
@@ -720,9 +728,9 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                 		final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
                 		if (ee.getDamager().getType() == EntityType.PLAYER) {
                 			final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
-                			if (vCub != null && vCub.name.equals("sumo")) {
+                			if (vCub != null && vCub.getName().equals("sumo")) {
                     			final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
-                    			if (dCub != null && dCub.name.equals("sumo")) {
+                    			if (dCub != null && dCub.getName().equals("sumo")) {
                     				Ostrov.sync(() -> le.setHealth(le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), 2);
                     				return;//сумо
                     			}
@@ -878,6 +886,18 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
             }
     }
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInter(final PlayerInteractEvent e) {
         final Player p = e.getPlayer();
@@ -891,32 +911,36 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                 return;
             }
             
+            //копатель
             if (e.hasItem() && e.getItem().getType()==Material.DIAMOND_PICKAXE && e.getAction() == Action.LEFT_CLICK_BLOCK) {
             	final Block b = e.getClickedBlock();
-				final Material m = b.getType();
+                final Material m = b.getType();
             	switch (m) {
-				case DIAMOND_ORE:
-				case COBBLESTONE:
-					b.setType(Material.AIR, false);
-					Ostrov.sync(() -> b.setType(m, false), 50);
-					QuestManager.checkQuest(p, Main.getLobbyPlayer(p), m == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam, true);
-					break;
-				default:
-					break;
-				}
-	            return;
+                    case DIAMOND_ORE:
+                    case COBBLESTONE:
+                        b.setType(Material.AIR, false);
+                        Ostrov.sync(() -> b.setType(m, false), 50);
+                        QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), m == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam);
+                        p.playSound(b.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 0.8f);
+                        b.getWorld().spawnParticle(Particle.BLOCK_CRACK, b.getLocation().add(0.5d, 0.5d, 0.5d), 40, 0.4d, 0.4d, 0.4d, b.getBlockData());
+                        break;
+                    default:
+                        break;
+                }
+                return;
             } 
             
             if (lp.questAccept.contains(Quest.FindBlock) && !lp.questDone.contains(Quest.FindBlock) && lp.foundBlocks.add(e.getClickedBlock().getType())) {
-                    final int sz = lp.foundBlocks.size();
-                    QuestManager.progressAdv(p, String.valueOf(Quest.FindBlock.code), sz);
-                            if (sz < 50) {
-                                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
-                    } else {
-                                    lp.foundBlocks.clear();
-                    lp.questDone(p, Quest.FindBlock, true);
-                                    }
-                            //QuestManager.checkQuest(p, lp, Quest.FindBlock);
+                final int sz = lp.foundBlocks.size();
+                QuestManager.progressAdv(p, Quest.FindBlock, sz);
+                if (sz < 50) {
+                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
+                } else {
+                    lp.foundBlocks.clear();
+                    QuestManager.tryCompleteQuest(p, lp, Quest.FindBlock);
+                    //lp.questDone(p, Quest.FindBlock, true);
+                }
+                //QuestManager.checkQuest(p, lp, Quest.FindBlock);
             }
             
                         //final HashSet<Material> ms = Main.mts.get(p.getName());
@@ -935,7 +959,7 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                 Timer.add(p.getEntityId(), 3);
             //if (e.getAction()==Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType()==Material.SOUL_LANTERN && p.getVehicle()==null ) {
                 final LCuboid lc = AreaManager.getCuboid(p.getLocation());
-                if (lc!=null && lc.name.equals("newbie")) {
+                if (lc!=null && lc.getName().equals("newbie")) {
                     if (e.getClickedBlock().getX()==Main.getLocation(LocType.ginLampShip).getBlockX() && e.getClickedBlock().getZ()==Main.getLocation(LocType.ginLampShip).getBlockZ()) {
                         p.performCommand("oscom gin");
                     } else {
@@ -1013,7 +1037,7 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                 }
             }
             
-            if (e.getClickedBlock().getType() == Material.WARPED_PRESSURE_PLATE && PKrist.getPK(lp.name) == null) { //новый паркурист
+            if (e.getClickedBlock().getType() == Material.WARPED_PRESSURE_PLATE && lp.pkrist == null) { //новый паркурист
                 final PKrist pr = new PKrist(p);
 
                     pr.bLast = new XYZ(loc.add(0d, 30d, 0d));
@@ -1028,13 +1052,30 @@ p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.que
                     pr.bNext = new XYZ(n.getLocation());
                     p.teleport(loc.add(0.5d, 1.1d, 0.5d));
                 p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 1.4f);
-
-                Main.miniParks.add(pr);
+                lp.pkrist = pr;
+                //Main.miniParks.add(pr);
             }
         }
     }
     // ---------------------------------------- 
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 	public boolean plcAtmpt(Block b, final BlockFace bf) {
 		byte i = 0;
 		while (b.getRelative(bf.getOppositeFace()).getType().isAir() && i < 10) {

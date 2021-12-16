@@ -14,7 +14,7 @@ import ru.ostrov77.lobby.Main;
 public class LCuboid extends Cuboid {
 
     public final int id;
-    public final String name;
+    private final String name;
     public String displayName;
     public Location spawnPoint;
     public final Set<String>playerNames = new HashSet<>();
@@ -48,6 +48,10 @@ public class LCuboid extends Cuboid {
     
     public boolean hasPlayer(final Player p) {
         return playerNames.contains(p.getName());
+    }
+    
+    public String getName() {
+        return name;
     }
     
 }

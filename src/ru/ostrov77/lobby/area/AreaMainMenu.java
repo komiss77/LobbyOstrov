@@ -52,7 +52,7 @@ public class AreaMainMenu implements InventoryProvider {
                 final LCuboid lc = AreaManager.getCuboid(cuboidId);
                         
                 menuEntry.add(ClickableItem.of(new ItemBuilder( Material.BOOKSHELF )
-                    .name(lc.name)
+                    .name(lc.getName())
                     .lore("ID: §3"+lc.id)
                     .lore("displayName: "+lc.displayName)
                     .lore("§7Размер: §b"+lc.getSizeX()+"§7x§b"+lc.getSizeY()+"§7x§b"+lc.getSizeZ())
@@ -97,7 +97,7 @@ public class AreaMainMenu implements InventoryProvider {
                             sm.param = String.valueOf(lc.id);
                             sm.extra1 = lc.displayName;
                             sm.spawnPoint = lc.spawnPoint;
-                            AreaCmd.openAreaEditMenu(p, lc.name);
+                            AreaCmd.openAreaEditMenu(p, lc.getName());
                             //p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 5);
                             //reopen(p, contents);
                             return;

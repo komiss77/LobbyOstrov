@@ -58,7 +58,7 @@ public class AreaViewMenu implements InventoryProvider {
         
         for (LCuboid lc : AreaManager.getCuboids()) {
             
-            if (lc.name.equals("newbie")) continue; //спавн новичка не показываем
+            if (lc.getName().equals("newbie")) continue; //спавн новичка не показываем
             
             if (lp.isAreaDiscovered(lc.id)) {
                 

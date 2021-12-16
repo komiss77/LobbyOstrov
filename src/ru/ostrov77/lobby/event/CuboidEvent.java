@@ -13,11 +13,11 @@ import ru.ostrov77.lobby.area.LCuboid;
 public class CuboidEvent extends Event {
 
     private static HandlerList handlers = new HandlerList();
-    public final Player p;
-    public final LobbyPlayer lp;
-    public final LCuboid previos;
-    public final LCuboid current;
-    public final int previosEntryTime;
+    private final Player p;
+    private final LobbyPlayer lp;
+    private final LCuboid previos;
+    private final LCuboid current;
+    private final int previosEntryTime;
     
     public CuboidEvent(final Player p, final LobbyPlayer lp, final LCuboid previos, final LCuboid current, final int previosEntryTime) {
         this.p = p;
@@ -27,7 +27,25 @@ public class CuboidEvent extends Event {
         this.previosEntryTime = previosEntryTime;
     }
 
+    public Player getPlayer() {
+        return p;
+    }
     
+    public LobbyPlayer getLobbyPlayer() {
+        return lp;
+    }
+    
+    public LCuboid getPrevois() {
+        return previos;
+    }
+    
+    public LCuboid getCurrent() {
+        return current;
+    }
+    
+    public int getpreviosEntryTime() {
+        return previosEntryTime;
+    }
     
     
     @Override

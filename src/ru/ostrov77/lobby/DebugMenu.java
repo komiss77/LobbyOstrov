@@ -19,7 +19,7 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 import ru.komiss77.utils.inventory.Pagination;
 import ru.komiss77.utils.inventory.SlotIterator;
 import ru.komiss77.utils.inventory.SlotPos;
-import ru.ostrov77.lobby.quest.QuestAdvance;
+import ru.ostrov77.lobby.quest.Advance;
 
 
 

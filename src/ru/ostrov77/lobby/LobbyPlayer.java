@@ -9,6 +9,8 @@ import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.DonatEffect;
+import ru.ostrov77.lobby.quest.Advance;
+import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -26,7 +28,7 @@ public class LobbyPlayer {
     public int raceTime; //таймер гонки
     public int taxed; //кол-во собраных налогов
     public final EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
-
+    public PKrist pkrist;
     
     
     
@@ -68,22 +70,30 @@ public class LobbyPlayer {
     
     
     
-    private static final ChatColor[] colors = new ChatColor[] { ChatColor.DARK_AQUA, ChatColor.GOLD, ChatColor.GRAY, ChatColor.BLUE, ChatColor.GREEN, ChatColor.AQUA, ChatColor.RED, ChatColor.LIGHT_PURPLE, ChatColor.YELLOW };
+    //только сохранение! все обработчики - в QuestManager
     public void questDone(final Player p, final Quest quest, final boolean condratulations) {
+        //if (!Bukkit.isPrimaryThread()) {
+        //    Ostrov.log_err("Асинхронный вызов questDone : "+p.getName()+" , "+quest);
+        //}
         boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questDone.add(quest)) {
             change = true;
-            if (condratulations) {
+            /*if (condratulations) {
                 DonatEffect.spawnRandomFirework(p.getLocation());
-                final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
-                p.sendMessage(" ");
-                p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
-                p.sendMessage(chatColor + quest.displayName );
-                p.sendMessage(chatColor + " Квест завершен! " );
-                p.sendMessage(" ");
+                if (Main.advancements) {
+                    Advance.completeAdv(p, quest.code);
+                } else {
+                    final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
+                    p.sendMessage(" ");
+                    p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
+                    p.sendMessage(chatColor + quest.displayName );
+                    p.sendMessage(chatColor + " Квест завершен! " );
+                    p.sendMessage(" ");               
+                }
+
             } else {
 p.sendMessage("§8log:  квест завершен без поздравлений "+quest.displayName);
-            }
+            }*/
         } else {
 p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
         }

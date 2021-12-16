@@ -21,7 +21,7 @@ public class CosmeticListener implements Listener {
         final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
 e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (lp!=null) {
-            QuestManager.checkQuest(e.getPlayer(), lp, Quest.OpenTreassureChest, true);
+            QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.OpenTreassureChest);
         }
     }
     

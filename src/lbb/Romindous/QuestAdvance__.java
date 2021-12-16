@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.listeners;
-
+/*
 import java.util.HashSet;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -93,3 +93,4 @@ p.sendMessage("§8log: QuestAdvanceСоздано!");
 		};
 	}
 }
+*/

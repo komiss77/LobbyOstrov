@@ -23,6 +23,7 @@ import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 
@@ -173,6 +174,9 @@ public class QuestManager implements Listener {
 
         tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
         ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
+        if (lp.compasstarget==cuboid.id) {
+            AreaViewMenu.resetCompassTarget(p);
+        }
         sound(p);
         
     }

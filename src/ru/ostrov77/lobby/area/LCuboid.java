@@ -18,6 +18,7 @@ public class LCuboid extends Cuboid {
     public String displayName;
     public Location spawnPoint;
     public final Set<String>playerNames = new HashSet<>();
+    public final CuboidInfo info;
     
     //сохранении нового в редакторе
     public LCuboid(final int id, final String name, final String displayName, final Location spawnPoint, final Location pos1, final Location pos2) {
@@ -26,6 +27,7 @@ public class LCuboid extends Cuboid {
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
         this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
+        info = null;
     }
     
     //загрузка
@@ -35,6 +37,7 @@ public class LCuboid extends Cuboid {
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
         this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
+        info = CuboidInfo.find(name);
     }
     
     

@@ -63,6 +63,7 @@ import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.events.ArmorEquipEvent;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -88,7 +89,11 @@ public class ListenerWorld implements Listener {
     
     private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 
-	
+    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onArmor (final ArmorEquipEvent e) {
+System.out.println("ArmorEquipEvent");
+        if (!e.getPlayer().isSneaking()) e.setCancelled(true);
+    }
 
     	
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

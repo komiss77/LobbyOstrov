@@ -20,6 +20,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -448,6 +449,9 @@ savePortals();
             .lore("§6ЛКМ§e - задачи ")
             .lore("§2ПКМ§a - локации")
             .setUnbreakable(true)
+            .addFlags(ItemFlag.HIDE_UNBREAKABLE)
+            .addFlags(ItemFlag.HIDE_ENCHANTS)
+            //.addFlags(ItemFlag.HIDE_ATTRIBUTES)
             //.unsaveEnchantment(Enchantment.LUCK, 1)
             .build();
         oscom = new MenuItemBuilder("oscom", newbie)
@@ -460,8 +464,8 @@ savePortals();
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
-            .rightClickCmd("oscom quest")
-            .leftClickCmd("oscom area")
+            .leftClickCmd("oscom quest")
+            .rightClickCmd("oscom area")
             .create();
 
         
@@ -503,10 +507,8 @@ savePortals();
          final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
                 .setName("§6Заряженый Жезл")
                 .lore("§7Враги улетят в след. измерение!")
+                .addEnchantment(Enchantment.KNOCKBACK, 1)
                 .build();
-        final ItemMeta im = st.getItemMeta();
-        im.addEnchant(Enchantment.KNOCKBACK, 1, true);
-        st.setItemMeta(im);
         stick = new MenuItemBuilder("stick", st)
             .slot(2)
             .giveOnJoin(false)

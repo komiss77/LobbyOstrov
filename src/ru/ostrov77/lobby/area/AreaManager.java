@@ -383,8 +383,14 @@ public class AreaManager {
     
     
     
-    
-    
+    /*
+    public static Material getCuboidIcon(final int cuboidId) {
+        switch (cuboidId) {
+            case 1: return Material.ACACIA_BOAT;
+            
+        }
+        return Material.BEDROCK;
+    }*/
     
     
     

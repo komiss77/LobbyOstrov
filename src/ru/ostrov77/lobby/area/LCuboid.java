@@ -27,7 +27,7 @@ public class LCuboid extends Cuboid {
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
         this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
-        info = null;
+        info = CuboidInfo.find(name);
     }
     
     //загрузка

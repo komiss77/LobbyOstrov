@@ -66,6 +66,7 @@ public class Main extends JavaPlugin {
     
     public static Main instance;
 
+    public static AtmoSphere timeManager;
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
@@ -109,8 +110,16 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
         
+        timeManager = new AtmoSphere();
         areaManager = new AreaManager();
         questManager = new QuestManager();
+        
+        new BukkitRunnable() {
+			@Override
+			public void run() {
+				world.setTime(timeManager.getMCTime());
+			}
+		}.runTaskTimer(instance, 40, 500);
         
         //подгрузка ачивок. После AreaManager!!
         if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
@@ -445,8 +454,8 @@ savePortals();
         
         
         final ItemStack newbie=new ItemBuilder(Material.COMPASS)
-            .setName("§bosCom коммуникатор")
-            .lore("§6ЛКМ§e - задачи ")
+            .setName("§3ОСКом")
+            .lore("§6ЛКМ§e - задачи")
             .lore("§2ПКМ§a - локации")
             .setUnbreakable(true)
             .addFlags(ItemFlag.HIDE_UNBREAKABLE)

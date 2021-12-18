@@ -151,7 +151,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         .id("area"+p.getName()) 
                         .provider(new AreaViewMenu())
                         .title("Локации")
-                        .size (5,9)
+                        .size (6,9)
                         .build()
                         .open(p);
                         //}

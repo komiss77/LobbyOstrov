@@ -26,6 +26,7 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
+import ru.ostrov77.lobby.listeners.CosmeticListener;
 
 
 public class QuestManager implements Listener {
@@ -70,12 +71,15 @@ public class QuestManager implements Listener {
             ApiOstrov.sendActionBarDirect(e.getPlayer(), "§7§l⟣ §3§lАрхипелаг §7§l⟢");
             
     	} else {
-            
-            
+
             ApiOstrov.sendActionBarDirect(e.getPlayer(), "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
             if (!e.getLobbyPlayer().isAreaDiscovered(e.getCurrent().id)) {
                 onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent()); //новичёк или нет - обработается внутри
             }
+    		
+    		if (e.getCurrent().info.unequpCosmetic) {
+    			CosmeticListener.removeCosm(e.getPlayer());
+    		}
             
             if (!e.getLobbyPlayer().hasFlag(LobbyFlag.NewBieDone)) return; //далее - новичкам ничего не надо
             
@@ -101,7 +105,12 @@ public class QuestManager implements Listener {
                     break;*/
                     
                 case "end":
-                    QuestManager.tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.MiniRace);
+                    if (e.getLobbyPlayer().raceTime > 0) {
+                    	e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.getLobbyPlayer().raceTime / 2));
+                        QuestManager.tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.MiniRace);
+                    	e.getLobbyPlayer().raceTime = -1;
+                        //lp.questDone(p, quest, true);
+                    }
                     break;
                     
                 case "daaria":
@@ -172,12 +181,14 @@ public class QuestManager implements Listener {
             lp.saveQuest();
         }
 
-        tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
-        ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
-        if (lp.compasstarget==cuboid.id) {
-            AreaViewMenu.resetCompassTarget(p);
+        if (!cuboid.info.hidden) {
+            tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
+            ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
+            if (lp.compasstarget==cuboid.id) {
+                AreaViewMenu.resetCompassTarget(p);
+            }
+            sound(p);
         }
-        sound(p);
         
     }
 
@@ -207,6 +218,8 @@ public class QuestManager implements Listener {
                 final int dsc = getDiscAreas(lp);
                 progressAdv(p, quest, dsc);
                 return dsc;
+		default:
+			break;
                  
         }
         return 0;
@@ -307,17 +320,6 @@ public class QuestManager implements Listener {
                 //} else {
                 //    progressAdv(p, quest, 0);
                 //}
-                break;
-
-
-            case MiniRace:
-                if (lp.raceTime > 0) {
-                    p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(lp.raceTime));
-                    lp.raceTime = -1;
-                    completeAdv(p, lp, quest);
-                    //lp.questDone(p, quest, true);
-                    return true;
-                }
                 break;
 
                     

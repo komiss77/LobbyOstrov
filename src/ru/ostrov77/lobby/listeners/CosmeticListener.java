@@ -8,7 +8,7 @@ import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
-import sv.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
+import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
 
 
 public class CosmeticListener implements Listener {

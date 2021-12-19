@@ -92,7 +92,7 @@ public class LobbyPlayer {
 p.sendMessage("§8log:  квест завершен без поздравлений "+quest.displayName);
             }*/
         } else {
-p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
+//p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
         }
         if (change) {
             saveQuest();

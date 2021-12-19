@@ -9,8 +9,6 @@ import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -80,7 +78,7 @@ public class JinGoal implements Goal<Blaze> {
       
 
         
-        if (arrive && mob.getTicksLived()>=800) { //аварийно, на случай потеряшки джина
+        if (arrive && mob.getTicksLived()>=1000) { //аварийно, на случай потеряшки джина
             mob.remove();
             log("§5 remove=2");
             return;
@@ -95,7 +93,7 @@ public class JinGoal implements Goal<Blaze> {
                 return;
             }
 
-            if (mob.getTicksLived()>=500) { //обычно результат 440. аварийно, на случай полной потеряшки c игроком
+            if (mob.getTicksLived()>=700) { //обычно результат 440. аварийно, на случай полной потеряшки c игроком
                 arrive();
                 return;
             }

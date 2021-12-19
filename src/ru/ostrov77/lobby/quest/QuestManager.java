@@ -64,7 +64,7 @@ public class QuestManager implements Listener {
                 default:
                     break;
                 }
-            if (e.getCurrent().info.unequpCosmetic) {
+            if (e.getPrevois().info.unequpCosmetic) {
                 CosmeticListener.giveCosm(e.getPlayer());
             }
 

@@ -923,8 +923,8 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
             	switch (m) {
                     case DIAMOND_ORE:
                     case COBBLESTONE:
-                        b.setType(Material.AIR, false);
-                        Ostrov.sync(() -> b.setType(m, false), 50);
+                        Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), Material.AIR.createBlockData()), 2);
+                        Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), m.createBlockData()), 40);
                         QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), m == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam);
                         p.playSound(b.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 0.8f);
                         b.getWorld().spawnParticle(Particle.BLOCK_CRACK, b.getLocation().add(0.5d, 0.5d, 0.5d), 40, 0.4d, 0.4d, 0.4d, b.getBlockData());
@@ -1056,8 +1056,10 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
                     n.setType(Material.LIME_CONCRETE, false);
                     pr.bNext = new XYZ(n.getLocation());
                     p.teleport(loc.add(0.5d, 1.1d, 0.5d));
-                p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 1.4f);
-                lp.pkrist = pr;
+                    Ostrov.sync(() -> {
+                        p.playSound(p.getLocation(), Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 1.4f);
+                        lp.pkrist = pr;
+                    }, 4);
                 //Main.miniParks.add(pr);
             }
         }

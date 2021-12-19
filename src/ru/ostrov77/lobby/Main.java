@@ -22,12 +22,14 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.utils.DonatEffect;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
@@ -62,6 +64,7 @@ public class Main extends JavaPlugin {
     
     public static Main instance;
 
+    public static AtmoSphere timeManager;
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
@@ -105,8 +108,16 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
         
+        timeManager = new AtmoSphere();
         areaManager = new AreaManager();
         questManager = new QuestManager();
+        
+        new BukkitRunnable() {
+			@Override
+			public void run() {
+				world.setTime(timeManager.getMCTime());
+			}
+		}.runTaskTimer(instance, 40, 500);
         
         //подгрузка ачивок. После AreaManager!!
         if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
@@ -441,8 +452,8 @@ savePortals();
         
         
         final ItemStack newbie=new ItemBuilder(Material.COMPASS)
-            .setName("§bosCom коммуникатор")
-            .lore("§6ЛКМ§e - задачи ")
+            .setName("§3ОСКом")
+            .lore("§6ЛКМ§e - задачи")
             .lore("§2ПКМ§a - локации")
             .setUnbreakable(true)
             .addFlags(ItemFlag.HIDE_UNBREAKABLE)

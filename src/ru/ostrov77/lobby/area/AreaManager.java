@@ -160,7 +160,7 @@ public class AreaManager {
                     //if (time != null) {
                     	if (lp.raceTime >= 0) { //>0 значит гонка активна
                             lp.raceTime++;
-                            if (lp.raceTime>=300) {
+                            if (lp.raceTime>=600) {
                                 p.sendMessage("§5[§eСостязание§5] §f>> Вы не дошли до §dфиниша §fвовремя!");
                                 lp.raceTime = -1;
                             }
@@ -227,7 +227,7 @@ public class AreaManager {
                 
             }
 
-        }.runTaskTimerAsynchronously(Main.instance, 20, 9);
+        }.runTaskTimerAsynchronously(Main.instance, 20, 10);
         
         
         

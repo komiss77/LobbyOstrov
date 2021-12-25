@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
@@ -30,7 +31,28 @@ public class CosmeticListener implements Listener {
         }
     }
 
-	public static void removeCosm(final Player p) {
+    
+    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public static void onCuboidEvent(final CuboidEvent e) {
+        
+        final User us = ProCosmeticsAPI.getUser(e.getPlayer());
+        
+        if (e.getPrevois()!=null && e.getPrevois().info.unequpCosmetic) {
+            if (us != null) {
+                us.equipLastCosmetics(true);
+            }
+        } 
+        
+        if (e.getCurrent()!=null && e.getCurrent().info.unequpCosmetic) {
+            if (us != null) {
+                us.unequipCosmetics(true);
+            }
+        }
+        
+    }
+    
+    
+	/*public static void removeCosm(final Player p) {
 		final User us = ProCosmeticsAPI.getUser(p);
 		if (us != null) {
 			us.unequipCosmetics(true);
@@ -42,7 +64,7 @@ public class CosmeticListener implements Listener {
 		if (us != null) {
 			us.equipLastCosmetics(true);
 		}
-	}
+	}*/
     
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPreEquip (final PlayerPreEquipCosmeticEvent e) {

@@ -22,14 +22,12 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.utils.DonatEffect;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
@@ -42,6 +40,7 @@ import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.QuestManager;
 import ru.ostrov77.lobby.area.XYZ;
+import ru.ostrov77.lobby.listeners.FigureListener;
 
     
     
@@ -71,14 +70,16 @@ public class Main extends JavaPlugin {
     
 
     
+    public static boolean langUtils = false;
     public static boolean advancements = false;
+    //public static boolean cosmetics = false;
     
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     private static final EnumMap<LocType,Location>locations = new EnumMap(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
     
-    public static final HashMap<XYZ, String> serverPortals = new HashMap<XYZ, String>();//порталы по типу точка портала : сервер
+    public static final HashMap<XYZ, String> serverPortals = new HashMap<>();//порталы по типу точка портала : сервер
     ///public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();
 
     
@@ -102,30 +103,34 @@ public class Main extends JavaPlugin {
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
 
         
-        getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
-        getServer().getPluginManager().registerEvents(new QuestManager(), instance);
-        if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
-            getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
-        }
-        
         timeManager = new AtmoSphere();
         areaManager = new AreaManager();
         questManager = new QuestManager();
         
         new BukkitRunnable() {
-			@Override
-			public void run() {
-				world.setTime(timeManager.getMCTime());
-			}
-		}.runTaskTimer(instance, 40, 500);
+                @Override
+                public void run() {
+                    world.setTime(timeManager.getMCTime());
+                }
+        }.runTaskTimer(instance, 40, 500);
         
+        
+        getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
+        getServer().getPluginManager().registerEvents(new QuestManager(), instance);
+        getServer().getPluginManager().registerEvents(new FigureListener(), instance);
+        
+        if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
+            getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
+            //cosmetics = true;
+        }
         //подгрузка ачивок. После AreaManager!!
         if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
             advancements =  true;
             Advance.loadQuestAdv();
             getServer().getPluginManager().registerEvents(new Advance(), instance);
         }
-
+        
+        langUtils = Bukkit.getPluginManager().getPlugin("LangUtils")!=null;
        
         createMenuItems();
 

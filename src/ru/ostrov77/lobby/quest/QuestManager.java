@@ -64,9 +64,6 @@ public class QuestManager implements Listener {
                 default:
                     break;
                 }
-            if (e.getPrevois().info.unequpCosmetic) {
-                CosmeticListener.giveCosm(e.getPlayer());
-            }
 
         }
         
@@ -81,10 +78,6 @@ public class QuestManager implements Listener {
                 onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent()); //новичёк или нет - обработается внутри
             }
     		
-            if (e.getCurrent().info.unequpCosmetic) {
-                    CosmeticListener.removeCosm(e.getPlayer());
-            }
-            
             if (!e.getLobbyPlayer().hasFlag(LobbyFlag.NewBieDone)) return; //далее - новичкам ничего не надо
             
             switch (e.getCurrent().getName()) {

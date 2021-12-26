@@ -1,6 +1,5 @@
 package ru.ostrov77.lobby.listeners;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,10 +10,11 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
-import sv.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
-import sv.file14.procosmetics.api.ProCosmeticsAPI;
-import sv.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
-import sv.file14.procosmetics.user.User;
+import se.file14.procosmetics.api.ProCosmeticsAPI;
+import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
+import se.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
+import se.file14.procosmetics.user.User;
+
 
 
 public class CosmeticListener implements Listener {

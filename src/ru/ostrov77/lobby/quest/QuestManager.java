@@ -355,10 +355,12 @@ public class QuestManager implements Listener {
         }
         
         if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length) {
-        	lp.setFlag(LobbyFlag.Elytra, true);
-        	if (Main.advancements) {
+            lp.setFlag(LobbyFlag.Elytra, true);
+            p.getInventory().setItem(2, Main.fw); //2
+            Main.elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+            if (Main.advancements) {
                 Advance.completeAdv(p, "elytra");
-        	}
+            }
         }
         
         return isComplete;

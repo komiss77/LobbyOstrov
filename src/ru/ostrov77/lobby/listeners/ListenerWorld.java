@@ -707,7 +707,7 @@ Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
                     	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
                     	QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.SumoVoid);
                         for (final Player pl : dp.getWorld().getPlayers()) {
-                            pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + " §7 скинул §с" + p.getName() + "§7 в пустоту!");
+                            pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 в пустоту!");
                         }                    
                     }
                     return;

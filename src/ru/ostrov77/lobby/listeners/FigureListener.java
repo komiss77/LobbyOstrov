@@ -1,21 +1,18 @@
 package ru.ostrov77.lobby.listeners;
 
 import java.util.Arrays;
-
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
 import ru.komiss77.Ostrov;
 import ru.komiss77.events.FigureClickEvent;
 import ru.komiss77.objects.FigureAnswer;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -32,34 +29,11 @@ public class FigureListener implements Listener {
 //p.sendMessage("§8log: tag="+e.getFigure().getTag()+" left?"+e.isLeftClick());
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
-        if (e.getFigure().getTag().equals("ship")) {
-            if (e.isLeftClick()) {
-                e.setAnswer((new FigureAnswer()).add("§cНе бейте, а гладьте))", (player) -> {
-                    LCuboid lc = lp.getCuboid();
-                    p.sendMessage(lc == null ? "ты не в кубоиде" : "ты в кубоиде:" + lc.displayName);
-                }));
-            } else {
-                FigureAnswer answer = new FigureAnswer()
-                        //.add("§eПривет!", (player) -> {player.sendMessage("eПривет");} )
-                        //.add("§aТы тут новенький?", (player) -> {player.sendMessage("новенький");} )
-                        //.add("§bНа корабле есть §lособенная лампа §r§b,потри её.", (player) -> {player.sendMessage("особенная лампа");} )
-                       // .add(Material.SOUL_LANTERN, (player) -> {player.sendMessage("pickup SOUL_LANTERN");} )
-                        //.add("§6Ну или прыгай за борт.", (player) -> {player.sendMessage("прыгай");} )
-                        .add("§eПривет!" )
-                        .add("§aТы тут новенький?")
-                        .add("§bНа корабле есть §lособенная лампа §r§b,потри её.")
-                        .add(Material.SOUL_LANTERN)
-                        .add("§6Ну или прыгай за борт.")
-                        .time(15).vibration().sound(Sound.ENTITY_VILLAGER_TRADE)
-                        .beforeEyes()
-                        ;
-                e.setAnswer(answer);
-                QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
-            }
+
+            if (e.getFigure().getTag().equals("info")) {
             
-        } else if (e.getFigure().getTag().equals("info")) {
+            final FigureAnswer fa = new FigureAnswer().vibration(true).beforeEyes(true);
             
-            final FigureAnswer fa = new FigureAnswer();
             switch (e.getFigure().getEntityType()) {
     		case ENDERMAN:
     			fa.set(Arrays.asList("Добро пожаловать на §9Аркаим§f,", "На этом режиме вы сможете", "проявить свою полную фантазию", "благодаря халявному §9креативу§f!", "§eУдачного строительства!"))
@@ -77,9 +51,16 @@ public class FigureListener implements Listener {
     			if (!lp.hasFlag(LobbyFlag.TalkDA)) lp.setFlag(LobbyFlag.TalkDA, true);
     			break;
     		case VILLAGER:
-    			fa.set(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§a чтобы увидеть следующие задания!", "Кликни на лампу, и §6Джин§f отвезет тебя на §6Спавн§f")).add(Material.SOUL_LANTERN).add("Либо просто пригни за борт!")
-    					.time(10).sound(Sound.ENTITY_VILLAGER_AMBIENT);
+                    if (lp.hasFlag(LobbyFlag.NewBieDone)) {
+    			fa.set(Arrays.asList("§fРад видеть тебя снова!"))
+                                .time(5).beforeEyes(false).sound(Sound.ENTITY_VILLAGER_AMBIENT);
+                    } else {
+    			fa.set(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§a чтобы увидеть следующие задания!", "Кликни на лампу, и §6Джин§f отвезет тебя на §6Спавн§f"))
+                                .add(Material.SOUL_LANTERN)
+                                .add("Либо просто прыгни за борт!")
+                                .time(10).sound(Sound.ENTITY_VILLAGER_AMBIENT);
     			QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
+                    }
     			break;
     		case ZOMBIE:
     			fa.set(Arrays.asList("§3СкайБлок§f если что дальше §3-->", "А здесь режим §3ВанБлок§f, на котором", "тебе предстоит построить островок", "буквально начинаю только с §31§f блоком!", "§eУдачи в развитии!"))
@@ -109,7 +90,7 @@ public class FigureListener implements Listener {
     		default:
     			break;
     		}
-            e.setAnswer(fa.vibration().beforeEyes());
+            e.setAnswer(fa);
             
         } else if (e.getFigure().getTag().equals("mid") && e.getFigure().getEntityType() == EntityType.PIGLIN) {
 			switch (e.getFigure().getName().charAt(4)) {
@@ -148,4 +129,35 @@ public class FigureListener implements Listener {
     }
     
 
+    
+    
 }
+
+
+
+       /* if (e.getFigure().getTag().equals("ship")) {
+            if (e.isLeftClick()) {
+                e.setAnswer((new FigureAnswer()).add("§cНе бейте, а гладьте))", (player) -> {
+                    LCuboid lc = lp.getCuboid();
+                    p.sendMessage(lc == null ? "ты не в кубоиде" : "ты в кубоиде:" + lc.displayName);
+                }));
+            } else {
+                FigureAnswer answer = new FigureAnswer()
+                        //.add("§eПривет!", (player) -> {player.sendMessage("eПривет");} )
+                        //.add("§aТы тут новенький?", (player) -> {player.sendMessage("новенький");} )
+                        //.add("§bНа корабле есть §lособенная лампа §r§b,потри её.", (player) -> {player.sendMessage("особенная лампа");} )
+                       // .add(Material.SOUL_LANTERN, (player) -> {player.sendMessage("pickup SOUL_LANTERN");} )
+                        //.add("§6Ну или прыгай за борт.", (player) -> {player.sendMessage("прыгай");} )
+                        .add("§eПривет!" )
+                        .add("§aТы тут новенький?")
+                        .add("§bНа корабле есть §lособенная лампа §r§b,потри её.")
+                        .add(Material.SOUL_LANTERN)
+                        .add("§6Ну или прыгай за борт.")
+                        .time(15).vibration().sound(Sound.ENTITY_VILLAGER_TRADE)
+                        .beforeEyes()
+                        ;
+                e.setAnswer(answer);
+                QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
+            }
+            
+        } else */

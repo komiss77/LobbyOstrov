@@ -71,30 +71,9 @@ public class LobbyPlayer {
     
     //только сохранение! все обработчики - в QuestManager
     public void questDone(final Player p, final Quest quest, final boolean condratulations) {
-        //if (!Bukkit.isPrimaryThread()) {
-        //    Ostrov.log_err("Асинхронный вызов questDone : "+p.getName()+" , "+quest);
-        //}
         boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questDone.add(quest)) {
             change = true;
-            /*if (condratulations) {
-                DonatEffect.spawnRandomFirework(p.getLocation());
-                if (Main.advancements) {
-                    Advance.completeAdv(p, quest.code);
-                } else {
-                    final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
-                    p.sendMessage(" ");
-                    p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
-                    p.sendMessage(chatColor + quest.displayName );
-                    p.sendMessage(chatColor + " Квест завершен! " );
-                    p.sendMessage(" ");               
-                }
-
-            } else {
-p.sendMessage("§8log:  квест завершен без поздравлений "+quest.displayName);
-            }*/
-        } else {
-//p.sendMessage("§8log: квест "+quest+" уже завершен, игнор.");
         }
         if (change) {
             saveQuest();

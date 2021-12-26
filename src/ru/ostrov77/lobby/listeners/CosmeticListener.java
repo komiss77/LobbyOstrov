@@ -37,13 +37,13 @@ public class CosmeticListener implements Listener {
         
         final User us = ProCosmeticsAPI.getUser(e.getPlayer());
         
-        if (e.getPrevois()!=null && e.getPrevois().info.unequpCosmetic) {
+        if (e.getPrevois()!=null && e.getPrevois().getInfo().unequpCosmetic) {
             if (us != null) {
                 us.equipLastCosmetics(true);
             }
         } 
         
-        if (e.getCurrent()!=null && e.getCurrent().info.unequpCosmetic) {
+        if (e.getCurrent()!=null && e.getCurrent().getInfo().unequpCosmetic) {
             if (us != null) {
                 us.unequipCosmetics(true);
             }

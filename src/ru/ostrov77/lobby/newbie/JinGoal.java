@@ -80,7 +80,7 @@ public class JinGoal implements Goal<Blaze> {
         
         if (arrive && mob.getTicksLived()>=1000) { //аварийно, на случай потеряшки джина
             mob.remove();
-            log("§5 remove=2");
+            //log("§5 remove=2");
             return;
         }
 
@@ -89,7 +89,7 @@ public class JinGoal implements Goal<Blaze> {
             
             if (mob.getTicksLived()<400 && mob.getPassengers().isEmpty()) { //обычно прибытие на 440, это если игрок отключится
                 mob.remove();
-                log("§5 remove=1");
+                //log("§5 remove=1");
                 return;
             }
 
@@ -169,9 +169,9 @@ public class JinGoal implements Goal<Blaze> {
     }
     
     
-    private static void log(final String s) {
-        Bukkit.getConsoleSender().sendMessage("§8log: "+s);            
-    }
+    //private static void log(final String s) {
+    //    Bukkit.getConsoleSender().sendMessage("§8log: "+s);            
+    //}
 
     private int getDist() {
         return square(mob.getLocation().getBlockX()-nextPoint.x) + square(mob.getLocation().getBlockY()-nextPoint.y) + square(mob.getLocation().getBlockZ()-nextPoint.z);

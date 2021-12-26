@@ -227,14 +227,16 @@ public class QuestManager implements Listener {
     //по дефолту, задание будет выполнено, если оно было взято и не завершено.
     //для некоторых можно ставить сври чекающие обработчики
     public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
+    	
+    	boolean isComplete = false;
         
         if (lp.questDone.contains(quest)) {
 //p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
-            return false;
+            return isComplete;
         }
         if (!lp.questAccept.contains(quest)) {
 //p.sendMessage("§8log: checkQuest "+quest+" - не был получен; return ");
-            return false;
+            return isComplete;
         }
 //p.sendMessage("§8log: checkQuest "+quest);
         final Oplayer op = PM.getOplayer(p);
@@ -250,7 +252,7 @@ public class QuestManager implements Listener {
                     //lp.questDone(p, quest, true);
                     Main.pipboy.give(p);
                     completeAdv(p, lp, quest);
-                    return true;
+                    isComplete = true;
                 } else {
                     //p.sendMessage("§8log: checkQuest DiscoverAllArea всего локаций="+AreaManager.getCuboidIds().size()+", открыто="+dsc);
                     //return false;
@@ -263,7 +265,7 @@ public class QuestManager implements Listener {
                         Main.cosmeticMenu.give(p);
                     	completeAdv(p, lp, quest);
                         //lp.questDone(p, quest, true);
-                        return true;
+                    	isComplete = true;
                     } else {
                     	//p.sendMessage("§8log: checkQuest UsePandora  hasDaylyFlag?"+op.hasDaylyFlag(StatFlag.Pandora));
                         //return false;
@@ -289,7 +291,7 @@ public class QuestManager implements Listener {
                     if (PM.exist(p.getName())) {
                         PM.getOplayer(p).showScore();
                     }
-                    return true;
+                    isComplete = true;
                 }
                 break;
                 
@@ -318,8 +320,14 @@ public class QuestManager implements Listener {
                 //    progressAdv(p, quest, 0);
                 //}
                 break;
-
-                    
+                
+            case CollectTax:
+            	final int i = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);
+                progressAdv(p, quest, i);
+            	if (i == 3) {
+            		completeAdv(p, lp, quest);
+            	}
+                break;
             //case SumoVoid:
             //case MiniPark:
                 //if (notPlJoin) {
@@ -342,12 +350,18 @@ public class QuestManager implements Listener {
             default:
                 //lp.questDone(p, quest, true);
                 completeAdv(p, lp, quest);
-                return true;
+                isComplete = true;
                 
         }
         
+        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length) {
+        	lp.setFlag(LobbyFlag.Elytra, true);
+        	if (Main.advancements) {
+                Advance.completeAdv(p, "elytra");
+        	}
+        }
         
-        return false;
+        return isComplete;
     }
     
 

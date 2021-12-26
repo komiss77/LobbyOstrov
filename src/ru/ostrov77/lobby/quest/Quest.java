@@ -13,10 +13,10 @@ import ru.komiss77.utils.ItemUtils;
 
 public enum Quest {
     
-    //                             смещение Х 
-    //                                  | смещение Y
-    //                                  |    |  требуемое колл-во
-    //                                  |    |   |
+//                             смещение Х 
+//                                  | смещение Y
+//                                  |    |  требуемое колл-во
+//                                  |    |   |
     DiscoverAllArea         ('a',	3,   0, 13, Material.COMPASS,		"spawn",             	"Открыть все Локации",		"Исследуйте всю территорию лобби"),//+при входе в новую зону сверяется размер изученных и существующих
     LeavePandora            ('b',	-1, -4,  0, Material.SPONGE,		"spawn",      		"Уйти от Пандоры живым", 	"Испытайте свою удачу в Разломе Пандоры"),//+ чекается при выходе из кубоида пандоры
     OpenTreassureChest      ('c',	-3, -4,  0, Material.ENDER_CHEST,	"spawn",   		"Открыть Сундук Сокровищ", 	"Получите примочки из Сундука Сокровищ"), //+по эвенту косметики открытие сундука
@@ -28,10 +28,11 @@ public enum Quest {
     CobbleGen               ('i',	2,  -1, 12, Material.COBBLESTONE,	"skyworld",       	"Прокачка Острова", 		"Выкопать 12 булыжника в генераторе"),
     FindBlock               ('j',	2,  -1, 50, Material.NETHERITE_BLOCK,	"arcaim",       	"Юный Майнкрафтолог", 		"Найти 50 различных блоков в лобби"),
     MineDiam                ('k',	2,   1, 10, Material.DIAMOND,		"daaria",       	"Зазнавшийся Шахтер", 		"Добыть 10 алмазов в шахте"),
-    CollectTax              ('l',	2,   1,  3, Material.RAW_GOLD,		"midgard",       	"Казначей",                     "Собрать налоги с жителей поселка"),
-    SumoVoid           	    ('m',       2,  1,  0, Material.SHULKER_SHELL,	"pvp",       		"Сумо Мастер",                  "Сбить человека с сумо платформы"),
+    CollectTax              ('l',	2,   1, 13, Material.RAW_GOLD,		"midgard",       	"Казначей",                     "Собрать золотых с жителей поселка"),
+    SumoVoid           	    ('m',   2,   1,  0, Material.SHULKER_SHELL,	"pvp",       		"Сумо Мастер",                  "Сбить человека с сумо платформы"),
     SpawnGin           	    ('n',	2,  -2,  0, Material.BLAZE_ROD,         "newbie",      		"Раб Лампы",                    "Освободи Джина из лампы"),
     OpenAdvancements        ('o',	2,   2,  0, Material.BOOKSHELF,         "newbie",      		"Грамотность",                  "Посмотреть меню Квестов"),
+    //TalkAllNpc        		('p',	8,   0,  0, Material.BOOKSHELF,         "spawn",      		"Комерческий Агент",                  "Поговорить со всеми НПС"),
     ;
 
 

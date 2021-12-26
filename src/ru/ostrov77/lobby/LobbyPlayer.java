@@ -6,6 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 
@@ -137,6 +139,10 @@ p.sendMessage("§8log:  квест завершен без поздравлен�
 
     public Player getPlayer() {
         return Bukkit.getPlayerExact(name);
+    }
+
+    public LCuboid getCuboid() {
+        return AreaManager.getCuboid(lastCuboidId);
     }
 
     

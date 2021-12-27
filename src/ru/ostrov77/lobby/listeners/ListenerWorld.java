@@ -89,11 +89,11 @@ public class ListenerWorld implements Listener {
     
     private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 
-   /* @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onArmor (final ArmorEquipEvent e) {
 System.out.println("ArmorEquipEvent");
         if (!e.getPlayer().isSneaking()) e.setCancelled(true);
-    }*/
+    }
 
     	
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -110,7 +110,33 @@ System.out.println("ArmorEquipEvent");
                     p.performCommand("server "+Main.serverPortals.get(xyzw));
                 }
             }
+
         }
+        
+          /*  if (e.getEntityType() == EntityType.PLAYER && !Main.prts.isEmpty()) {
+                    final XYZW xyzw = new XYZW (e.getLocation());
+                    
+                    int d = Integer.MAX_VALUE;
+                    String n = "";
+                    for (final Entry<BaseBlockPosition, String> en : Main.prts.entrySet()) {
+                            final int dd = (int) en.getKey().distanceSquared(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), true);
+                            if (dd < d) {
+                                    d = dd;
+                                    n = en.getValue();
+                            }
+                    }
+                    final Player p = (Player) e.getEntity();
+                    if (Timer.has(p, "portal") && p.getTicksLived() < 100) {
+                            return;
+                }
+                Timer.add(p, "portal", 5);
+Ostrov.log_warn("EntityPortalEnter performCommand server "+n);
+                    //if (n!=null) {
+                        p.performCommand("server " + n);
+                    //} else {
+                    //    Ostrov.log_err("onPrtl n=null , чекайте почему!");
+                    //}
+            }*/
     }
     
     
@@ -120,8 +146,7 @@ System.out.println("ArmorEquipEvent");
        // final Player p = e.getPlayer();
         //final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
-   // }   
-    
+   // }    
     @EventHandler (priority = EventPriority.MONITOR)
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
@@ -158,15 +183,20 @@ System.out.println("ArmorEquipEvent");
                 } else { //создать сразу запись, или не будут работать save : executePstAsync UPDATE
                     LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name) VALUES ('"+lp.name+"') ");
                 }
- 
+                
+                //Ostrov.sync(()-> {
+                //    onDataLoad(p, lp, l);
+                //}, 0);
+
             } catch (SQLException ex) {
 
                 Ostrov.log_err("ListenerOne error  "+lp.name+" -> "+ex.getMessage());
 
             } finally {
                 
+                //Ostrov.sync(()-> {
                     onDataLoad(p, lp, logoutLoc);
-
+                //}, 0);
                 try{
                     if (rs!=null && !rs.isClosed()) rs.close();
                     if (stmt!=null) stmt.close();
@@ -183,15 +213,17 @@ System.out.println("ArmorEquipEvent");
 
     private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
         Ostrov.sync( ()-> {
+
             if (Main.advancements) {
                 Advance.send(p);
             }
+            
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
                 //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
                 //NewBie.start(p, 0);
                 PM.getOplayer(p).hideScore();
-                p.teleport(Main.getLocation(LocType.newBieSpawn));// тп на 30 160 50
+                p.teleport(Main.getLocation(Main.LocType.newBieSpawn));// тп на 30 160 50
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
                 p.setCollidable(false);
                 Main.oscom.give(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
@@ -249,10 +281,9 @@ System.out.println("ArmorEquipEvent");
     
     // ******** эвенты по новичку
     
-    @EventHandler (priority = EventPriority.MONITOR)
+    @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
-        
-        if (e.getPrevois()!=null && e.getPrevois().getInfo().hidePlayers ) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
+        if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie")) { //выход из кубоида новичка
             final Player p = e.getPlayer();
             for (final Player cp : e.getPrevois().getCuboidPlayers()) {
                 if (!cp.getName().equals(p.getName())) {
@@ -262,8 +293,15 @@ System.out.println("ArmorEquipEvent");
 //p.sendMessage("§8log: §c showPlayer "+cp.getName());                  
                 }
             }
+            /*for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.previos.id) continue; //самого себя и тех, кто не на кораблике пропускаем
+                lp.getPlayer().showPlayer(Main.instance, p);
+                p.showPlayer(Main.instance, lp.getPlayer());
+//lp.getPlayer().sendMessage("§8log: §ashowPlayer "+p.getName());
+//p.sendMessage("§8log: §ashowPlayer "+lp.name);          
+            }*/
         }
-        if (e.getCurrent()!=null && e.getCurrent().getInfo().hidePlayers) {//вход в со скрытием //if (e.getCurrent()!=null && e.getCurrent().getName().equals("newbie")) { 
+        if (e.getCurrent()!=null && e.getCurrent().getName().equals("newbie")) { //вход в кубоида новичка
             final Player p = e.getPlayer();
             for (final Player cp : e.getCurrent().getCuboidPlayers()) {
                 if (!cp.getName().equals(p.getName())) {
@@ -273,6 +311,13 @@ System.out.println("ArmorEquipEvent");
 //p.sendMessage("§8log: §c hidePlayer "+cp.getName());              
                 }
             }
+            /*for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                if (lp.name.equals(e.lp.name) || lp.lastCuboidId!=e.current.id) continue; //самого себя и тех, кто не на кораблике пропускаем
+                lp.getPlayer().hidePlayer(Main.instance, p);
+                p.hidePlayer(Main.instance, lp.getPlayer());
+//lp.getPlayer().sendMessage("§8log: §chidePlayer "+p.getName());
+//p.sendMessage("§8log: §chidePlayer "+lp.name);
+            }*/
         }
     }    
     

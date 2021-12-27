@@ -19,6 +19,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -77,6 +78,25 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         if (arg.length==1) {
             
             switch (arg[0]) {
+                
+              /*  case "newbieTest":
+                    if (NewBie.hasNewBieTask(p)) {
+                        p.sendMessage("§cВы уже в процессе!");
+                        return true;
+                    }
+                    if (arg.length==2) {
+                        p.sendMessage("§cУкажите стадию от 1 до 3!");
+                        int stage = ApiOstrov.getInteger(arg[1]);
+                        if (stage<1 || stage>3) {
+                            p.sendMessage("§cCтадия - число от 1 до 3!");
+                            return true;
+                        }
+                        NewBie.start(p, stage);
+                        return true;
+                    } else {
+                        NewBie.start(p, 0);
+                    }
+                    return true;*/
                     
                 case "debug":
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
@@ -98,7 +118,18 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         Ostrov.async(()-> LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';"), 20);
                     //}
                     return true;
-
+                    
+              /*  case "newbieMenu":
+                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    SmartInventory.builder()
+                        .type(InventoryType.HOPPER)
+                        .id("oscom"+p.getName()) 
+                        .provider(new OsComMenu())
+                        .title("§aОсКом")
+                        .build()
+                        .open(p);
+                        //}
+                    return true;*/
                     
                case "quest":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {

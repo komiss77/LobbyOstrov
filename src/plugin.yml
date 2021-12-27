@@ -1,4 +1,4 @@
-api-version: 1.18
+api-version: 1.17
 name: LobbyOstrov
 main: ru.ostrov77.lobby.Main
 version: 1.0
@@ -6,11 +6,10 @@ load: POSTWORLD
 author: Romindous,Komiss77
 
 depend: [Ostrov, serverfigure]
-softdepend: [CrazyAdvancementsAPI, LangUtils, ProCosmetics]
 
 
 commands:
   oscom:
     description: Коммуникатор
   area:
-    description: Менеджер кубоидов
+    description: Добавить зону

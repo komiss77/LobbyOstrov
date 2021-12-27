@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.listeners;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -10,11 +11,10 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
-import se.file14.procosmetics.api.ProCosmeticsAPI;
-import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
-import se.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
-import se.file14.procosmetics.user.User;
-
+import sv.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
+import sv.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
+import sv.file14.procosmetics.user.User;
 
 
 public class CosmeticListener implements Listener {
@@ -37,13 +37,13 @@ public class CosmeticListener implements Listener {
         
         final User us = ProCosmeticsAPI.getUser(e.getPlayer());
         
-        if (e.getPrevois()!=null && e.getPrevois().getInfo().unequpCosmetic) {
+        if (e.getPrevois()!=null && e.getPrevois().info.unequpCosmetic) {
             if (us != null) {
                 us.equipLastCosmetics(true);
             }
         } 
         
-        if (e.getCurrent()!=null && e.getCurrent().getInfo().unequpCosmetic) {
+        if (e.getCurrent()!=null && e.getCurrent().info.unequpCosmetic) {
             if (us != null) {
                 us.unequipCosmetics(true);
             }

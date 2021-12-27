@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import ru.komiss77.Ostrov;
+import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -73,8 +74,8 @@ public class Advance implements Listener {
 p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");        
     }*/
     
-    public static void sendToast(final Player p, final LobbyPlayer lp, final Quest quest) {
-//p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);  
+    public static void onQuestAdd(final Player p, final LobbyPlayer lp, final Quest quest) {
+p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);  
         final ToastNotification toast = new ToastNotification(quest.icon, "§aНовый квест: "+quest.displayName, AdvancementDisplay.AdvancementFrame.TASK);
         toast.send(p);
     }
@@ -116,7 +117,9 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
             if (ad.getChildren().isEmpty()) {
                 //квесты
                 final Quest q = Quest.byCode(ad.getName().getKey().charAt(0));
-                if (q != null) {
+                if (q == null) {
+                	if (lp.hasFlag(LobbyFlag.Elytra)) mgr.grantAdvancement(p, getAdvByKey("elytra"));
+                } else {
 //Bukkit.broadcastMessage("Quest="+q+" done?"+lp.questDone.contains(q));
                     if (lp.questDone.contains(q)) {
                         mgr.grantAdvancement(p, ad);
@@ -163,8 +166,7 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
         adm.put("midgard", Advance.crtAdv("midgard",  "§c§lХуторок          ", "Открой остров Мидгарда",          c0, Material.CAMPFIRE,          3f, 7.5f, "", parent, AdvancementFrame.CHALLENGE, visOnDisc("spawn")));
         adm.put("pvp",  Advance.crtAdv("pvp",      "§6§lДолина Войны          ", "Разведай остров ПВП Мини-Игр",c0,Material.NETHERITE_AXE,     2f, 10.5f, "", parent, AdvancementFrame.CHALLENGE, visOnDisc("spawn")));
 
-        adm.put("elytra",  Advance.crtAdv("elytra",      "§5§lДоктор Географ. Наук          ", "Выполни все задания в Лобби",c0,Material.NETHERITE_AXE,     -3f, -4f, "", parent, AdvancementFrame.GOAL, AdvancementVisibility.HIDDEN));
-        
+        adm.put("elytra",  Advance.crtAdv("elytra",      "§5§lДоктор Географ. Наук          ", "Выполни все задания в Лобби",c0,Material.WRITTEN_BOOK,     -3f, 4f, "", parent, AdvancementFrame.GOAL, AdvancementVisibility.HIDDEN));
         for (final Quest q : Quest.values()) {
             if (q==Quest.ReachSpawn) continue;
             //if (q.ammount>=0) { //ReachSpawn пропустить

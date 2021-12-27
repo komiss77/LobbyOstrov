@@ -170,11 +170,11 @@ public class Main extends JavaPlugin {
                     gin.remove();
                 }
             }, 100);
-//p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
+p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
 
         } else {
             p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-//p.sendMessage("§8log: прибыли своим ходом");
+p.sendMessage("§8log: прибыли своим ходом");
             
         }
         //эффект, музыка 

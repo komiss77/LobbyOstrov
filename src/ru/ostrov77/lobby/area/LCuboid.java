@@ -18,7 +18,7 @@ public class LCuboid extends Cuboid {
     public String displayName;
     public Location spawnPoint;
     public final Set<String>playerNames = new HashSet<>();
-    private final CuboidInfo info;
+    public final CuboidInfo info;
     
     //сохранении нового в редакторе
     public LCuboid(final int id, final String name, final String displayName, final Location spawnPoint, final Location pos1, final Location pos2) {
@@ -55,10 +55,6 @@ public class LCuboid extends Cuboid {
     
     public String getName() {
         return name;
-    }
-
-    public CuboidInfo getInfo() {
-        return info;
     }
     
 }

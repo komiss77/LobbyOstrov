@@ -39,8 +39,9 @@ import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.QuestManager;
-import ru.ostrov77.lobby.area.XYZ;
+import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.listeners.FigureListener;
+import ru.ostrov77.lobby.listeners.InteractListener;
 
     
     
@@ -80,7 +81,6 @@ public class Main extends JavaPlugin {
     private static OstrovConfig serverPortalsConfig;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<>();//порталы по типу точка портала : сервер
-    ///public static final HashSet<PKrist> miniParks = new HashSet<PKrist>();
 
     
     
@@ -118,6 +118,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
         getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         getServer().getPluginManager().registerEvents(new FigureListener(), instance);
+        getServer().getPluginManager().registerEvents(new InteractListener(), instance);
         
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
@@ -170,11 +171,11 @@ public class Main extends JavaPlugin {
                     gin.remove();
                 }
             }, 100);
-p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
+//p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
 
         } else {
             p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-p.sendMessage("§8log: прибыли своим ходом");
+//p.sendMessage("§8log: прибыли своим ходом");
             
         }
         //эффект, музыка 
@@ -348,7 +349,7 @@ savePortals();
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
         oscom.give(p);
-        if (lp.questDone.contains(Quest.LeavePandora)) {
+        if (lp.questDone.contains(Quest.PandoraLuck)) {
             cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         }
         if (lp.questDone.contains(Quest.GreetNewBie)) {

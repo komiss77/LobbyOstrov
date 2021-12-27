@@ -99,9 +99,10 @@ public class AreaViewMenu implements InventoryProvider {
         
         for (final LCuboid lc : AreaManager.getCuboids()) {
         	
-        	final CuboidInfo ci = lc.info;
+        	final CuboidInfo ci = lc.getInfo();
             
-        	if (!ci.hidden) {
+        	if (ci==CuboidInfo.DEFAULT || !ci.canTp) continue;
+                
                 if (lp.isAreaDiscovered(lc.id)) {
                     
                     final ItemStack is = new ItemBuilder(ci.icon)
@@ -149,7 +150,6 @@ public class AreaViewMenu implements InventoryProvider {
                         }));
                     
                 }
-        	}
         	
             if (lc.getName().equals("newbie")) continue; //спавн новичка не показываем
             

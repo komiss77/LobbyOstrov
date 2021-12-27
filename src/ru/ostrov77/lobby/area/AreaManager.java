@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.area;
 
+import ru.komiss77.modules.world.XYZ;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -145,15 +146,17 @@ public class AreaManager {
             
             int currentCuboidId;
             final LCuboid ship = getCuboid("newbie");
+            //Player p;
             
             @Override
             public void run() {
                 
-                for (final Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                    final Player p = lp.getPlayer();
+                    if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
-                    final LobbyPlayer lp = Main.getLobbyPlayer(p);
+                    //final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     
                     //чек если игрок проходит состязание
                     //final Integer time = racePlayers.get(p.getName());

@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.area;
 
+import ru.komiss77.modules.world.XYZ;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;

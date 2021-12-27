@@ -74,8 +74,8 @@ public class Advance implements Listener {
 p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");        
     }*/
     
-    public static void onQuestAdd(final Player p, final LobbyPlayer lp, final Quest quest) {
-p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);  
+    public static void sendToast(final Player p, final LobbyPlayer lp, final Quest quest) {
+//p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);  
         final ToastNotification toast = new ToastNotification(quest.icon, "§aНовый квест: "+quest.displayName, AdvancementDisplay.AdvancementFrame.TASK);
         toast.send(p);
     }
@@ -97,7 +97,6 @@ p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);
     public static void onQuit(final Player p) {
         mgr.removePlayer(p);
     }
-    
     
     
     //можно ASYNC!
@@ -148,8 +147,56 @@ p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);
     
     
     
+    /*  //можно ASYNC!
+    public static void send (final Player p) {
+    //mgr.removePlayer(p);
+        mgr.addPlayer(p);
+//String s = "";
+//for (Player m : mgr.getPlayers()) {
+//    s=s+m.getName()+" ";
+//}
+//Bukkit.broadcastMessage("§fЗагрузка Адв. для"+p.getName()+", теперь в менеджере игроки "+s);
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        mgr.grantAdvancement(p, getAdvByKey("newbie"));
+        
+        for (final Advancement ad : mgr.getAdvancements()) {
+//Bukkit.broadcastMessage("§eload adv : "+ad.getName().getNamespace()+" hasChildren?"+!ad.getChildren().isEmpty());
+            if (ad.getChildren().isEmpty()) {
+                //квесты
+                final Quest q = Quest.byCode(ad.getName().getKey().charAt(0));
+                if (q != null) {
+//Bukkit.broadcastMessage("Quest="+q+" done?"+lp.questDone.contains(q));
+                    if (lp.questDone.contains(q)) {
+                        mgr.grantAdvancement(p, ad);
+                    } else if (lp.questAccept.contains(q)) {
+                        //if(Bukkit.isPrimaryThread()) {
+                            QuestManager.checkProgress(p, lp, q);
+                        //} else {
+                        //    Ostrov.sync(()->QuestManager.checkQuest(p, lp, q, false), 0);
+                        //}
+                    }
+                }
+            } else {
+                //локации
+                final LCuboid lc = AreaManager.getCuboid(ad.getName().getKey());
+//Bukkit.broadcastMessage("LCuboid="+(lc== null?"null":lc.name)+" isAreaDiscovered?"+(lc != null && lp.isAreaDiscovered(lc.id)));
+                if (lc != null && lp.isAreaDiscovered(lc.id)) {
+                    mgr.grantAdvancement(p, ad);
+                }
+            }
+        }
+        //Ostrov.sync(() -> mgr.updateVisibility(p), 30);
+//                    final Advancement ad = QuestAdvance.adm.toArray(aa)[0];
+//                    mgr.grantAdvancement(p, ad);
+//                    ad.displayToast(p);
+    }
+    */
     
     
+    
+    
+    
+   
     
     
     public static void loadQuestAdv() {
@@ -277,11 +324,5 @@ p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);
             //}
         }
     }
-
-    
-   // private static void removeLPl(final Player p) {
-    //    mgr.removePlayer(p);
-   // }
-
 
 }

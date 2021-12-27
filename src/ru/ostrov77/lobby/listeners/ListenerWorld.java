@@ -472,7 +472,7 @@ System.out.println("ArmorEquipEvent");
     public void onEntityDamage(final EntityDamageEvent e) { 
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
-        //sumo
+       
         if (e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
             final LivingEntity le = (LivingEntity) e.getEntity();
             switch (e.getCause()) {
@@ -481,7 +481,11 @@ System.out.println("ArmorEquipEvent");
                     final Player p = (Player) e.getEntity();
                     final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     if (lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
+                        
+                         //sumo ??
                         p.teleport (Main.getLocation(LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
+                        
+                        
                     } else { //новичков - если прыгнул за борт - на точку прибытия
                         Main.arriveNewBie(p);
                     }

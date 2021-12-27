@@ -143,7 +143,7 @@ public class QuestManager implements Listener {
     
     //SYNC !!!
     public static void onNewAreaDiscover(final Player p, final LobbyPlayer lp, final LCuboid cuboid) {
-//p.sendMessage("§8log: onNewAreaDiscover "+cuboid.getName());
+//p.sendMessage("§8log: onNewAreaDiscover "+p.getName()+" "+cuboid.getName());
         
         if (!lp.hasFlag(LobbyFlag.NewBieDone)) {  //новичёк - пока не откроет спавн, другие не давать
     	    switch (cuboid.getName()) {

@@ -30,8 +30,10 @@ public class FigureListener implements Listener {
         final Player p = e.getPlayer();
 //p.sendMessage("§8log: tag="+e.getFigure().getTag()+" left?"+e.isLeftClick());
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        
         if (e.getFigure().getTag().equals("info")) {
-        	final FigureAnswer fa = new FigureAnswer();
+            final FigureAnswer fa = new FigureAnswer().vibration(true).beforeEyes(true);
+            
             switch (e.getFigure().getEntityType()) {
     		case ENDERMAN:
     			fa.set(Arrays.asList("Добро пожаловать на §9Аркаим§f,", "На этом режиме вы сможете", "проявить свою полную фантазию", "благодаря халявному §9креативу§f!", "§eУдачного строительства!"))
@@ -49,10 +51,15 @@ public class FigureListener implements Listener {
     			if (!lp.hasFlag(LobbyFlag.TalkDA)) lp.setFlag(LobbyFlag.TalkDA, true);
     			break;
     		case VILLAGER:
+                    if (lp.hasFlag(LobbyFlag.NewBieDone)) {
+    			fa.set(Arrays.asList("§fРад видеть тебя снова!"))
+                                .time(5).beforeEyes(false).sound(Sound.ENTITY_VILLAGER_AMBIENT);
+                    } else {
     			fa.set(new ArrayList<String>(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§f чтобы", "увидеть следующие задания!", "Кликни на лампу, и §6Джин§f мигом", "отвезет тебя на §6Спавн§f"))).add(Material.SOUL_LANTERN).add("Либо просто пригни за борт!")
     					.time(10).sound(Sound.ENTITY_VILLAGER_AMBIENT);
     			QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
-    			break;
+                    }
+                    break;
     		case ZOMBIE:
     			fa.set(Arrays.asList("§3СкайБлок§f если что дальше §3-->", "А здесь режим §3ВанБлок§f, на", "котором тебе предстоит построить", "островок буквально начиная", "только с §31§f блоком!", "§eУдачи в развитии!"))
     					.time(10).sound(Sound.ENTITY_ZOMBIE_AMBIENT);
@@ -81,7 +88,8 @@ public class FigureListener implements Listener {
     		default:
     			break;
     		}
-            e.setAnswer(fa.vibration(true).beforeEyes(true));
+            e.setAnswer(fa);
+            
         } else if (e.getFigure().getTag().equals("mid") && e.getFigure().getEntityType() == EntityType.PIGLIN) {
         	p.playSound(e.getFigure().getEntity().getLocation(), Sound.ENTITY_PIGLIN_AMBIENT, 1f, 1f);
 			switch (e.getFigure().getName().charAt(4)) {

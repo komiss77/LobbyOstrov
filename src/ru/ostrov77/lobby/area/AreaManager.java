@@ -146,13 +146,13 @@ public class AreaManager {
             
             int currentCuboidId;
             final LCuboid ship = getCuboid("newbie");
-            Player p;
+            //Player p;
             
             @Override
             public void run() {
                 
                 for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
-                    p = lp.getPlayer();
+                    final Player p = lp.getPlayer();
                     if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     

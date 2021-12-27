@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import ru.komiss77.Ostrov;
+import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -98,8 +99,55 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
     }
     
     
-    
     //можно ASYNC!
+    public static void send (final Player p) {
+    //mgr.removePlayer(p);
+        mgr.addPlayer(p);
+//String s = "";
+//for (Player m : mgr.getPlayers()) {
+//    s=s+m.getName()+" ";
+//}
+//Bukkit.broadcastMessage("§fЗагрузка Адв. для"+p.getName()+", теперь в менеджере игроки "+s);
+        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        mgr.grantAdvancement(p, getAdvByKey("newbie"));
+        
+        for (final Advancement ad : mgr.getAdvancements()) {
+//Bukkit.broadcastMessage("§eload adv : "+ad.getName().getNamespace()+" hasChildren?"+!ad.getChildren().isEmpty());
+            if (ad.getChildren().isEmpty()) {
+                //квесты
+                final Quest q = Quest.byCode(ad.getName().getKey().charAt(0));
+                if (q == null) {
+                	if (lp.hasFlag(LobbyFlag.Elytra)) mgr.grantAdvancement(p, getAdvByKey("elytra"));
+                } else {
+//Bukkit.broadcastMessage("Quest="+q+" done?"+lp.questDone.contains(q));
+                    if (lp.questDone.contains(q)) {
+                        mgr.grantAdvancement(p, ad);
+                    } else if (lp.questAccept.contains(q)) {
+                        //if(Bukkit.isPrimaryThread()) {
+                            QuestManager.checkProgress(p, lp, q);
+                        //} else {
+                        //    Ostrov.sync(()->QuestManager.checkQuest(p, lp, q, false), 0);
+                        //}
+                    }
+                }
+            } else {
+                //локации
+                final LCuboid lc = AreaManager.getCuboid(ad.getName().getKey());
+//Bukkit.broadcastMessage("LCuboid="+(lc== null?"null":lc.name)+" isAreaDiscovered?"+(lc != null && lp.isAreaDiscovered(lc.id)));
+                if (lc != null && lp.isAreaDiscovered(lc.id)) {
+                    mgr.grantAdvancement(p, ad);
+                }
+            }
+        }
+        //Ostrov.sync(() -> mgr.updateVisibility(p), 30);
+//                    final Advancement ad = QuestAdvance.adm.toArray(aa)[0];
+//                    mgr.grantAdvancement(p, ad);
+//                    ad.displayToast(p);
+    }
+    
+    
+    
+    /*  //можно ASYNC!
     public static void send (final Player p) {
     //mgr.removePlayer(p);
         mgr.addPlayer(p);
@@ -142,11 +190,13 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
 //                    mgr.grantAdvancement(p, ad);
 //                    ad.displayToast(p);
     }
+    */
     
     
     
     
     
+   
     
     
     public static void loadQuestAdv() {
@@ -163,8 +213,7 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
         adm.put("midgard", Advance.crtAdv("midgard",  "§c§lХуторок          ", "Открой остров Мидгарда",          c0, Material.CAMPFIRE,          3f, 7.5f, "", parent, AdvancementFrame.CHALLENGE, visOnDisc("spawn")));
         adm.put("pvp",  Advance.crtAdv("pvp",      "§6§lДолина Войны          ", "Разведай остров ПВП Мини-Игр",c0,Material.NETHERITE_AXE,     2f, 10.5f, "", parent, AdvancementFrame.CHALLENGE, visOnDisc("spawn")));
 
-        adm.put("elytra",  Advance.crtAdv("elytra",      "§5§lДоктор Географ. Наук          ", "Выполни все задания в Лобби",c0,Material.NETHERITE_AXE,     -3f, -4f, "", parent, AdvancementFrame.GOAL, AdvancementVisibility.HIDDEN));
-        
+        adm.put("elytra",  Advance.crtAdv("elytra",      "§5§lДоктор Географ. Наук          ", "Выполни все задания в Лобби",c0,Material.WRITTEN_BOOK,     -3f, 4f, "", parent, AdvancementFrame.GOAL, AdvancementVisibility.HIDDEN));
         for (final Quest q : Quest.values()) {
             if (q==Quest.ReachSpawn) continue;
             //if (q.ammount>=0) { //ReachSpawn пропустить
@@ -275,11 +324,5 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
             //}
         }
     }
-
-    
-   // private static void removeLPl(final Player p) {
-    //    mgr.removePlayer(p);
-   // }
-
 
 }

@@ -55,9 +55,9 @@ public class QuestManager implements Listener {
                     e.getPlayer().getInventory().setItem(2, e.getLobbyPlayer().hasFlag(LobbyFlag.Elytra) ? Main.fw : Main.air);
                     break;
                     
-                case "pandora": //вышел из локации пандора - значит мог её использовать
-                    tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.LeavePandora);
-                    break;
+                //case "pandora": //вышел из локации пандора - значит мог её использовать
+                    //tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.LeavePandora);
+                    //break;
                     
                 default:
                     break;
@@ -143,6 +143,7 @@ public class QuestManager implements Listener {
     
     //SYNC !!!
     public static void onNewAreaDiscover(final Player p, final LobbyPlayer lp, final LCuboid cuboid) {
+//p.sendMessage("§8log: onNewAreaDiscover "+cuboid.getName());
         
         if (!lp.hasFlag(LobbyFlag.NewBieDone)) {  //новичёк - пока не откроет спавн, другие не давать
     	    switch (cuboid.getName()) {
@@ -230,6 +231,7 @@ public class QuestManager implements Listener {
     //по дефолту, задание будет выполнено, если оно было взято и не завершено.
     //для некоторых можно ставить сври чекающие обработчики
     public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
+//p.sendMessage("§8log: tryCompleteQuest "+quest);
     	if (!Bukkit.isPrimaryThread()) {
             Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
         }
@@ -243,7 +245,7 @@ public class QuestManager implements Listener {
 //p.sendMessage("§8log: checkQuest "+quest+" - не был получен; return ");
             return isComplete;
         }
-//p.sendMessage("§8log: checkQuest "+quest);
+//p.sendMessage("§8log: tryCompleteQuest 2");
         final Oplayer op = PM.getOplayer(p);
         
         //тут только дополнительные проверки. По дефолту, раз сюда засланао проверка, квест должен быть завершен.
@@ -259,13 +261,13 @@ public class QuestManager implements Listener {
                 }
                 break;
                 
-            case LeavePandora: //будет вызвано при выходе из кубоида пандоры
-                if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
+            case PandoraLuck: //будет вызвано при выходе из кубоида пандоры
+                //if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
                     Main.cosmeticMenu.give(p);
                     completeAdv(p, lp, quest);
                     //lp.questDone(p, quest, true);
                     isComplete = true;
-                }
+                //}
                 break;
                 
                 

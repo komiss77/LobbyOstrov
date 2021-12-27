@@ -1,21 +1,17 @@
 package ru.ostrov77.lobby.newbie;
 
 import java.util.EnumSet;
-
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Mob;
-
 import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.XYZ;
+import ru.komiss77.modules.world.XYZ;
 
 
 
@@ -42,6 +38,9 @@ public class JinGoal implements Goal<Blaze> {
     private XYZ nextPoint;
     private int previosDistance = Integer.MAX_VALUE;
     private boolean arrive;
+    
+    
+    
     
     public JinGoal(final Mob mob) {
         this.key = GoalKey.of(Blaze.class, new NamespacedKey(Main.instance, "ghast"));
@@ -100,7 +99,7 @@ public class JinGoal implements Goal<Blaze> {
             
             nextPoint = points[currPointIndex];
 
-            int currDist = getDist();
+            int currDist = nextPoint.getDistance(mob.getLocation());//getDist();
 //log("currDist="+currDist+" previos="+previosDistance);            
             if (previosDistance<=currDist) { //предыдущая дистанция меньше или равна - значит пролетел и начал удаляться
                 currPointIndex++;
@@ -173,13 +172,7 @@ public class JinGoal implements Goal<Blaze> {
     //    Bukkit.getConsoleSender().sendMessage("§8log: "+s);            
     //}
 
-    private int getDist() {
-        return square(mob.getLocation().getBlockX()-nextPoint.x) + square(mob.getLocation().getBlockY()-nextPoint.y) + square(mob.getLocation().getBlockZ()-nextPoint.z);
-    }
     
-    private static int square(final int num) {
-        return num * num;
-    }
 
 
        

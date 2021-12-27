@@ -10,7 +10,7 @@ import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.XYZ;
+import ru.komiss77.modules.world.XYZ;
 
 public class PKrist {
 

@@ -352,7 +352,7 @@ savePortals();
         if (lp.questDone.contains(Quest.PandoraLuck)) {
             cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         }
-        if (lp.questDone.contains(Quest.GreetNewBie)) {
+        if (lp.questDone.contains(Quest.DiscoverAllArea)) {
             pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         }
         p.updateInventory();

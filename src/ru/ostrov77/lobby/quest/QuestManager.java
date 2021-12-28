@@ -14,8 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
-import ru.komiss77.enums.StatFlag;
-import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.DonatEffect;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -81,7 +79,9 @@ public class QuestManager implements Listener {
             switch (e.getCurrent().getName()) {
                 case "start":
                 if (e.getLobbyPlayer().isAreaDiscovered(AreaManager.getCuboid("nopvp").id)) {
-                    e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
+                	final Player p = e.getPlayer();
+                	p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
+                    p.sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
                     e.getLobbyPlayer().raceTime = 0;
                 } else {
                     e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
@@ -101,8 +101,10 @@ public class QuestManager implements Listener {
                     
                 case "end":
                     if (e.getLobbyPlayer().raceTime > 0) {
-                    	e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.getLobbyPlayer().raceTime / 2));
-                        QuestManager.tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.MiniRace);
+                    	final Player p = e.getPlayer();
+                    	p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
+                    	p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.getLobbyPlayer().raceTime / 2));
+                        QuestManager.tryCompleteQuest(p, e.getLobbyPlayer(), Quest.MiniRace);
                     	e.getLobbyPlayer().raceTime = -1;
                         //lp.questDone(p, quest, true);
                     }
@@ -246,7 +248,6 @@ public class QuestManager implements Listener {
             return isComplete;
         }
 //p.sendMessage("§8log: tryCompleteQuest 2");
-        final Oplayer op = PM.getOplayer(p);
         
         //тут только дополнительные проверки. По дефолту, раз сюда засланао проверка, квест должен быть завершен.
         //ну, естественно он будет завершен, если был получен и не был завершен, что проверяется выше.
@@ -330,7 +331,7 @@ public class QuestManager implements Listener {
                 
         }
         
-        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length) {
+        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length && lp.questAccept.size() == 0) {
             lp.setFlag(LobbyFlag.Elytra, true);
             p.getInventory().setItem(2, Main.fw); //2
             Main.elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38

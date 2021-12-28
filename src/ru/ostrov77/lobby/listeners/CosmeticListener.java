@@ -10,10 +10,10 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
-import se.file14.procosmetics.api.ProCosmeticsAPI;
-import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
-import se.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
-import se.file14.procosmetics.user.User;
+import sv.file14.procosmetics.api.ProCosmeticsAPI;
+import sv.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
+import sv.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
+import sv.file14.procosmetics.user.User;
 
 
 

@@ -356,6 +356,8 @@ System.out.println("ArmorEquipEvent");
                 Main.loadCfgs();
                 e.getPlayer().sendMessage("§eПерезагружено!");
                 break;
+			default:
+				break;
                 
         }
         
@@ -481,9 +483,9 @@ System.out.println("ArmorEquipEvent");
                     final Player p = (Player) e.getEntity();
                     final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     if (lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
-                        
-                         //sumo ??
-                        p.teleport (Main.getLocation(LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
+                    	final Location loc = p.getLocation();
+                    	final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
+                        p.teleport(lc == null ? Main.getLocation(LocType.Spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                         
                         
                     } else { //новичков - если прыгнул за борт - на точку прибытия

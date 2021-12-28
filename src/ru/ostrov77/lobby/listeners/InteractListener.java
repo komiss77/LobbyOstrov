@@ -135,6 +135,7 @@ public class InteractListener implements Listener {
                                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                                     loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
                                     p.setGameMode(gm);
+                                    p.setFlying(false);
                                     //p.setFlying(false);
                                     p.setVelocity(new Vector(0, 0, 0));
                                     this.cancel();

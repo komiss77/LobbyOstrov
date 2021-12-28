@@ -197,9 +197,32 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
     
     
    
-    
-    
     public static void loadQuestAdv() {
+        final Advancement parent = Advance.crtAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.CHALLENGE, AdvancementVisibility.ALWAYS);
+        adm.put("spawn", parent);
+        
+        adm.put("newbie", Advance.crtAdv("newbie",   "§6§lМесто Прибытия          ", "Наконец-то здесь...",      c0, Material.OAK_BOAT,          -4f, 0, "", parent, AdvancementFrame.TASK, AdvancementVisibility.ALWAYS));
+        adm.put("nopvp", Advance.crtAdv("nopvp",    "§e§lОазис          ",  "Изучи остров ПВЕ Мини-Игр",        c0, Material.HONEYCOMB,         2, -10.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("parkur", Advance.crtAdv("parkur",   "§b§lБерезовый Парк          ", "Посети остров Паркуров",   c0, Material.FEATHER,           3f, -7.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("skyworld", Advance.crtAdv("skyworld", "§3§lОстровки          ", "Найди остров Скайблока",         c0, Material.FLOWERING_AZALEA,  4f, -4.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("arcaim", Advance.crtAdv("arcaim",   "§9§lРисталище          ", "Открой остров Акраима",         c0, Material.BEDROCK,           5f, -1.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("daaria", Advance.crtAdv("daaria",   "§a§lПерелесок          ", "Посети остров Даарии",          c0, Material.OAK_LOG,           5f, 1.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("sedna", Advance.crtAdv("sedna",    "§4§lКровавая Пустошь          ", "Найди остров Седны",     c0, Material.CRIMSON_NYLIUM,    4f, 4.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("midgard", Advance.crtAdv("midgard",  "§c§lХуторок          ", "Открой остров Мидгарда",          c0, Material.CAMPFIRE,          3f, 7.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+        adm.put("pvp",  Advance.crtAdv("pvp",      "§6§lДолина Войны          ", "Разведай остров ПВП Мини-Игр",c0,Material.NETHERITE_AXE,     2f, 10.5f, "", parent, AdvancementFrame.GOAL, visOnDisc("spawn")));
+
+        adm.put("elytra",  Advance.crtAdv("elytra",      "§5§lДоктор Географ. Наук          ", "Выполни все задания в Лобби",c0,Material.WRITTEN_BOOK,     -3f, 4f, "", parent, AdvancementFrame.CHALLENGE, AdvancementVisibility.HIDDEN));
+        for (final Quest q : Quest.values()) {
+            if (q==Quest.ReachSpawn) continue;
+            //if (q.ammount>=0) { //ReachSpawn пропустить
+                adm.put(String.valueOf(q.code), crtAdv(String.valueOf(q.code), q.displayName, q.description, new Criteria(q.ammount), q.icon, q.dx2, q.dy2, "", getParentAdv(q.attachedArea), AdvancementFrame.TASK, visOnDisc(q.attachedArea)));
+            //}
+        }
+        
+        mgr.addAdvancement(adm.values().toArray(new Advancement[adm.size()]));
+        mgr.makeAccessible();
+    }    
+  /*  public static void loadQuestAdv() {
         final Advancement parent = Advance.crtAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.GOAL, AdvancementVisibility.ALWAYS);
         adm.put("spawn", parent);
         
@@ -224,7 +247,7 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
         mgr.addAdvancement(adm.values().toArray(new Advancement[adm.size()]));
         mgr.makeAccessible();
     }
-
+*/
     
     private static Advancement crtAdv(final String key, final String name, final String desc, final Criteria crt, final Material icon, final float x2, final float y2, final String back, final Advancement parent, final AdvancementFrame frame, final AdvancementVisibility vis, final AdvancementFlag... flags) {
     	final AdvancementDisplay dis = new AdvancementDisplay(icon, name, desc, frame, back, vis);

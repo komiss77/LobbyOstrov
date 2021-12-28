@@ -313,7 +313,7 @@ public class QuestManager implements Listener {
             case CollectTax:
             	final int i = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);
                 progressAdv(p, quest, i);
-            	if (i == 3) {
+            	if (i == 13) {
                     completeAdv(p, lp, quest);
             	}
                 break;

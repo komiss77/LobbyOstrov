@@ -6,7 +6,7 @@ load: POSTWORLD
 author: Romindous,Komiss77
 
 depend: [Ostrov, serverfigure]
-softdepend: [CrazyAdvancementsAPI, LangUtils, ProCosmetics]
+softdepend: [CrazyAdvancementsAPI, LangUtils, ProCosmetics, HolographicDisplays]
 
 
 commands:

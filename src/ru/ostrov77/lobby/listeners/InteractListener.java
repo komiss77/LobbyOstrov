@@ -112,7 +112,8 @@ public class InteractListener implements Listener {
                         loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
                         final GameMode gm = p.getGameMode();
                         p.setGameMode(GameMode.SPECTATOR);
-                            
+                        p.setVelocity(new Vector(second.x + 0.5d, second.y + 0.5d, second.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
+                        
                         new BukkitRunnable() {
                             final String name = p.getName();
                             int count;
@@ -128,17 +129,20 @@ public class InteractListener implements Listener {
                                     return;
                                 }
                                 
+                                
+                                
                                 final Location loc = p.getLocation();
                                 currDist = second.getDistance(loc);//
+//p.sendMessage("§8log: count="+count+" curr="+currDist+" previos="+previosDistance);
                                 //if (Math.abs(loc.getBlockX() - second.x) < 2 && loc.getBlockY() == second.y && Math.abs(loc.getBlockZ() - second.z) < 2) {
                                 if (count>=100 || previosDistance<=currDist) { //предыдущая дистанция меньше или равна - значит пролетел и начал удаляться
+                                    
+                                    this.cancel();
                                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                                     loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
                                     p.setGameMode(gm);
                                     p.setFlying(false);
-                                    //p.setFlying(false);
                                     p.setVelocity(new Vector(0, 0, 0));
-                                    this.cancel();
                                     
                                 } else {
                                     
@@ -150,7 +154,7 @@ public class InteractListener implements Listener {
                                 count++;
                             }
 
-                        }.runTaskTimer(Main.instance, 3, 3);
+                        }.runTaskTimer(Main.instance, 10, 3);
                         return;
                         
                     } else {

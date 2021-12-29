@@ -184,7 +184,7 @@ System.out.println("ArmorEquipEvent");
                 p.teleport(Main.getLocation(LocType.newBieSpawn));// тп на 30 160 50
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
                 p.setCollidable(false);
-                Main.oscom.give(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                Main.oscom.giveForce(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
                 ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BarColor.PINK, BarStyle.SOLID, false);
             } else {
                 Main.giveItems(p);

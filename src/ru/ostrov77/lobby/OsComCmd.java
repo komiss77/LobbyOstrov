@@ -27,6 +27,7 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.newbie.JinGoal;
+import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 import ru.ostrov77.lobby.quest.QuestViewMenu;
@@ -94,6 +95,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                 case "reset":
                     //if (ApiOstrov.isLocalBuilder(cs, true)) {
                         p.closeInventory();
+                        Advance.resetProgress(p);
                         ApiOstrov.sendToServer(p, "arcaim", "");
                         Ostrov.async(()-> LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';"), 20);
                     //}

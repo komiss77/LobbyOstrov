@@ -112,11 +112,11 @@ public class QuestManager implements Listener {
                     
                 case "daaria":
                 case "skyworld":
-                    Main.pickaxe.give(e.getPlayer());
+                    Main.pickaxe.giveForce(e.getPlayer());
                     break;
                     
                 case "sumo":
-                    Main.stick.give(e.getPlayer());
+                    Main.stick.giveForce(e.getPlayer());
                     break;
                     
                 default:
@@ -256,7 +256,7 @@ public class QuestManager implements Listener {
             case DiscoverAllArea:
             	final int dsc = checkProgress(p, lp, quest);
                 if (dsc>=quest.ammount) {
-                    Main.pipboy.give(p);
+                    Main.pipboy.giveForce(p);
                     completeAdv(p, lp, quest);
                     isComplete = true;
                 }
@@ -264,7 +264,7 @@ public class QuestManager implements Listener {
                 
             case PandoraLuck: //будет вызвано при выходе из кубоида пандоры
                 //if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
-                    Main.cosmeticMenu.give(p);
+                    Main.cosmeticMenu.giveForce(p);
                     completeAdv(p, lp, quest);
                     //lp.questDone(p, quest, true);
                     isComplete = true;
@@ -331,10 +331,10 @@ public class QuestManager implements Listener {
                 
         }
         
-        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length && lp.questAccept.size() == 0) {
+        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length && lp.questAccept.isEmpty()) {
             lp.setFlag(LobbyFlag.Elytra, true);
             p.getInventory().setItem(2, Main.fw); //2
-            Main.elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+            Main.elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
             if (Main.advancements) {
                 Advance.completeAdv(p, "elytra");
             }

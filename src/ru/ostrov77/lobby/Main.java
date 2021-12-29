@@ -234,9 +234,7 @@ public class Main extends JavaPlugin {
     
     
     public static void loadCfgs() {
-        
         serverPortals.clear();
-        
         if (serverPortalsConfig.getStringList("portalData")!=null) {
             for (final String portalData : serverPortalsConfig.getStringList("portalData")) {
                 final XYZ xyz = XYZ.fromString(portalData);
@@ -246,62 +244,6 @@ public class Main extends JavaPlugin {
                 }
             }
         }
-        //платы грузятся в AreaManager
-        
-        //PlateManager.plts.clear();
-        //File file = new File(instance.getDataFolder() + File.separator + "config.yml");
-       // //System.out.println("----------------- loadCfgs exist?"+file.exists());
-      //  if (file.exists()) {
-    	//	final FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-                
-//КОНВЕСИЯ  порталов       
-/*if (cfg.isConfigurationSection("prtls")) {
-        final String[] xs = cfg.getString("prtls.x").split(":");
-        final String[] ys = cfg.getString("prtls.y").split(":");
-        final String[] zs = cfg.getString("prtls.z").split(":");
-        final String[] ss = cfg.getString("prtls.s").split(":");
-        for (int i = xs.length - 1; i >= 0; i--) {
-                //prts.put(new BaseBlockPosition(Integer.parseInt(xs[i]), Integer.parseInt(ys[i]), Integer.parseInt(zs[i])), ss[i]);
-                final XYZ xyzw= new XYZ ("world",Integer.parseInt(xs[i]), Integer.parseInt(ys[i]), Integer.parseInt(zs[i]));
-                serverPortals.put(xyzw, ss[i]);
-        }
-savePortals();
-}*/
-            
-//КОНВЕСИЯ  плат
-    		/*if (cfg.isConfigurationSection("plts")) {
-    			final String[] bxs = cfg.getString("plts.bx").split(":");
-    			final String[] bys = cfg.getString("plts.by").split(":");
-    			final String[] bzs = cfg.getString("plts.bz").split(":");
-    			final String[] exs = cfg.getString("plts.ex").split(":");
-    			final String[] eys = cfg.getString("plts.ey").split(":");
-    			final String[] ezs = cfg.getString("plts.ez").split(":");
-                        
-    			for (int i = bxs.length - 1; i >= 0; i--) {
-                            
-                            final XYZ first = new XYZ("world",Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i]));
-                            final XYZ second = new XYZ("world",Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i]));
-                            final int cLoc = getcLoc(first);
-                            final ChunkContent cc = getChunkContent(cLoc, true);
-                            cc.addPlate(first, second);
-                            AreaManager.savePlate(first, second);
-    				//PlateManager.plts.put(new BaseBlockPosition(Integer.parseInt(bxs[i]), Integer.parseInt(bys[i]), Integer.parseInt(bzs[i])), 
-    				//new BaseBlockPosition(Integer.parseInt(exs[i]), Integer.parseInt(eys[i]), Integer.parseInt(ezs[i])));
-                                
-                                
-    			}
-    			PlateManager.strtPlts();
-    		}
-                
-      //  } else {
-        	Bukkit.getServer().getConsoleSender().sendMessage("§6Config для Lobby не найден, делаем новый...");
-    		instance.getConfig().options().copyDefaults(true);
-    		try {
-                        instance.getConfig().save(file);
-                } catch (IOException e) {
-                        e.printStackTrace();
-                }
-      //  }*/
     }
     
     
@@ -340,20 +282,20 @@ savePortals();
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
         if (lp.hasFlag(LobbyFlag.Elytra)) {
             p.getInventory().setItem(2, fw); //2
-            elytra.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
+            elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
         
         final LCuboid lc = AreaManager.getCuboid(p.getLocation());
         if (lc != null && lc.getName().equals("daaria") && lc.getName().equals("skyworld")) {
-            pickaxe.give(p);
+            pickaxe.giveForce(p);
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
-        oscom.give(p);
+        oscom.giveForce(p);
         if (lp.questDone.contains(Quest.PandoraLuck)) {
-            cosmeticMenu.give(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
+            cosmeticMenu.giveForce(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         }
         if (lp.questDone.contains(Quest.DiscoverAllArea)) {
-            pipboy.give(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
+            pipboy.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         }
         p.updateInventory();
         PM.getOplayer(p).showScore();

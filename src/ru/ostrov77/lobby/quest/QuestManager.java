@@ -179,8 +179,8 @@ public class QuestManager implements Listener {
         if (cuboid.getInfo().canTp) {
             tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
-            if (lp.compasstarget==cuboid.id) {
-                AreaViewMenu.resetCompassTarget(p);
+            if (lp.compasstarget==cuboid.getInfo()) {
+                AreaManager.resetCompassTarget(p, lp);
             }
             sound(p);
         }

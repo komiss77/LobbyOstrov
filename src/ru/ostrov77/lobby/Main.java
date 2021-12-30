@@ -73,7 +73,7 @@ public class Main extends JavaPlugin {
     
     public static boolean langUtils = false;
     public static boolean advancements = false;
-    //public static boolean cosmetics = false;
+    public static boolean holo = false;
     
     private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     private static final EnumMap<LocType,Location>locations = new EnumMap(LocType.class);
@@ -132,6 +132,7 @@ public class Main extends JavaPlugin {
         }
         
         langUtils = Bukkit.getPluginManager().getPlugin("LangUtils")!=null;
+        holo = Bukkit.getPluginManager().getPlugin("HolographicDisplays")!=null;
        
         createMenuItems();
 

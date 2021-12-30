@@ -2,6 +2,7 @@ package ru.ostrov77.lobby.area;
 
 import ru.komiss77.modules.world.XYZ;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,22 +10,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
+import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
+import ru.ostrov77.lobby.hd.HD;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -39,6 +46,7 @@ public class AreaManager {
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
 
+    private static final List<String>compasslore = Arrays.asList("§6ЛКМ§e - задачи ","§2ПКМ§a - локации");
     
     
     
@@ -386,14 +394,51 @@ public class AreaManager {
     
     
     
-    /*
-    public static Material getCuboidIcon(final int cuboidId) {
-        switch (cuboidId) {
-            case 1: return Material.ACACIA_BOAT;
-            
+    public static void setCompassTarget(final Player p, final LobbyPlayer lp, final LCuboid lc) {
+        p.setCompassTarget(lc.spawnPoint);
+        lp.compasstarget = lc.getInfo();
+        final ItemStack compass = p.getInventory().getItem(0);
+        if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
+            final ItemMeta im = compass.getItemMeta();
+            if (im.hasLore()) {
+                final List<Component> lore = new ArrayList<Component>();
+                for (final String s : compasslore) {
+                	lore.add(Component.text(s));
+                }
+                lore.add(Component.text(""));
+                lore.add(Component.text("§fНастроен на локацию:"));
+                lore.add(Component.text(lc.displayName));
+                im.lore(lore);
+                im.addEnchant(Enchantment.LUCK, 1, true);
+                compass.setItemMeta(im);
+                p.getInventory().setItem(0, compass);
+                //p.updateInventory();
+            }
         }
-        return Material.BEDROCK;
-    }*/
+        p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_LAUNCH, 1, 1);
+        if (lp.hasFlag(LobbyFlag.NewBieDone)) QuestManager.tryCompleteQuest(p, lp, Quest.Navigation);
+    }
+
+    public static void resetCompassTarget(final Player p, final LobbyPlayer lp) {
+        p.setCompassTarget(p.getLocation());
+        lp.compasstarget = CuboidInfo.DEFAULT;
+        final ItemStack compass = p.getInventory().getItem(0);
+        if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
+            final ItemMeta im = compass.getItemMeta();
+            if (im.hasLore()) {
+                final List<Component> lore = new ArrayList<Component>();
+                for (final String s : compasslore) {
+                	lore.add(Component.text(s));
+                }
+                im.lore(lore);
+                im.removeEnchant(Enchantment.LUCK);
+                compass.setItemMeta(im);
+                p.getInventory().setItem(0, compass);
+            }
+        }
+        p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_LAUNCH, 1, 1);
+    }
+
     
     
     

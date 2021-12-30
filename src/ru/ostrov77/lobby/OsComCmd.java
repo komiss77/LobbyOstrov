@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby;
 
 
+import ru.ostrov77.lobby.hd.HD;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,7 +27,6 @@ import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.newbie.JinGoal;
 import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -103,7 +103,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
 
                     
                case "quest":
-                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    if (HD.isOpen(p)) return true; //с компасом в руке ждём клики по голограммам
                     SmartInventory.builder()
                         .type(InventoryType.CHEST)
                         .id("quest"+p.getName()) 
@@ -116,16 +116,22 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     return true;
                     
                case "area":
-                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
-                    SmartInventory.builder()
-                        .type(InventoryType.CHEST)
-                        .id("area"+p.getName()) 
-                        .provider(new AreaViewMenu())
-                        .title("Локации")
-                        .size (6,9)
-                        .build()
-                        .open(p);
+                    if (Main.holo) {
+                        if (HD.isOpen(p)) return true; //с компасом в руке ждём клики по голограммам
+                        //if (!Timer.has(p, "menu")) {
+                            HD.openAreaMenu(p, lp);
+                            //Timer.add(p, "menu", 1);
                         //}
+                    } else {
+                        SmartInventory.builder()
+                            .type(InventoryType.CHEST)
+                            .id("area"+p.getName()) 
+                            .provider(new AreaViewMenu())
+                            .title("Локации")
+                            .size (6,9)
+                            .build()
+                            .open(p);
+                    }
                     return true;
                     
                     

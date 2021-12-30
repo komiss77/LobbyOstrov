@@ -131,6 +131,7 @@ public class FigureListener implements Listener {
     
     @EventHandler
     public void onPandoraUse(final PandoraUseEvent e) {
+//e.getPlayer().sendMessage("§8log: PandoraUseEvent");
         //if (e.luck()) {
             QuestManager.tryCompleteQuest(e.getPlayer(), Main.getLobbyPlayer(e.getPlayer()), Quest.PandoraLuck);
         //}

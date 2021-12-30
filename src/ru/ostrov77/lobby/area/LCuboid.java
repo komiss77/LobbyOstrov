@@ -7,6 +7,7 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import ru.komiss77.Ostrov;
 import ru.komiss77.modules.world.Cuboid;
 import ru.ostrov77.lobby.Main;
 
@@ -28,6 +29,9 @@ public class LCuboid extends Cuboid {
         this.displayName = displayName.isEmpty() ? name : displayName;
         this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
         info = CuboidInfo.find(name);
+        if (info==CuboidInfo.DEFAULT) {
+            Ostrov.log_warn("Не найден CuboidInfo для "+name);
+        }
     }
     
     //загрузка
@@ -38,6 +42,9 @@ public class LCuboid extends Cuboid {
         this.displayName = displayName.isEmpty() ? name : displayName;
         this.spawnPoint =   spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)): spawnPoint;
         info = CuboidInfo.find(name);
+        if (info==CuboidInfo.DEFAULT) {
+            Ostrov.log_warn("Не найден CuboidInfo для "+name);
+        }
     }
     
     

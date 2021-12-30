@@ -172,9 +172,20 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
         
         for (final Quest q : Quest.values()) {
             if (q==Quest.ReachSpawn) continue;
-            //if (q.ammount>=0) { //ReachSpawn пропустить
-                adm.put(String.valueOf(q.code), crtAdv(String.valueOf(q.code), q.displayName, q.description, new Criteria(q.ammount), q.icon, q.dx2, q.dy2, "", getParentAdv(q.attachedArea), AdvancementFrame.TASK, visOnDisc(q.attachedArea)));
-            //}
+            adm.put(
+                    String.valueOf(q.code), 
+                    crtAdv(String.valueOf(q.code), 
+                    q.displayName, 
+                    q.description, 
+                    new Criteria(q.ammount), 
+                    q.icon, 
+                    q.dx2, 
+                    q.dy2, 
+                    "",  //backGroundTexture
+                    getParentAdv(q.attachedArea), //корневая ачивка
+                    AdvancementFrame.TASK, 
+                    visOnDisc(q.attachedArea)) //станет видно при открытии кубоида
+            );
         }
         
         mgr.addAdvancement(adm.values().toArray(new Advancement[adm.size()]));
@@ -184,8 +195,8 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
     
     
     
-    private static Advancement crtAdv(final String key, final String name, final String desc, final Criteria crt, final Material icon, final float x2, final float y2, final String back, final Advancement parent, final AdvancementFrame frame, final AdvancementVisibility vis, final AdvancementFlag... flags) {
-    	final AdvancementDisplay dis = new AdvancementDisplay(icon, name, desc, frame, back, vis);
+    private static Advancement crtAdv(final String key, final String name, final String desc, final Criteria crt, final Material icon, final float x2, final float y2, final String backGroundTexture, final Advancement parent, final AdvancementFrame frame, final AdvancementVisibility vis, final AdvancementFlag... flags) {
+    	final AdvancementDisplay dis = new AdvancementDisplay(icon, name, desc, frame, backGroundTexture, vis);
         final Advancement ad;
     	if (parent == null) {
             dis.setCoordinates(0.5f * x2, 0.5f * y2);

@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby.newbie;
+package ru.ostrov77.lobby;
 
 
 import org.bukkit.Material;

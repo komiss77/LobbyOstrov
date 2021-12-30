@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.quest.PKrist;
 import ru.ostrov77.lobby.quest.Quest;
@@ -27,7 +28,7 @@ public class LobbyPlayer {
     public int taxed; //кол-во собраных налогов
     public final EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
     public PKrist pkrist;
-    public int compasstarget; //ИД кубоида цели для компаса
+    public CuboidInfo compasstarget = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
     
     
     

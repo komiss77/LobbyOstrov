@@ -66,7 +66,7 @@ import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.newbie.JinGoal;
+import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.Advance;
 import ru.ostrov77.lobby.quest.QuestManager;

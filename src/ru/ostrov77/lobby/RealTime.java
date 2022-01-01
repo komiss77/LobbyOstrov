@@ -4,13 +4,13 @@ import java.util.Calendar;
 
 import ru.komiss77.Ostrov;
 
-public class AtmoSphere {
+public class RealTime {
 	
 	private final Calendar cal;
 	private final boolean isWinter;
 	private final float mcf;
 	
-	public AtmoSphere() {
+	public RealTime() {
 		cal = Ostrov.calendar;
 		switch (cal.get(Calendar.MONTH)) {
 		case 0:

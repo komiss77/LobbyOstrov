@@ -68,7 +68,7 @@ import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.Advance;
+import ru.ostrov77.lobby.quest.AdvanceCrazy;
 import ru.ostrov77.lobby.quest.QuestManager;
 
 
@@ -115,7 +115,7 @@ System.out.println("ArmorEquipEvent");
     @EventHandler (priority = EventPriority.MONITOR)
     public void onJoin(final PlayerJoinEvent e) {
         final Player p = e.getPlayer();
-        final LobbyPlayer lp = Main.createLobbyPlayer(p);
+        final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
         //QuestAdvance.onJoin(p);
         
         Ostrov.async( () -> {
@@ -171,11 +171,11 @@ System.out.println("ArmorEquipEvent");
     
     
 
-    private void onDataLoad(Player p, LobbyPlayer lp, final String logoutLocString) {
-        Ostrov.sync( ()-> {
-            if (Main.advancements) {
-                Advance.send(p);
-            }
+    private void onDataLoad(final Player p, final LobbyPlayer lp, final String logoutLocString) {
+        Ostrov.sync(()-> {
+            Main.lobbyPlayers.put(lp.name, lp); //заносим тут чтобы  квесты не срабаывали при мелькании на спавне
+            Main.advance.join(p, lp);//Ostrov.async( ()-> Advance.send(p, lp), 10); //после добавления Lp!!!
+                
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
                 //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
@@ -196,7 +196,8 @@ System.out.println("ArmorEquipEvent");
 //ApiOstrov.sendActionBarDirect(p, "§8log: точка выхода опасна, тп на спавн");
                 }
             }
-        }, 2);        
+            
+         }, 2);        
     }
 
     
@@ -206,7 +207,7 @@ System.out.println("ArmorEquipEvent");
     public void onQuit(final PlayerQuitEvent e) {
         final Player p = e.getPlayer();
         //NewBie__.stop(p);
-        final LobbyPlayer lp = Main.destroyLobbyPlayer(p.getName());
+        final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
         if (lp!=null) {
             final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
@@ -218,9 +219,7 @@ System.out.println("ArmorEquipEvent");
             }
         }
         p.removeMetadata("tp", Main.instance);
-        if (Main.advancements) {
-            Advance.onQuit(p);
-        }
+        Main.advance.onQuit(p);
     }    
     
     

@@ -25,6 +25,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.objects.CaseInsensitiveMap;
 import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -32,7 +33,7 @@ import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.hd.HD;
-import ru.ostrov77.lobby.quest.PKrist;
+import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -45,6 +46,7 @@ public class AreaManager {
     private static BukkitTask playerMoveTask;
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
+    private static Map<String,Integer>cuboidNames;
 
     private static final List<String>compasslore = Arrays.asList("§6ЛКМ§e - задачи ","§2ПКМ§a - локации");
     
@@ -52,7 +54,8 @@ public class AreaManager {
     
     public static void deleteCuboid(final int cuboidId) {
         if (cuboids.containsKey(cuboidId)) {
-            cuboids.remove(cuboidId);
+            final String name = cuboids.remove(cuboidId).getName();
+            cuboidNames.remove(name);
             //убрать ид кубоида из чанков
             ChunkContent cc;
             final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
@@ -72,6 +75,7 @@ public class AreaManager {
     //добавление только после всех проверок в команде!
     protected static void addCuboid(final LCuboid lc, final boolean save) {
         cuboids.put(lc.id, lc);
+        cuboidNames.put(lc.getName(), lc.id);
         Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
         Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
         while (it.hasNext()) {
@@ -104,11 +108,12 @@ public class AreaManager {
         }
         areaConfig.saveConfig();
     }
-    
+
     public AreaManager () {
 
         chunkContetnt = new HashMap<>();
         cuboids = new HashMap<>();
+        cuboidNames = new CaseInsensitiveMap<>();
         areaConfig = Main.configManager.getNewConfig("area.yml");
         
         if (areaConfig.getConfigurationSection("areas")!=null) {
@@ -164,6 +169,7 @@ public class AreaManager {
                     if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
                     
+                    lp.saveQuest();
                     //final LobbyPlayer lp = Main.getLobbyPlayer(p);
                     
                     //чек если игрок проходит состязание
@@ -250,7 +256,7 @@ public class AreaManager {
                         //final LobbyPlayer lp = Main.getLobbyPlayer(p);
                 	if (lp.pkrist != null) {
                             final Player p = lp.getPlayer();
-                            final PKrist pr = lp.pkrist;
+                            final Parkur pr = lp.pkrist;
                             final Location loc = p.getLocation();
                             if (loc.getY() < pr.bLast.y) { //упал
                                 p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
@@ -315,6 +321,15 @@ public class AreaManager {
         }
         return 0;
     }
+    
+    public static boolean hasCuboid(final String cuboidName) {
+        return cuboidNames.containsKey(cuboidName);
+    }
+    
+    public static boolean hasCuboid(final int cuboidId) {
+        return cuboids.containsKey(cuboidId);
+    }
+    
 
     public static LCuboid getCuboid(final Location loc) {
         int cLoc = getcLoc(loc);
@@ -341,12 +356,7 @@ public class AreaManager {
     }
     
     public static LCuboid getCuboid(final String cuboidName) {
-        for (LCuboid lc : cuboids.values()) {
-            if (lc.getName().equalsIgnoreCase(cuboidName)) {
-                return lc;
-            }
-        }
-        return null;
+        return cuboidNames.containsKey(cuboidName) ? cuboids.get(cuboidNames.get(cuboidName)) : null;
     }
 
     public static Collection<LCuboid> getCuboids() {
@@ -355,6 +365,10 @@ public class AreaManager {
     
     public static Set<Integer> getCuboidIds() {
         return cuboids.keySet();
+    }
+    
+   public static Set<String> getCuboidNames() {
+        return cuboidNames.keySet();
     }
     
     public static LCuboid getCuboid(final int cuboidId) {

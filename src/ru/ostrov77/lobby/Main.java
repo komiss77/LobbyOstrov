@@ -37,11 +37,13 @@ import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.Advance;
+import ru.ostrov77.lobby.quest.AdvanceCrazy;
 import ru.ostrov77.lobby.quest.QuestManager;
 import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.listeners.FigureListener;
 import ru.ostrov77.lobby.listeners.InteractListener;
+import ru.ostrov77.lobby.quest.IAdvance;
+import ru.ostrov77.lobby.quest.AdvanceVanila;
 
     
     
@@ -64,7 +66,7 @@ public class Main extends JavaPlugin {
     
     public static Main instance;
 
-    public static AtmoSphere timeManager;
+    public static RealTime timeManager;
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
@@ -72,10 +74,10 @@ public class Main extends JavaPlugin {
 
     
     public static boolean langUtils = false;
-    public static boolean advancements = false;
+    public static IAdvance advance;
     public static boolean holo = false;
     
-    private static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
+    public static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     private static final EnumMap<LocType,Location>locations = new EnumMap(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
@@ -103,7 +105,7 @@ public class Main extends JavaPlugin {
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
 
         
-        timeManager = new AtmoSphere();
+        timeManager = new RealTime();
         areaManager = new AreaManager();
         questManager = new QuestManager();
         
@@ -126,9 +128,9 @@ public class Main extends JavaPlugin {
         }
         //подгрузка ачивок. После AreaManager!!
         if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
-            advancements =  true;
-            Advance.loadQuestAdv();
-            getServer().getPluginManager().registerEvents(new Advance(), instance);
+            advance =  new AdvanceCrazy();
+        } else {
+            advance =  new AdvanceVanila();
         }
         
         langUtils = Bukkit.getPluginManager().getPlugin("LangUtils")!=null;
@@ -252,11 +254,11 @@ public class Main extends JavaPlugin {
     
     
     
-    public static LobbyPlayer createLobbyPlayer(final Player p) {
-        final LobbyPlayer lp = new LobbyPlayer(p.getName());
-        lobbyPlayers.put(p.getName(), lp);
-        return lp;
-    }
+    //public static void addLobbyPlayer(final LobbyPlayer lp) {
+        //final LobbyPlayer lp = new LobbyPlayer(p.getName());
+        //lobbyPlayers.put(lp.name, lp);
+        //return lp;
+    //}
     
     public static LobbyPlayer getLobbyPlayer(final Player p) {
         return lobbyPlayers.get(p.getName());
@@ -266,9 +268,9 @@ public class Main extends JavaPlugin {
         return lobbyPlayers.get(name);
     }
     
-    public static LobbyPlayer destroyLobbyPlayer(final String name) {
-        return lobbyPlayers.remove(name);
-    }
+    //public static LobbyPlayer destroyLobbyPlayer(final String name) {
+    //    return lobbyPlayers.remove(name);
+    //}
     
     public static Iterable<LobbyPlayer> getLobbyPlayers() {
         return lobbyPlayers.values();
@@ -478,7 +480,7 @@ public class Main extends JavaPlugin {
             .create();
     }
     //делает "String Text" из "STRING_TEXT"
-	public static String nrmlzStr(final String s) {
+	/*public static String nrmlzStr(final String s) {
 		final char[] ss = s.toLowerCase().toCharArray();
 		ss[0] = (char) (ss[0] & 0x5f);
 		for (byte i = (byte) (ss.length - 1); i > 0; i--) {
@@ -488,7 +490,7 @@ public class Main extends JavaPlugin {
 			}
 		}
 		return String.valueOf(ss);
-	}
+	}*/
 
     private static void loadLocaions(final World world) {
         locations.put(LocType.Spawn,  new Location(world, 0.5, 100, 0.5, 0, 0));

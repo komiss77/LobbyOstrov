@@ -1,4 +1,4 @@
-package ru.ostrov77.lobby.quest;
+package ru.ostrov77.lobby.game;
 
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -11,8 +11,10 @@ import ru.komiss77.Ostrov;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.komiss77.modules.world.XYZ;
+import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestManager;
 
-public class PKrist {
+public class Parkur {
 
 	public final Player p;
 	public XYZ bLast;
@@ -21,7 +23,7 @@ public class PKrist {
 	
 	public static BlockFace[] sds = {BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH ,BlockFace.SOUTH};
 	
-	public PKrist(final Player p) {
+	public Parkur(final Player p) {
 		this.p = p;
 		jumps = 0;
 	}
@@ -31,7 +33,7 @@ public class PKrist {
 		bLast = bNext;
 		jumps++;
 		final Block b = p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z);
-		final BlockFace sd = PKrist.sds[Ostrov.random.nextInt(4)];
+		final BlockFace sd = Parkur.sds[Ostrov.random.nextInt(4)];
 		final Block n;
 		switch (jumps >> 3) {
 		case 0:

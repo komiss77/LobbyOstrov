@@ -36,6 +36,7 @@ public class HD {
         eye.setPitch(0); //чтобы не зависило от вверх - вниз
         final Vector direction = eye.getDirection();
         eye.add(direction.multiply(2));
+        eye.setY(eye.getY()+1);
         //final Location holoCenter = p.getEyeLocation().add(direction.multiply(2));
         final Position center = Position.of(eye);
         
@@ -55,7 +56,7 @@ public class HD {
 
                 final ItemHologramLine i = h.getLines().appendItem(new ItemStack(ci.icon));
                 i.setClickListener( (cl) -> {
-p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
+//p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                         if (ci.canTp) {
                             tasks.get(p.getName()).cancel();
                             ApiOstrov.teleportSave(p, lc.spawnPoint, false);
@@ -63,7 +64,7 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                     }
                 );
                 
-                final  TextHologramLine t = h.getLines().appendText(lc.displayName);
+              /*  final  TextHologramLine t = h.getLines().appendText(lc.displayName);
                 t.setClickListener( (cl) -> {
 p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                         if (ci.canTp) {
@@ -71,7 +72,7 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                             ApiOstrov.teleportSave(p, lc.spawnPoint, false);
                         }
                     }
-                );
+                );*/
                 
                 
             } else {
@@ -90,7 +91,7 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                     }
                 );
                 
-                final  TextHologramLine t = h.getLines().appendText(lc.displayName);
+               /* final  TextHologramLine t = h.getLines().appendText(lc.displayName);
                 t.setClickListener( (cl) -> {
                         if (lp.compasstarget != lc.getInfo()) {
 //p.sendMessage(lc.getName()+" setCompassTarget");
@@ -102,7 +103,7 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                             i.setItemStack(new ItemStack(Material.GRAY_DYE));
                         }                    
                     }
-                );
+                );*/
                 
             }
             

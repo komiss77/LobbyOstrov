@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby;
 
+import java.util.EnumMap;
 import java.util.EnumSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,7 +10,7 @@ import ru.komiss77.Timer;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.quest.PKrist;
+import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quest;
 
 
@@ -18,27 +19,26 @@ public class LobbyPlayer {
     public final String name;
     private int flags; //флаги
     private int openedArea; //открытые локации
-    public EnumSet<Quest> questDone; //завершенные задания
-    public EnumSet<Quest> questAccept; //текущие задания
+    public final EnumSet<Quest> questDone = EnumSet.noneOf(Quest.class); //завершенные задания
+    public final EnumSet<Quest> questAccept = EnumSet.noneOf(Quest.class); //текущие задания
+    private final EnumMap<Quest,Integer> progressCache = new EnumMap(Quest.class);
     
     //служебные
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
-    public int raceTime; //таймер гонки
-    public int taxed; //кол-во собраных налогов
-    public final EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
-    public PKrist pkrist;
+    public int raceTime = -1; //таймер гонки
+    //public int taxed; //кол-во собраных налогов
+    public final EnumSet<Material> foundBlocks = EnumSet.noneOf(Material.class); //блоки для 50 блок. задания
+    public Parkur pkrist;
     public CuboidInfo compasstarget = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
     
+    public boolean toSave = false;
+    public boolean updAdv = false;
     
     
     
-    LobbyPlayer(final String name) {
+    public LobbyPlayer(final String name) {
         this.name = name;
-        raceTime = -1;
-        questDone = EnumSet.noneOf(Quest.class);
-        questAccept = EnumSet.noneOf(Quest.class);
-        foundBlocks = EnumSet.noneOf(Material.class);
     }
     
     
@@ -53,8 +53,21 @@ public class LobbyPlayer {
         openedArea =(openedArea | (1 << areaId));
         LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+name+"';");
     }
-
     
+    public int getOpenAreaCount () {
+        int x = openedArea;
+        // Collapsing partial parallel sums method
+        // Collapse 32x1 bit counts to 16x2 bit counts, mask 01010101
+        x = (x >>> 1 & 0x55555555) + (x & 0x55555555);
+        // Collapse 16x2 bit counts to 8x4 bit counts, mask 00110011
+        x = (x >>> 2 & 0x33333333) + (x & 0x33333333);
+        // Collapse 8x4 bit counts to 4x8 bit counts, mask 00001111
+        x = (x >>> 4 & 0x0F0F0F0F) + (x & 0x0F0F0F0F);
+        // Collapse 4x8 bit counts to 2x16 bit counts
+        x = (x >>> 8 & 0x00FF00FF) + (x & 0x00FF00FF);
+        // Collapse 2x16 bit counts to 1x32 bit count
+        return (x >>> 16) + (x & 0x0000FFFF);
+    }     
     
     
     public boolean hasFlag(final LobbyFlag flag) {
@@ -68,30 +81,50 @@ public class LobbyPlayer {
 
     
     
+    //отдельным методом, т.к. могут добавлять и НПС
+    public boolean addQuest(final Quest quest) {
+        if (!questDone.contains(quest) && questAccept.add(quest)) { //это задание ранее не выполнено и уже не было получено ранее
+            if (!AreaManager.hasCuboid(quest.name())) Main.advance.sendToast(getPlayer(), this, quest); //для заданий открыть кубоид без помпезностей
+            toSave = true;
+            return true;
+        }
+        return false;
+    }
     
     
     //только сохранение! все обработчики - в QuestManager
-    public void questDone(final Player p, final Quest quest, final boolean condratulations) {
-        boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
-        if (questDone.add(quest)) {
-            change = true;
+    public boolean questDone(final Quest quest) {
+        //boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
+        if (questAccept.remove(quest) && questDone.add(quest)) {
+            progressCache.remove(quest);
+            toSave = true;
+            return true;
         }
-        if (change) {
-            saveQuest();
-        }
+        return false;
+        //if (change) {
+        //    saveQuest();
+        //}
     }
     
     
     public void saveQuest() {
-        final StringBuilder sbDone = new StringBuilder();
-        for (Quest q:questDone) {
-            sbDone.append(q.code);
+        if (toSave) {
+            toSave = false;
+            updAdv = true;
+            final StringBuilder sbDone = new StringBuilder();
+            for (Quest q:questDone) {
+                sbDone.append(q.code);
+            }
+            final StringBuilder sbAccept = new StringBuilder();
+            for (Quest q:questAccept) {
+                sbAccept.append(q.code);
+            }
+            LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `questDone` = '"+sbDone.toString()+"', `questAccept` = '"+sbAccept.toString()+"' WHERE `name` = '"+name+"';");
         }
-        final StringBuilder sbAccept = new StringBuilder();
-        for (Quest q:questAccept) {
-            sbAccept.append(q.code);
+        if (updAdv) {
+            updAdv = false;
+            Main.advance.updVisib(getPlayer());
         }
-        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `questDone` = '"+sbDone.toString()+"', `questAccept` = '"+sbAccept.toString()+"' WHERE `name` = '"+name+"';");
     }
 
     
@@ -123,6 +156,24 @@ public class LobbyPlayer {
 
     public LCuboid getCuboid() {
         return AreaManager.getCuboid(lastCuboidId);
+    }
+
+    
+    public int getProgress(final Quest q) {
+        return progressCache.containsKey(q) ? progressCache.get(q) : 0;
+    }
+
+    public void setProgress(Quest q, int progress) {
+        if (progress>0) {
+            progressCache.put(q, progress);
+        } else {
+            progressCache.remove(q);
+        }
+        
+    }
+
+    public boolean hasQuest(final Quest quest) {
+        return questAccept.contains(quest) && !questDone.contains(quest);
     }
 
     

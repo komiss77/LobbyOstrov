@@ -1,12 +1,12 @@
 package ru.ostrov77.lobby.quest;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import ru.komiss77.ApiOstrov;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.ItemUtils;
 import ru.komiss77.utils.inventory.ClickableItem;
@@ -55,48 +55,107 @@ public class QuestViewMenu implements InventoryProvider {
         
         final List<ClickableItem> buttons = new ArrayList<>();
         
+        final boolean builder = ApiOstrov.isLocalBuilder(p, false);
         
         for (Quest q : lp.questAccept) {
             
             final ItemStack is = new ItemBuilder(Material.SCUTE)
                     .name(q.displayName)
                     .lore(Quest.getLore(q))
-                    .lore("§aАктивно")
+                    .lore("§aАктивно" + (q.ammount>0 ? "§7, прогресс: §f"+lp.getProgress(q)+" §7из §f"+q.ammount : "") )
+                    .lore(builder ? "§b*Отладка: §eЛКМ-завершить" : "")
+                    .lore(builder && q.ammount>0 ? "§b*Отладка: §eПКМ-добавить процесс" : "")
                     .build();
-            
+                    
+            if (builder) {
+                buttons.add(ClickableItem.of(is, e-> {
+                    if (e.isLeftClick()) {
+                        if (q.ammount>0) {
+                            lp.setProgress(q, q.ammount);
+                        }
+                        if (!QuestManager.tryCompleteQuest(p, lp, q, false)) { //если не хватает условий
+                            //QuestManager.completeAdv(p, lp, q); //завершить принудительно
+                            //p.sendMessage("§e*Не удалось заверишить квест, проверь счётчики.");
+                        }
+                        reopen(p, content);
+                    } else if (e.isRightClick() && q.ammount>0) {
+                        int progress = lp.getProgress(q); //берём из кэша
+                        progress++;
+                        lp.setProgress(q, progress);
+                        Main.advance.sendProgress(p, q, progress);
+                        reopen(p, content);
+                    }
+                }));
+            } else {
                 buttons.add(ClickableItem.empty(is));
+            }
                     
         }
         
-        LCuboid lc;
+        //LCuboid lc;
+        Quest parent;
         for (Quest q : Quest.values()) {
            if (lp.questAccept.contains(q) || lp.questDone.contains(q)) continue;
             
             final ItemStack is;
             
-            if (q.attachedArea.isEmpty()) {
+           // if (q.parent.isEmpty()) {
                 
-                 is = new ItemBuilder(Material.FIRE_CHARGE)
+                 
+            //} else {
+                parent = Quest.byName(q.parent);
+                if (parent!=null) {
+                    
+                    is = new ItemBuilder(Material.FIRE_CHARGE)
                     .name(q.displayName)
                     .lore(Quest.getLore(q))
                     .lore("§6Предстоит")
+                    .lore("§7Откроется после выполнения")
+                    .lore(parent.displayName)
                     .build();
+                    buttons.add(ClickableItem.empty(is));
+                    
+                } else {
+                    
+                    final LCuboid lc = AreaManager.getCuboid(q.parent);
+                    if (lc!=null) {
+                        is = new ItemBuilder(Material.FIRE_CHARGE)
+                            .name(q.displayName)
+                            .lore(Quest.getLore(q))
+                            .lore("§6Предстоит")
+                            .lore("§7Откроется при изучении локации")
+                            .lore(lc.displayName)
+                            .lore(builder ? "§b*Отладка: §eЛКМ-расшарить" : "")
+                            .build();
+                        
+                        if (builder) {
+                            buttons.add(ClickableItem.of(is, e-> {
+                                if (e.isLeftClick()) {
+                                    QuestManager.onNewAreaDiscover(p, lp, lc);
+                                    reopen(p, content);
+                                }
+                            }));
+                        } else {
+                            buttons.add(ClickableItem.empty(is));
+                        }
+                        
+                    } else {
+                        
+                        is = new ItemBuilder(Material.FIRE_CHARGE)
+                           .name(q.displayName)
+                           .lore(Quest.getLore(q))
+                           .lore("§6Предстоит")
+                           .build();
+                        buttons.add(ClickableItem.empty(is));
+                        
+                    }
+                }
                  
-            } else {
-                lc = AreaManager.getCuboid(q.attachedArea);
-                is = new ItemBuilder(Material.FIRE_CHARGE)
-                    .name(q.displayName)
-                    .lore(Quest.getLore(q))
-                    .lore("§6Предстоит")
-                    .lore("§7Откроется при изучении локации")
-                    .lore(lc==null ? "" : lc.displayName)
-                    .build();
-                 
-            }
+           // }
             
             
             
-                buttons.add(ClickableItem.empty(is));
+                //buttons.add(ClickableItem.empty(is));
         }
         
        for (Quest q : lp.questDone) {

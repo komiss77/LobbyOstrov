@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.listeners;
 
+import com.meowj.langutils.lang.LanguageHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -26,7 +27,7 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.komiss77.modules.world.XYZ;
-import ru.ostrov77.lobby.quest.PKrist;
+import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -40,7 +41,7 @@ public class InteractListener implements Listener {
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
         
         if (e.getClickedBlock() != null) {
-            
+            final Block b = e.getClickedBlock();
             //для элитр
             if (e.hasItem() && e.getItem().getType()==Material.FIREWORK_ROCKET) {
                 e.setUseItemInHand(Event.Result.DENY); 
@@ -49,14 +50,12 @@ public class InteractListener implements Listener {
             
             //копатель
             if (e.hasItem() && e.getItem().getType()==Material.DIAMOND_PICKAXE && e.getAction() == Action.LEFT_CLICK_BLOCK) {
-            	final Block b = e.getClickedBlock();
-                final Material m = b.getType();
-            	switch (m) {
+            	switch (b.getType()) {
                     case DIAMOND_ORE:
                     case COBBLESTONE:
                         Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), Material.AIR.createBlockData()), 2);
-                        Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), m.createBlockData()), 40);
-                        QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), m == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam);
+                        Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), b.getType().createBlockData()), 40);
+                        QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), b.getType() == Material.COBBLESTONE ? Quest.CobbleGen : Quest.MineDiam);
                         p.playSound(b.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 0.8f);
                         b.getWorld().spawnParticle(Particle.BLOCK_CRACK, b.getLocation().add(0.5d, 0.5d, 0.5d), 40, 0.4d, 0.4d, 0.4d, b.getBlockData());
                         break;
@@ -66,13 +65,15 @@ public class InteractListener implements Listener {
                 return;
             } 
             
-            if (lp.questAccept.contains(Quest.FindBlock) && !lp.questDone.contains(Quest.FindBlock) && lp.foundBlocks.add(e.getClickedBlock().getType())) {
-                final int sz = lp.foundBlocks.size();
-                QuestManager.progressAdv(p, Quest.FindBlock, sz);
-                if (sz < 50) {
-                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
+            if (lp.hasQuest(Quest.FindBlock) && lp.foundBlocks.add(b.getType())) {
+                //int currentProgress = lp.getProgress(Quest.FindBlock);
+                final int found = QuestManager.updateProgress(p, lp, Quest.FindBlock, true);
+                //final int sz = lp.foundBlocks.size();
+                //QuestManager.progressAdv(p, lp, Quest.FindBlock, sz);
+                if (found < Quest.FindBlock.ammount) {
+                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + LanguageHelper.getMaterialName(b.getType(), "RU_ru") + "§7, осталось: §e" + (Quest.FindBlock.ammount - found));
                 } else {
-                    lp.foundBlocks.clear();
+                    //lp.foundBlocks.clear();
                     QuestManager.tryCompleteQuest(p, lp, Quest.FindBlock);
                     //lp.questDone(p, Quest.FindBlock, true);
                 }
@@ -80,12 +81,12 @@ public class InteractListener implements Listener {
             }
             
             //спавн джина для новичка
-            if (e.getAction()==Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType()==Material.SOUL_LANTERN) {
+            if (e.getAction()==Action.RIGHT_CLICK_BLOCK && b.getType()==Material.SOUL_LANTERN) {
                 if (Timer.has(p.getEntityId())) return;
                 Timer.add(p.getEntityId(), 3);
                 final LCuboid lc = AreaManager.getCuboid(p.getLocation());
                 if (lc!=null && lc.getName().equals("newbie")) {
-                    if (e.getClickedBlock().getX()==Main.getLocation(Main.LocType.ginLampShip).getBlockX() && e.getClickedBlock().getZ()==Main.getLocation(Main.LocType.ginLampShip).getBlockZ()) {
+                    if (b.getX()==Main.getLocation(Main.LocType.ginLampShip).getBlockX() && b.getZ()==Main.getLocation(Main.LocType.ginLampShip).getBlockZ()) {
                         p.performCommand("oscom gin");
                     } else {
                         p.sendMessage("§3Должно быть, другая лампа!");
@@ -143,6 +144,7 @@ public class InteractListener implements Listener {
                                     p.setGameMode(gm);
                                     p.setFlying(false);
                                     p.setVelocity(new Vector(0, 0, 0));
+                                    QuestManager.tryCompleteQuest(p, lp, Quest.HeavyFoot);
                                     
                                 } else {
                                     
@@ -165,12 +167,12 @@ public class InteractListener implements Listener {
             }
             
             if (e.getClickedBlock().getType() == Material.WARPED_PRESSURE_PLATE && lp.pkrist == null) { //новый паркурист
-                final PKrist pr = new PKrist(p);
+                final Parkur pr = new Parkur(p);
 
                     pr.bLast = new XYZ(loc.add(0d, 30d, 0d));
                     final Block b = loc.getBlock();
                     b.setType(Material.LIME_CONCRETE, false);
-                    final BlockFace sd = PKrist.sds[Ostrov.random.nextInt(4)];
+                    final BlockFace sd = Parkur.sds[Ostrov.random.nextInt(4)];
                     final Block n = ApiOstrov.randBoolean() ? 
                             b.getRelative(sd, 2).getRelative(sd.getModZ() == 0 ? (ApiOstrov.randBoolean() ? BlockFace.NORTH : BlockFace.SOUTH) : (ApiOstrov.randBoolean() ? BlockFace.WEST : BlockFace.EAST)) 
                             : 

@@ -20,24 +20,14 @@ import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 
 
 public class QuestManager implements Listener {
 
+
     private static final ChatColor[] colors = new ChatColor[] { ChatColor.DARK_AQUA, ChatColor.GOLD, ChatColor.GRAY, ChatColor.BLUE, ChatColor.GREEN, ChatColor.AQUA, ChatColor.RED, ChatColor.LIGHT_PURPLE, ChatColor.YELLOW };
-
-    public static void sound(final Player p) {
-        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
-        Ostrov.async(()-> {
-            if (p.isOnline()) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1,  0.5f);
-            }
-        }, 5);
-    }
-
 
     
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
@@ -77,6 +67,7 @@ public class QuestManager implements Listener {
             if (!e.getLobbyPlayer().hasFlag(LobbyFlag.NewBieDone)) return; //далее - новичкам ничего не надо
             
             switch (e.getCurrent().getName()) {
+                
                 case "start":
                 if (e.getLobbyPlayer().isAreaDiscovered(AreaManager.getCuboid("nopvp").id)) {
                 	final Player p = e.getPlayer();
@@ -87,17 +78,6 @@ public class QuestManager implements Listener {
                     e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
                 }
                 break;
-                /*case "start":
-                    if (e.getLobbyPlayer().questAccept.contains(Quest.MiniRace)) {
-                        e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
-                        //AreaManager.racePlayers.putIfAbsent(e.getLobbyPlayer().name, 0);
-                        e.getLobbyPlayer().raceTime = 0;
-                    } else if (e.getLobbyPlayer().questDone.contains(Quest.MiniRace)) {
-                        e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Вы уже участвовали в состязании!");
-                    } else {
-                        e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
-                    }
-                    break;*/
                     
                 case "end":
                     if (e.getLobbyPlayer().raceTime > 0) {
@@ -123,21 +103,7 @@ public class QuestManager implements Listener {
                     break;
             }
         }
-    	
-        
-       /* if (e.getCurrent()!=null && e.getPrevois()!=null) {
-        	ApiOstrov.sendActionBar(e.getPlayer(), "§8log: перешел из кубоида "+e.getPrevois().displayName+" в "+e.getCurrent().displayName+", вход:"+e.getPrevois()EntryTime+", пробыл:"+(Timer.getTime()-e.getPrevois()EntryTime));
-            if (!e.getLobbyPlayer().isAreaDiscovered(e.getCurrent().id)) {
-                QuestManager.onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent());
-            }
-        } else if (e.getPrevois()!=null) {
-        	ApiOstrov.sendActionBar(e.getPlayer(), "§8log: вышел из кубоида "+e.getPrevois().displayName+", вход:"+e.getPrevois()EntryTime+", пробыл:"+(Timer.getTime()-e.getPrevois()EntryTime));
-        } else if (e.getCurrent()!=null) {
-        	ApiOstrov.sendActionBar(e.getPlayer(), "§8log: вошел в кубоид "+e.getCurrent().displayName);
-            if (!e.getLobbyPlayer().isAreaDiscovered(e.getCurrent().id)) {
-                QuestManager.onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent());
-            }
-        }*/
+
         
     }
 
@@ -147,7 +113,7 @@ public class QuestManager implements Listener {
     public static void onNewAreaDiscover(final Player p, final LobbyPlayer lp, final LCuboid cuboid) {
 //p.sendMessage("§8log: onNewAreaDiscover "+p.getName()+" "+cuboid.getName());
         
-        if (!lp.hasFlag(LobbyFlag.NewBieDone)) {  //новичёк - пока не откроет спавн, другие не давать
+        if (!lp.hasFlag(LobbyFlag.NewBieDone) && p.getTicksLived()>20) {  //новичёк - пока не откроет спавн, другие не давать + защита от появления на спавне после reset
     	    switch (cuboid.getName()) {
                 case "spawn"://новичёк дошел до спавна
                     tryCompleteQuest(p, lp, Quest.ReachSpawn);
@@ -158,24 +124,25 @@ public class QuestManager implements Listener {
                     return;
             }
         }
-
-        completeCuboidAdv(p, cuboid.getName());
+        //final Quest q = Quest.byName(cuboid.getName());
+        //if (q!=null) {
+        //    tryCompleteQuest(p, lp, q);
+        //}
+        Main.advance.sendComplete(p, cuboid.getName(), true);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
         
-        final EnumSet<Quest> areaQuest = Quest.getAreaQuest(cuboid.getName());
-        boolean save = false;
-        if (!areaQuest.isEmpty()) { //с открытой зоной добавились новые задания
-            for (Quest q : areaQuest) {
-                if (addQuest(p, lp, q, false)) {
-//p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.getName()+" : "+q.displayName);
-                    save = true;
+        final EnumSet<Quest> childrenQuest = Quest.getChidren(cuboid.getName());
+        if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
+            for (Quest childQuest : childrenQuest) {
+                if (lp.addQuest(childQuest)) {
+//p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.getName()+" -> "+childQuest.displayName);
+                    if (childQuest.ammount>0) {
+                        Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
+                    }
                 }
             }
         }
-        if (save) {
-            lp.saveQuest();
-        }
-
+      
         if (cuboid.getInfo().canTp) {
             tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
@@ -191,191 +158,200 @@ public class QuestManager implements Listener {
     
     
     
-    //отдельным методом, т.к. могут добавлять и НПС
-    public static boolean addQuest(final Player p, final LobbyPlayer lp, final Quest quest, final boolean save) {
-        if (!lp.questDone.contains(quest) && lp.questAccept.add(quest)) { //это задание ранее не выполнено и уже не было получено ранее
-            if (Main.advancements) {
-                Advance.sendToast(p, lp, quest);
-            } else {
-                ApiOstrov.sendTitleDelay(p, "", "§7Квест: "+quest.displayName, 20, 40, 20);
-            }
-            if (save) lp.saveQuest();
-            return true;
-        }
-        return false;
-    }
+
     
     
-    
-    public static int checkProgress(final Player p, final LobbyPlayer lp, final Quest quest) {
-        if (!lp.questAccept.contains(quest) || lp.questDone.contains(quest)) {
-            return -1;
-        }
-        switch (quest) {
-            case DiscoverAllArea:
-                final int dsc = getDiscAreas(lp);
-                progressAdv(p, quest, dsc);
-                return dsc;
-                
-		default:
-                    break;
-                 
-        }
-        return 0;
+    //для квестов где ammount>0
+    public static int updateProgress(final Player p, final LobbyPlayer lp, final Quest quest, final boolean update) {
+        //if (!lp.hasQuest(quest)) return -1; -не надо, или когда вызывает DiscoverAllArea по окончании HeavyFoot не даёт колл-во
+        int progress;
         
-    }
-    
-    
-    
-    
-    
-    //вызывать SYNC !!!
-    //по дефолту, задание будет выполнено, если оно было взято и не завершено.
-    //для некоторых можно ставить сври чекающие обработчики
-    public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
-//p.sendMessage("§8log: tryCompleteQuest "+quest);
-    	if (!Bukkit.isPrimaryThread()) {
-            Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
-        }
-    	boolean isComplete = false;
-        
-        if (lp.questDone.contains(quest)) {
-//p.sendMessage("§8log: checkQuest "+quest+" - уже выполнен; return ");
-            return isComplete;
-        }
-        if (!lp.questAccept.contains(quest)) {
-//p.sendMessage("§8log: checkQuest "+quest+" - не был получен; return ");
-            return isComplete;
-        }
-//p.sendMessage("§8log: tryCompleteQuest 2");
-        
-        //тут только дополнительные проверки. По дефолту, раз сюда засланао проверка, квест должен быть завершен.
-        //ну, естественно он будет завершен, если был получен и не был завершен, что проверяется выше.
         switch (quest) {
             
             case DiscoverAllArea:
-            	final int dsc = checkProgress(p, lp, quest);
-                if (dsc>=quest.ammount) {
-                    Main.pipboy.giveForce(p);
-                    completeAdv(p, lp, quest);
-                    isComplete = true;
-                }
+                progress = lp.getOpenAreaCount(); //открытые добавляются выше в onNewAreaDiscover
                 break;
                 
-            case PandoraLuck: //будет вызвано при выходе из кубоида пандоры
-                //if (op!=null && op.hasDaylyFlag(StatFlag.Pandora)) { //пандора была заюзана. наличие квеста проверяется выше
-                    Main.cosmeticMenu.giveForce(p);
-                    completeAdv(p, lp, quest);
-                    //lp.questDone(p, quest, true);
-                    isComplete = true;
-                //}
-                break;
-                
-                
-            case ReachSpawn: //сработает при входе в зону спавн
-                if (!lp.hasFlag(LobbyFlag.NewBieDone)) { //notPlJoin не чекаем, квесты новичка нужно завершить в любом случае, пусть даже при перезаходе
-                    lp.setFlag(LobbyFlag.NewBieDone, true);
-                    completeAdv(p, lp, quest);
-                    if (lp.questAccept.contains(Quest.SpeakWithNPC)) { //завершаем, т.к. НЕновичёк выполнить больше на сможет
-                        completeAdv(p, lp, Quest.SpeakWithNPC);
-                    }
-                    if (lp.questAccept.contains(Quest.SpawnGin)) { //завершаем, т.к. НЕновичёк выполнить больше на сможет
-                        completeAdv(p, lp, Quest.SpawnGin);
-                    }
-                    //квест OpenAdvancements завершать не надо, его можно завершить позже и НЕновичку
-                    if (PM.exist(p.getName())) {
-                        PM.getOplayer(p).showScore();
-                    }
-                    isComplete = true;
-                }
+            case FindBlock:
+                progress = lp.foundBlocks.size();
                 break;
                 
             case CobbleGen, MineDiam: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
                 final Material mat = quest == Quest.CobbleGen ? Material.COBBLESTONE : Material.DIAMOND;
                 final PlayerInventory pi = p.getInventory();
                 final ItemStack it = new ItemStack(mat);
-                int num = 1;
+                progress = 1;
                 for (final ItemStack i : pi.getContents()) {
                     if (i != null && i.getType() == mat) {
-                        num += i.getAmount();
+                        progress += i.getAmount();
                     }
                 }
-                progressAdv(p, quest, num);
                 pi.setItemInOffHand(Main.air);
                 pi.remove(mat);
-                if (num == quest.ammount) {
-                    completeAdv(p, lp, quest);//lp.questDone(p, quest, true);
-                } else {
-                    it.setAmount(num);
+                if (progress < quest.ammount) {
+                    it.setAmount(progress);
                     pi.setItemInOffHand(it);
                 }
-                break;
+                break; 
                 
             case CollectTax:
-            	final int i = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);
-                progressAdv(p, quest, i);
-            	if (i == 13) {
-                    completeAdv(p, lp, quest);
-            	}
-                break;
+            	progress = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);    
+                break; 
                 
-            case SpeakWithNPC:
-                completeAdv(p, lp, quest);
-                addQuest(p, lp, Quest.SpawnGin, true);
-                break;
-
             default:
-                completeAdv(p, lp, quest);
-                isComplete = true;
+                progress = 0;
                 break;
+                 
+        }
+        
+p.sendMessage("§8log: getProgress "+quest+"="+progress);
+        lp.setProgress(quest, progress); //сохранить в кэш
+        if (update) Main.advance.sendProgress(p, quest, progress);//progressAdv(p, lp, quest, dsc);
+        return progress;
+        
+    }
+    
+    
+    
+    public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
+        return tryCompleteQuest(p, lp, quest, quest.ammount>0);
+    }
+    
+    /**вызывать SYNC !!!
+    тут только дополнительные проверки. По дефолту, раз сюда засланао проверка, квест должен быть завершен.
+    ну, естественно он будет завершен, если был получен и не был завершен, что проверяется выше.
+    * 
+    * @param checkProgress - для выполнения без проверки из меню отладки
+    * @param p
+    * @param lp
+    * @param quest
+    **/
+    public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest, final boolean checkProgress) {
+    	if (!Bukkit.isPrimaryThread()) {
+            Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
+        }
+p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
+        if (!lp.hasQuest(quest)) return false;
+        
+        if (checkProgress && quest.ammount>0) { //перед завершением квестов со счётчиками обновить прогресс
+            updateProgress(p, lp, quest, true);
+        }
+        
+        //boolean silent = true;
+        
+        switch (quest) {
+            
+            case SpeakWithNPC -> lp.addQuest(Quest.SpawnGin);
+                        
+            case ReachSpawn -> {
+                //сработает при входе в зону спавн
+                if (lp.hasFlag(LobbyFlag.NewBieDone)) { //notPlJoin не чекаем, квесты новичка нужно завершить в любом случае, пусть даже при перезаходе
+                    return false;
+                }
+                lp.setFlag(LobbyFlag.NewBieDone, true); //квест OpenAdvancements завершать не надо, его можно завершить позже и НЕновичку
+                if (lp.questDone(Quest.SpeakWithNPC)) { //завершаем, т.к. НЕновичёк выполнить больше на сможет
+                    Main.advance.sendComplete(p, Quest.SpeakWithNPC.name(), true);//lp.questDone(Quest.SpeakWithNPC);//completeAdv(p, lp, Quest.SpeakWithNPC);
+                }
+                if (lp.questDone(Quest.SpawnGin)) { //if (lp.questAccept.remove(Quest.SpawnGin)) { //завершаем, т.к. НЕновичёк выполнить больше на сможет
+                    Main.advance.sendComplete(p, Quest.SpawnGin.name(), true);//lp.questDone.add(Quest.SpawnGin);//completeAdv(p, lp, Quest.SpawnGin);
+                }
+                if (PM.exist(p.getName())) {
+                    PM.getOplayer(p).showScore();
+                }
+            }
+                
+            case DiscoverAllArea -> {
+                if (lp.getProgress(quest)<quest.ammount) { //недостаточно - выход
+                    return false;
+                }
+                Main.pipboy.giveForce(p);
+            }
+                
+            case PandoraLuck -> //будет вызвано при выходе из кубоида пандоры
+                Main.cosmeticMenu.giveForce(p);
+                
+                
+                
+            case CobbleGen, MineDiam -> {
+                // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
+                if ( lp.getProgress(quest) < quest.ammount) {
+                    return false;
+                }
+            }
+                
+            case CollectTax -> {
+                if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
+                    return false;
+                }
+            }
+
+            case FindBlock -> {
+                if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
+                    return false;
+                } else {
+                    lp.foundBlocks.clear();
+                    //ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
+                }
+            }
+
+            case Elytra -> {
+                lp.setFlag(LobbyFlag.Elytra, true);
+                p.getInventory().setItem(2, Main.fw);
+                Main.elytra.giveForce(p);
+            }
+                
+            case HeavyFoot -> updateProgress(p, lp, Quest.DiscoverAllArea, true);
+                
+            default -> {
+            }
                 
         }
         
-        if (isComplete && !lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length && lp.questAccept.isEmpty()) {
-            lp.setFlag(LobbyFlag.Elytra, true);
-            p.getInventory().setItem(2, Main.fw); //2
-            Main.elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
-            if (Main.advancements) {
-                Advance.completeAdv(p, "elytra");
+        lp.questDone(quest);
+        
+        DonatEffect.spawnRandomFirework(p.getLocation());
+        final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
+        p.sendMessage(" ");
+        p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
+        p.sendMessage(chatColor + quest.displayName );
+        p.sendMessage(chatColor + " Квест завершен! " );
+        p.sendMessage(" ");
+        
+        Main.advance.sendComplete(p, quest.name(), false);//Complete(p, lp, quest, false);//помеить завершенным
+        
+        final EnumSet<Quest> childrenQuest = Quest.getChidren(quest.name());
+        if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
+            for (Quest childQuest : childrenQuest) {
+                if (lp.addQuest(childQuest)) {
+//p.sendMessage("§8log: +новое задание с выполнением  квеста "+quest+" -> "+childQuest.displayName);
+                    if (childQuest.ammount>0) {
+                        Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
+                    }
+                }
             }
         }
         
-        return isComplete;
-    }
-    
-
-    public static void completeAdv(final Player p, final LobbyPlayer lp, final Quest quest) {
-        DonatEffect.spawnRandomFirework(p.getLocation());
-        lp.questDone(p, quest, true);
-        if (Main.advancements) {
-            Advance.completeAdv(p, quest.code);
-        } //else {
-            final ChatColor chatColor = colors[Ostrov.random.nextInt(colors.length)];
-            p.sendMessage(" ");
-            p.sendMessage(new StringBuilder().append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append(" AA").append(ChatColor.YELLOW).append(" Выполнены условия достижения ").append(ChatColor.DARK_RED).append(ChatColor.MAGIC).append("AA ").append(chatColor).append(ChatColor.STRIKETHROUGH).append("-----").toString());
-            p.sendMessage(chatColor + quest.displayName );
-            p.sendMessage(chatColor + " Квест завершен! " );
-            p.sendMessage(" ");
-        //}
-    }   
-    
-    public static void completeCuboidAdv(final Player p, final String cuboidname) {
-        if (Main.advancements) {
-            Advance.completeAdv(p, cuboidname);
+        if (!lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length-1) {
+            tryCompleteQuest(p, lp, Quest.Elytra); //осторожно, можно упасть в деадЛок если сделать кривую проверку!
         }
+        
+        return true;
     }
 
-    public static void progressAdv(final Player p, final Quest quest, final int prg) {
-        if (Main.advancements) {
-            Advance.progressAdv(p, quest.code, prg);
-        }
+    
+    
+    
+    
+    
+    
+
+    public static void sound(final Player p) {
+        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
+        Ostrov.async(()-> {
+            if (p.isOnline()) {
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1,  0.5f);
+            }
+        }, 5);
     }
-	
-    public static int getDiscAreas(final LobbyPlayer lp) {
-        int dC = 0;
-        for (final int id : AreaManager.getCuboidIds()) {
-            if (lp.isAreaDiscovered(id)) dC++;
-        }
-        return dC;
-    }
+    
 }

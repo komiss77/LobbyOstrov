@@ -80,17 +80,19 @@ class MenuTask implements Runnable {
             v = new Vector(-Math.sin(Math.toRadians(eye.getYaw())), -Math.sin(Math.toRadians(eye.getPitch())), Math.cos(Math.toRadians(eye.getYaw())));
             eye.setY(eye.getY() + 0.35d);
             
+            double dx, dy, dz;
+            
             for (CuboidInfo ci : holo.keySet()) {
                 
                 h = holo.get(ci);
                 //final Location dir = h.getPosition().toLocation().subtract(eye);
-                
-                double dx = h.getPosition().getX() - eye.getX();
-                double dy = h.getPosition().getY() - eye.getY();
-                double dz = h.getPosition().getZ() - eye.getZ();
+                dx = h.getPosition().getX() - eye.getX();
+                dy = h.getPosition().getY() - eye.getY();
+                dz = h.getPosition().getZ() - eye.getZ();
                 
                 //if (Math.abs(dir.getX() / v.getX() - dir.getZ() / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dir.getX() * dir.getX() + dir.getZ() * dir.getZ()) - dir.getY()) < 0.6d) {
-                if (Math.abs(dx / v.getX() - dz / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dx * dx + dz * dz) - dy) < 0.6d) {
+                //определить смотрит ли на голограмму 
+                if ( Math.abs(dx / v.getX() - dz / v.getZ()) < 0.6d  &&  Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dx * dx + dz * dz) - dy) < 0.6d ) {
                     
                     if (h.getLines().size() == 1) {
                         lc = AreaManager.getCuboid(ci);

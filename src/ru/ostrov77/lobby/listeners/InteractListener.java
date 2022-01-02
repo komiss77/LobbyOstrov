@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby.listeners;
 
 import com.meowj.langutils.lang.LanguageHelper;
+import java.util.EnumSet;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -65,7 +66,7 @@ public class InteractListener implements Listener {
                 return;
             } 
             
-            if (lp.hasQuest(Quest.FindBlock) && lp.foundBlocks.add(b.getType())) {
+            if (lp.hasQuest(Quest.FindBlock) && lp.foundBlocks!=null && lp.foundBlocks.add(b.getType())) {
                 //int currentProgress = lp.getProgress(Quest.FindBlock);
                 final int found = QuestManager.updateProgress(p, lp, Quest.FindBlock, true);
                 //final int sz = lp.foundBlocks.size();

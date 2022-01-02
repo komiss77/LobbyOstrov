@@ -6,11 +6,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import me.filoghost.holographicdisplays.api.beta.Position;
 import me.filoghost.holographicdisplays.api.beta.hologram.Hologram;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.util.Vector;
+import ru.komiss77.ApiOstrov;
+import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
+import ru.ostrov77.lobby.area.LCuboid;
 
 
 class MenuTask implements Runnable {
@@ -18,24 +23,26 @@ class MenuTask implements Runnable {
     protected BukkitTask task;
     protected int tick;
     protected final Player p;
-    protected final String name;
+    //protected final String name;
     protected final Position center;
-    protected final String worldName;
-    protected final double x,y,z;
+    //protected final String worldName;
+    //protected final double x,y,z;
     protected final EnumMap<CuboidInfo,Hologram> holo;
-    
+    private final LobbyPlayer lp;
     
     public MenuTask (final Player p, final Position center, final EnumMap<CuboidInfo,Hologram> holo) {
         this.p = p;
         this.holo = holo;
         this.center = center;
-        name = p.getName();
-        worldName = p.getWorld().getName();
-        x = center.getX();
-        y = center.getY();
-        z = center.getZ();
+        //name = p.getName();
+        lp = Main.getLobbyPlayer(p);
+        //worldName = p.getWorld().getName();
+       // x = center.getX();
+        //y = center.getY();
+        //z = center.getZ();
         
-        task = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.instance, this, 1, 10);
+        //task = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.instance, this, 1, 10); HolographicDisplays ConcurrentModificationException
+        task = Bukkit.getScheduler().runTaskTimer(Main.instance, this, 1, 9);
         p.playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, .5f, 2);
     }
     
@@ -60,17 +67,94 @@ class MenuTask implements Runnable {
             return;
         }
         
+        
+        final Location eye = p.getEyeLocation();
+        
+        
+        Hologram h;
+        LCuboid lc;
+        Vector v;
+        
+        if (tick > 1) { //смотрим куда навёлся
+            
+            v = new Vector(-Math.sin(Math.toRadians(eye.getYaw())), -Math.sin(Math.toRadians(eye.getPitch())), Math.cos(Math.toRadians(eye.getYaw())));
+            eye.setY(eye.getY() + 0.35d);
+            
+            for (CuboidInfo ci : holo.keySet()) {
+                
+                h = holo.get(ci);
+                //final Location dir = h.getPosition().toLocation().subtract(eye);
+                
+                double dx = h.getPosition().getX() - eye.getX();
+                double dy = h.getPosition().getY() - eye.getY();
+                double dz = h.getPosition().getZ() - eye.getZ();
+                
+                //if (Math.abs(dir.getX() / v.getX() - dir.getZ() / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dir.getX() * dir.getX() + dir.getZ() * dir.getZ()) - dir.getY()) < 0.6d) {
+                if (Math.abs(dx / v.getX() - dz / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dx * dx + dz * dz) - dy) < 0.6d) {
+                    
+                    if (h.getLines().size() == 1) {
+                        lc = AreaManager.getCuboid(ci);
+                        if (lp.isAreaDiscovered(lc.id)) {
+                            h.getLines().appendText(lc.displayName);
+                            ApiOstrov.sendActionBarDirect(p, "§aКлик - ТП");
+                        } else {
+                            h.getLines().appendText("§8"+ChatColor.stripColor(lc.displayName));
+                            if(lp.compasstarget==ci) {
+                                ApiOstrov.sendActionBarDirect(p, "§5Клик - сброс компаса");
+                            } else {
+                                ApiOstrov.sendActionBarDirect(p, "§7(не изучено) §dКлик - навести компас");
+                            }
+                        }
+                    
+                    }
+                } else if (h.getLines().size() == 2) {
+                    
+                    h.getLines().remove(1);
+                    
+                }
+            }
+            
+            
+            
+        } else   if (tick==1) { //расстановка по местам через пол секунды
+            
+            final Position eyePos = Position.of(eye);
+            
+            for (CuboidInfo ci : holo.keySet()) {
+                h = holo.get(ci);
+                if (ci.canTp) {
+                    //final Location pos = loc.clone();
+                    eye.setPitch(ci.relPitch);
+                    eye.setYaw(p.getLocation().getYaw() + ci.relYaw);
+                    v = eye.getDirection().multiply(2.8f);
+                    //h.setPosition(pos.add(loc.getDirection().multiply(2.8f)));
+                    //eye.add(v);
+                    //h.setPosition( Position.of(eyePos.getWorldName(), eyePos.getX()+v.getX(), eyePos.getY()+v.getY(), eyePos.getZ()+v.getZ()) );//h.setPosition(center.add(v.getX(), v.getY(), v.getZ()));
+                    h.setPosition( eyePos.getWorldName(), eyePos.getX()+v.getX(), eyePos.getY()+v.getY(), eyePos.getZ()+v.getZ() );//h.setPosition(center.add(v.getX(), v.getY(), v.getZ()));
+                    //eye.subtract(v);
+            	}
+
+            }
+            
+        } 
+        
+        
+        
+        
+
+
+
         /*
         x = - sin(yaw)
         z = cos(yaw)
         You'll also need to convert the yaw in degrees to radians (Math#toRadians(double))
         */
-        final double angle = Math.toRadians(p.getLocation().getYaw()); //угол влево-вправо
+      /*   final double angle = Math.toRadians(p.getLocation().getYaw()); //угол влево-вправо
         final Location loc = p.getEyeLocation();
         loc.setY(loc.getY() + 0.25d);
         
         
-        if (tick==1) {
+       if (tick==1) {
             Hologram h;
             for (CuboidInfo ci : holo.keySet()) {
                 h = holo.get(ci);
@@ -93,7 +177,7 @@ class MenuTask implements Runnable {
                 //holo.get(ci).setPosition(center.add( ci.h * sin, ci.v, ci.h * -cos ));
                 //holo.get(ci).setPosition(center.add( ci.h * -cos, ci.v, ci.h * sin ));
             }
-        }
+        }*/
 
         
         
@@ -110,7 +194,7 @@ class MenuTask implements Runnable {
         for (Hologram h : holo.values()) {
             h.delete();
         }
-        HD.tasks.remove(name);
+        HD.tasks.remove(lp.name);
         
     }
     
@@ -121,10 +205,10 @@ class MenuTask implements Runnable {
 
     
     private boolean isAway() {
-        return !p.getWorld().getName().equals(worldName) || 
-                Math.abs(p.getLocation().getBlockX()-x)>3 ||
-                Math.abs(p.getLocation().getBlockY()-y)>3 ||
-                Math.abs(p.getLocation().getBlockZ()-z)>3
+        return !p.getWorld().getName().equals(center.getWorldName()) || 
+                Math.abs(p.getLocation().getBlockX()-center.getBlockX())>3 ||
+                Math.abs(p.getLocation().getBlockY()-center.getBlockY())>3 ||
+                Math.abs(p.getLocation().getBlockZ()-center.getBlockZ())>3
                 ;
     }
 

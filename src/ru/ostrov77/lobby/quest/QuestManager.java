@@ -9,11 +9,16 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
+import ru.komiss77.enums.Data;
+import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.DonatEffect;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -30,6 +35,21 @@ public class QuestManager implements Listener {
     private static final ChatColor[] colors = new ChatColor[] { ChatColor.DARK_AQUA, ChatColor.GOLD, ChatColor.GRAY, ChatColor.BLUE, ChatColor.GREEN, ChatColor.AQUA, ChatColor.RED, ChatColor.LIGHT_PURPLE, ChatColor.YELLOW };
 
     
+    
+    @EventHandler (priority = EventPriority.MONITOR)
+    public static void onInvClose(final InventoryCloseEvent e) {
+        if (e.getInventory().getType()==InventoryType.CHEST && e.getView().getTitle().equals("Профиль : Паспорт")) {
+            final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer().getName());
+            if (lp.hasQuest(Quest.Passport)) {
+                //final Oplayer op = PM.getOplayer(e.getPlayer().getName());
+                //e.getPlayer().sendMessage("getPasportFillPercent="+op.getPasportFillPercent());
+                if (updateProgress(lp.getPlayer(), lp, Quest.Passport, true)>0) {
+                    tryCompleteQuest(lp.getPlayer(), lp, Quest.Passport);
+                }
+            }
+        }
+    }
+    
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
     @EventHandler
     public static void onCuboidEvent(final CuboidEvent e) {
@@ -42,10 +62,6 @@ public class QuestManager implements Listener {
                 case "sumo":
                     e.getPlayer().getInventory().setItem(2, e.getLobbyPlayer().hasFlag(LobbyFlag.Elytra) ? Main.fw : Main.air);
                     break;
-                    
-                //case "pandora": //вышел из локации пандора - значит мог её использовать
-                    //tryCompleteQuest(e.getPlayer(), e.getLobbyPlayer(), Quest.LeavePandora);
-                    //break;
                     
                 default:
                     break;
@@ -124,10 +140,7 @@ public class QuestManager implements Listener {
                     return;
             }
         }
-        //final Quest q = Quest.byName(cuboid.getName());
-        //if (q!=null) {
-        //    tryCompleteQuest(p, lp, q);
-        //}
+ 
         Main.advance.sendComplete(p, cuboid.getName(), true);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
         
@@ -164,7 +177,8 @@ public class QuestManager implements Listener {
     //для квестов где ammount>0
     public static int updateProgress(final Player p, final LobbyPlayer lp, final Quest quest, final boolean update) {
         //if (!lp.hasQuest(quest)) return -1; -не надо, или когда вызывает DiscoverAllArea по окончании HeavyFoot не даёт колл-во
-        int progress;
+        int progress = 0;
+        final Oplayer op = PM.getOplayer(p);
         
         switch (quest) {
             
@@ -173,7 +187,7 @@ public class QuestManager implements Listener {
                 break;
                 
             case FindBlock:
-                progress = lp.foundBlocks.size();
+                progress =  lp.foundBlocks==null ? 0 : lp.foundBlocks.size();
                 break;
                 
             case CobbleGen, MineDiam: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
@@ -198,12 +212,17 @@ public class QuestManager implements Listener {
             	progress = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);    
                 break; 
                 
-            default:
-                progress = 0;
-                break;
-                 
+            case Passport:
+            	progress = op==null ? 0 : op.getPasportFillPercent();    
+                break; 
+                
+            case TalkAllNpc:
+                for (LobbyFlag f:LobbyFlag.values()) {
+                    if (f.tag>4 && f.tag<=12 && lp.hasFlag(f)) progress++;
+                }
+                break; 
+                
         }
-        
 p.sendMessage("§8log: getProgress "+quest+"="+progress);
         lp.setProgress(quest, progress); //сохранить в кэш
         if (update) Main.advance.sendProgress(p, quest, progress);//progressAdv(p, lp, quest, dsc);
@@ -213,38 +232,33 @@ p.sendMessage("§8log: getProgress "+quest+"="+progress);
     
     
     
+    
+    
+    // вызывать SYNC !!!
+    //тут только дополнительные проверки.
+    //По дефолту, раз сюда засланао проверка, квест должен быть завершен.
+    //ну, естественно он будет завершен, если был получен и не был завершен, что проверяется выше.
+    //checkProgress нужен для отладки из меню квестов (чтобы не засылало в updateProgress и не меняло lp.getProgress)
     public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest) {
         return tryCompleteQuest(p, lp, quest, quest.ammount>0);
     }
     
-    /**вызывать SYNC !!!
-    тут только дополнительные проверки. По дефолту, раз сюда засланао проверка, квест должен быть завершен.
-    ну, естественно он будет завершен, если был получен и не был завершен, что проверяется выше.
-    * 
-    * @param checkProgress - для выполнения без проверки из меню отладки
-    * @param p
-    * @param lp
-    * @param quest
-    **/
     public static boolean tryCompleteQuest(final Player p, final LobbyPlayer lp, final Quest quest, final boolean checkProgress) {
     	if (!Bukkit.isPrimaryThread()) {
             Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
         }
-p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
+//p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
         if (!lp.hasQuest(quest)) return false;
         
         if (checkProgress && quest.ammount>0) { //перед завершением квестов со счётчиками обновить прогресс
             updateProgress(p, lp, quest, true);
         }
         
-        //boolean silent = true;
-        
         switch (quest) {
             
             case SpeakWithNPC -> lp.addQuest(Quest.SpawnGin);
                         
-            case ReachSpawn -> {
-                //сработает при входе в зону спавн
+            case ReachSpawn -> { //сработает при входе в зону спавн
                 if (lp.hasFlag(LobbyFlag.NewBieDone)) { //notPlJoin не чекаем, квесты новичка нужно завершить в любом случае, пусть даже при перезаходе
                     return false;
                 }
@@ -265,31 +279,37 @@ p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
                     return false;
                 }
                 Main.pipboy.giveForce(p);
+                //tryCompleteQuest(p, lp, Quest.Passport); //заслать автоматом, вдруг уже  заполнен
             }
                 
-            case PandoraLuck -> //будет вызвано при выходе из кубоида пандоры
-                Main.cosmeticMenu.giveForce(p);
+            case PandoraLuck -> Main.cosmeticMenu.giveForce(p);
                 
                 
                 
-            case CobbleGen, MineDiam -> {
-                // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
+            case CobbleGen, MineDiam -> { // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
                 if ( lp.getProgress(quest) < quest.ammount) {
                     return false;
                 }
             }
                 
-            case CollectTax -> {
+            case CollectTax, Passport -> {
                 if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
                     return false;
                 }
             }
 
+            case TalkAllNpc -> {
+                if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
+                    return false;
+                }
+            }
+
+
             case FindBlock -> {
                 if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
                     return false;
                 } else {
-                    lp.foundBlocks.clear();
+                    lp.foundBlocks=null;
                     //ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
                 }
             }
@@ -299,11 +319,9 @@ p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
                 p.getInventory().setItem(2, Main.fw);
                 Main.elytra.giveForce(p);
             }
+            
                 
             case HeavyFoot -> updateProgress(p, lp, Quest.DiscoverAllArea, true);
-                
-            default -> {
-            }
                 
         }
         
@@ -334,7 +352,7 @@ p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
         if (!lp.hasFlag(LobbyFlag.Elytra) && lp.questDone.size() == Quest.values().length-1) {
             tryCompleteQuest(p, lp, Quest.Elytra); //осторожно, можно упасть в деадЛок если сделать кривую проверку!
         }
-        
+        ApiOstrov.addExp(p, 30);
         return true;
     }
 

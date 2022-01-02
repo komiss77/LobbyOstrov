@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.quest;
 
+import com.meowj.langutils.lang.LanguageHelper;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import eu.endercentral.crazy_advancements.NameKey;
@@ -19,6 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import ru.komiss77.Ostrov;
 import ru.komiss77.objects.CaseInsensitiveMap;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -73,10 +75,10 @@ public class AdvanceCrazy implements IAdvance, Listener {
         Advancement parent;
             for (final Quest q : Quest.values()) {
                 if (q==Quest.ReachSpawn) continue;
-                round--;
 //System.out.println("round="+round);
+                round--;
                 if (round==0) {
-                    Ostrov.log_err("loadQuestAdv DeadLock");
+                    Ostrov.log_err("loadQuestAdv DeadLock"); //while прервётся при round==0
                     break;
                 }
                 if (q.parent.isEmpty()) { //нет зависимости - берём root
@@ -87,13 +89,12 @@ public class AdvanceCrazy implements IAdvance, Listener {
 //System.out.println( "------ loadQuest "+q+" attached="+q.parent+" parent="+(parent==null ? "null" : parent.getName().getKey()) ); 
                 if (parent!=null && find.remove(q)) { //найден - удаляем из списка поиска
                     
-                    final AdvancementDisplay dis = new AdvancementDisplay(q.icon, q.displayName, q.description, AdvancementFrame.TASK, AdvancementVisibility.PARENT_GRANTED);
+                    final AdvancementDisplay dis = new AdvancementDisplay(q.icon, q.displayName, q.description, getFrame(q), getVis(q));
                     dis.setCoordinates(0.5f * q.dx2 + parent.getDisplay().getX(), 0.5f * q.dy2 + parent.getDisplay().getY());
-//System.out.println( "+ "+q.name()+" parent="+ parent.getName().getKey()+" x2="+q.dx2+" y2="+q.dy2+" X="+dis.getX()+" Y="+dis.getY() ); 
-//System.out.println( "x2="+x2+" y2="+y2+" X="+dis.getX()+" Y="+dis.getY() ); 
                     final Advancement ad = new Advancement(parent, new NameKey("ostrov", q.name()), dis);
                     if (q.ammount>0) ad.setCriteria( new Criteria(q.ammount));
-                    
+//System.out.println( "+ "+q.name()+" parent="+ parent.getName().getKey()+" x2="+q.dx2+" y2="+q.dy2+" X="+dis.getX()+" Y="+dis.getY() ); 
+//System.out.println( "x2="+x2+" y2="+y2+" X="+dis.getX()+" Y="+dis.getY() ); 
                     adm.put (q.name(),ad);
                     admRangeList.add(ad);
                     
@@ -147,13 +148,35 @@ public class AdvanceCrazy implements IAdvance, Listener {
     }    
 
 
+    private AdvancementVisibility getVis(final Quest q) {
+      switch (q) {
+        case Elytra:
+            return AdvancementVisibility.HIDDEN;
+        default:
+            return AdvancementVisibility.PARENT_GRANTED;
+        }
+      }
+
+
+      private AdvancementFrame getFrame(final Quest q) {
+      switch (q) {
+        case Elytra:
+        case TalkAllNpc:
+        case FirstMission:
+            return AdvancementFrame.CHALLENGE;
+        default:
+            return AdvancementFrame.TASK;
+        }
+      }  
     
     
-    
-   /*
+    /*
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onInter(final PlayerInteractEvent e) {
-        if (e.getItem()!=null && e.getItem().getType()==Material.STICK) {
+        if (e.getItem()!=null) {
+            e.getPlayer().sendMessage("--"+LanguageHelper.getMaterialName(e.getItem().getType(), "RU_ru"));
+        }
+       if (e.getItem()!=null && e.getItem().getType()==Material.STICK) {
             final Player p = e.getPlayer();
             if (p.isSneaking()) {
                 if (e.getAction()==Action.RIGHT_CLICK_AIR) {
@@ -237,7 +260,7 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
 //Bukkit.broadcastMessage("send q="+q+" done?"+lp.questDone.contains(q));
                 if (lp.questDone.contains(q)) {
                     mgr.grantAdvancement(p, ad);
-                } else if (lp.questAccept.contains(q)) {
+                } else if (lp.questAccept.contains(q) && q.ammount>0) {
                     //sendProgress(p, lp, q, QuestManager.updateProgress(p, lp, q, true)); //чтобы отобразило
                     QuestManager.updateProgress(p, lp, q, true); //чтобы отобразило
                 }
@@ -336,16 +359,7 @@ p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");
         }
     }
     
-   /* @Override
-    public int getProgress(final Player p, final Quest quest) {
-        final Advancement ad = adm.get(quest.name());
-        if (ad == null) {
-//p.sendMessage("§cprogressAdv Ачивка " + name + " null");
-            return 0;
-        } else {
-            return mgr.getCriteriaProgress(p, ad);
-        }
-    } */     
+  
     
     @Override
     public void updVisib(final Player p) {

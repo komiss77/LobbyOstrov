@@ -27,8 +27,7 @@ public class LobbyPlayer {
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime = -1; //таймер гонки
-    //public int taxed; //кол-во собраных налогов
-    public final EnumSet<Material> foundBlocks = EnumSet.noneOf(Material.class); //блоки для 50 блок. задания
+    public EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
     public Parkur pkrist;
     public CuboidInfo compasstarget = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
     
@@ -86,6 +85,9 @@ public class LobbyPlayer {
         if (!questDone.contains(quest) && questAccept.add(quest)) { //это задание ранее не выполнено и уже не было получено ранее
             if (!AreaManager.hasCuboid(quest.name())) Main.advance.sendToast(getPlayer(), this, quest); //для заданий открыть кубоид без помпезностей
             toSave = true;
+            if (quest==Quest.FindBlock) {
+                foundBlocks = EnumSet.noneOf(Material.class);
+            }
             return true;
         }
         return false;

@@ -109,6 +109,7 @@ public class AreaManager {
         areaConfig.saveConfig();
     }
 
+
     public AreaManager () {
 
         chunkContetnt = new HashMap<>();
@@ -357,6 +358,10 @@ public class AreaManager {
     
     public static LCuboid getCuboid(final String cuboidName) {
         return cuboidNames.containsKey(cuboidName) ? cuboids.get(cuboidNames.get(cuboidName)) : null;
+    }
+
+    public static LCuboid getCuboid(final CuboidInfo ci) {
+        return getCuboid(ci.name());
     }
 
     public static Collection<LCuboid> getCuboids() {

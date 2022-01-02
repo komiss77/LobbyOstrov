@@ -34,10 +34,6 @@ public class QuestViewMenu implements InventoryProvider {
     
     public QuestViewMenu() {
     }
-    
-    //@Override
-   // public void onClose(final Player p, final InventoryContent content) {
-   // }
 
 
     
@@ -92,17 +88,12 @@ public class QuestViewMenu implements InventoryProvider {
                     
         }
         
-        //LCuboid lc;
         Quest parent;
         for (Quest q : Quest.values()) {
            if (lp.questAccept.contains(q) || lp.questDone.contains(q)) continue;
             
             final ItemStack is;
             
-           // if (q.parent.isEmpty()) {
-                
-                 
-            //} else {
                 parent = Quest.byName(q.parent);
                 if (parent!=null) {
                     

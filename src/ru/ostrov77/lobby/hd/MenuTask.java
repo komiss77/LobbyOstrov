@@ -96,13 +96,13 @@ class MenuTask implements Runnable {
                         lc = AreaManager.getCuboid(ci);
                         if (lp.isAreaDiscovered(lc.id)) {
                             h.getLines().appendText(lc.displayName);
-                            ApiOstrov.sendActionBarDirect(p, "§aКлик - ТП");
+                            ApiOstrov.sendActionBarDirect(p, "§a[Клик]§f - ТП");
                         } else {
                             h.getLines().appendText("§8"+ChatColor.stripColor(lc.displayName));
                             if(lp.compasstarget==ci) {
-                                ApiOstrov.sendActionBarDirect(p, "§5Клик - сброс компаса");
+                                ApiOstrov.sendActionBarDirect(p, "§5[Клик]§f - Сброс Компаса");
                             } else {
-                                ApiOstrov.sendActionBarDirect(p, "§7(не изучено) §dКлик - навести компас");
+                                ApiOstrov.sendActionBarDirect(p, "§7(не изучено) §d[Клик]§f - Навести Компас");
                             }
                         }
                     

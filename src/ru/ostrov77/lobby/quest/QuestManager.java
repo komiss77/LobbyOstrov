@@ -186,8 +186,10 @@ public class QuestManager implements Listener {
                 break;
                 
             case FindBlock:
-                progress =  lp.foundBlocks==null ? 0 : lp.foundBlocks.size();
-                break;
+                progress =  lp.getProgress(quest);
+                if (update) Main.advance.sendProgress(p, quest, progress);
+                return progress; //тут не надо lp.setProgress, обновляется при интеракт
+                //break;
                 
             case CobbleGen, MineDiam: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
                 final Material mat = quest == Quest.CobbleGen ? Material.COBBLESTONE : Material.DIAMOND;
@@ -217,7 +219,7 @@ public class QuestManager implements Listener {
                 
             case TalkAllNpc:
                 for (LobbyFlag f:LobbyFlag.values()) {
-                    if (f.tag>4 && f.tag<=12 && lp.hasFlag(f)) progress++;
+                    if (f.tag>4 && f.tag<=13 && lp.hasFlag(f)) progress++;
                 }
                 break; 
                 
@@ -308,7 +310,7 @@ public class QuestManager implements Listener {
                 if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
                     return false;
                 } else {
-                    lp.foundBlocks=null;
+                    //lp.foundBlocks=null;
                     //ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Main.nrmlzStr(e.getClickedBlock().getType().toString()) + "§7, осталось: §e" + (50 - sz));
                 }
             }

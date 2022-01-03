@@ -159,8 +159,8 @@ public class FigureListener implements Listener {
             lp.setFlag(flag, true);
             QuestManager.updateProgress(p, lp, Quest.TalkAllNpc, true);
             if (QuestManager.tryCompleteQuest(p, lp, Quest.TalkAllNpc)) {
-                final Oplayer op = PM.getOplayer(p);
-                op.setData(Data.RIL, op.getDataInt(Data.RIL)+10);
+                //final Oplayer op = PM.getOplayer(p);
+                //op.setData(Data.RIL, op.getDataInt(Data.RIL)+10);
             }
        }
     }    

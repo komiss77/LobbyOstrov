@@ -66,7 +66,7 @@ public class InteractListener implements Listener {
                 return;
             } 
             
-            if (lp.hasQuest(Quest.FindBlock) && lp.foundBlocks!=null && lp.foundBlocks.add(b.getType())) {
+            if (lp.hasQuest(Quest.FindBlock) && lp.foundBlockAdd(b.getType())) {
                 //int currentProgress = lp.getProgress(Quest.FindBlock);
                 final int found = QuestManager.updateProgress(p, lp, Quest.FindBlock, true);
                 //final int sz = lp.foundBlocks.size();

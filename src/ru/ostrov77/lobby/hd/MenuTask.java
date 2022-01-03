@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import me.filoghost.holographicdisplays.api.beta.Position;
 import me.filoghost.holographicdisplays.api.beta.hologram.Hologram;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.util.Vector;

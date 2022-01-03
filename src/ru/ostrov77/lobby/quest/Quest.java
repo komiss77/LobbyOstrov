@@ -19,7 +19,7 @@ public enum Quest {
 //                                  | смещение Y                      одна буква-код задания, 
 //                                  |    |  требуемое колл-во          или название кубоида
 //                                  |    |   |                     после которого станет видимым
-    DiscoverAllArea         ('a',   3,   0, 13, Material.COMPASS,		"HeavyFoot",           	"Открыть все Локации",		"Исследуйте всю территорию лобби, и получи крутой коммуникатор. : 8рил", 6),//+при входе в новую зону сверяется размер изученных и существующих
+    DiscoverAllArea         ('a',   3,   0, 13, Material.COMPASS,		"HeavyFoot",           	"Открыть все Локации",		"Исследуйте всю территорию лобби : 8рил", 6),//+при входе в новую зону сверяется размер изученных и существующих
     PandoraLuck             ('b',  -1,  -4,  0, Material.SPONGE,		"spawn",      		"Удача Пандоры", 	        "Испытайте свою удачу в Разломе Пандоры : 2рил", 2),//+ чекается при выходе из кубоида пандоры
     OpenTreassureChest      ('c',  -2,   0,  0, Material.ENDER_CHEST,           "PandoraLuck", 		"Открыть Сундук Сокровищ", 	"Получите примочки из Сундука Сокровищ : 4рил", 4), //+по эвенту косметики открытие сундука
     GreetNewBie             ('d',  -1,   4,  0, Material.QUARTZ,		"spawn",        	"Поприветствовать Новичка", 	"Нажмите ПКМ на нового игрока", 0),
@@ -32,16 +32,16 @@ public enum Quest {
     MineDiam                ('k',   2,   1, 10, Material.DIAMOND,		"daaria",       	"Зазнавшийся Шахтер", 		"Добыть 10 алмазов в шахте", 0),
     CollectTax              ('l',   2,   1, 13, Material.RAW_GOLD,		"midgard",       	"Казначей",                     "Собрать золотых с жителей поселка", 0),
     SumoVoid           	    ('m',   2,   1,  0, Material.SHULKER_SHELL,         "pvp",       		"Сумо Мастер",                  "Сбить человека с сумо платформы", 0),
-    SpawnGin          	    ('n',   0,  -2,  0, Material.BLAZE_ROD,             "SpeakWithNPC",  	"Раб Лампы",                    "Освободи Джина из лампы", 0),
+    SpawnGin          	    ('n',   3,  -2,  0, Material.BLAZE_ROD,             "newbie",  		"Раб Лампы",                    "Освободи Джина из лампы", 0),
     OpenAdvancements        ('o',   2,   2,  0, Material.BOOKSHELF,             "newbie",      		"Грамотность",                  "Посмотреть меню Квестов", 0),
     
     Navigation              ('p',   3,   0,  0, Material.ARROW,                 "spawn",      		"Навигатор",                    "Навести компас на цель (клик на название в меню локаций)", 0),
     HeavyFoot               ('q',   2,   0,  0, Material.IRON_BOOTS,            "Navigation",     	"Тяжелая поступь",              "Совершите перемещение с помощью плиты", 0),
     Elytra                  ('r',  -2,   0,  0, Material.WRITTEN_BOOK,          "GreetNewBie",     	"Доктор Географ. Наук",     "Выполни все задания в Лобби : 8рил", 8),
 
-    Passport                ('s',  2,   0,  50, Material.PAPER,                 "DiscoverAllArea",     	"§fГражданин Острова",          "Заполни более 50% полей Паспорта Островитянина", 0),
-    TalkAllNpc              ('t', -2,   0,   9, Material.BOOKSHELF,             "OpenTreassureChest",   "Комерческий Агент",            "Поговори со всеми НПС : 4рил", 4),
-    FirstMission            ('u',  0,   2,   0, Material.GOLD_INGOT,            "GreetNewBie",          "Путь к успеху",                "Прими первую Миссию : 2рил", 2),
+    Passport                ('s',  2,   0,  50, Material.PAPER,                 "DiscoverAllArea",     	"Гражданин Острова",          "Заполни более 50% полей Паспорта Островитянина", 0),
+    TalkAllNpc              ('t', -2,   0,   8, Material.BOOKSHELF,             "OpenTreassureChest",   "Комерческий Агент",            "Поговори со всеми НПС : 4рил", 4),
+    FirstMission            ('u',  0,   2,   0, Material.GOLD_INGOT,            "GreetNewBie",          "Путь к Успеху",                "Прими первую Миссию : 2рил", 2),
     ;
 
 

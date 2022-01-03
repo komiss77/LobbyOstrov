@@ -351,9 +351,9 @@ public class AdvanceCrazy implements IAdvance, Listener {
 //p.sendMessage("§cprogressAdv Ачивка " + name + " null");
         } else {
             mgr.setCriteriaProgress(p, ad, progress);
-            if (ad.getCriteria().getRequiredNumber() == progress) {
+            /*if (ad.getCriteria().getRequiredNumber() == progress) {
                 ad.displayToast(p);
-            }
+            }*/
             //mgr.updateVisibility(p);
             //Ostrov.async(() -> mgr.updateVisibility(p), 10);
         }

@@ -102,7 +102,7 @@ public class FigureListener implements Listener {
     		case CREEPER:
                     fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро", "пожатовать на §3Архипелаг§f - лобби,", "где на каждом острове ты найдешь", "интересные и уникальные §6Большие Режымы§f,", "или §eМини-Игры§f для вас и ваших друзей!", "§eИссладуйте весь остров!"))
                         .time(10).sound(Sound.ENTITY_CREEPER_HURT);
-                    onSpeak(p, lp, LobbyFlag.TalkPVP);
+                    onSpeak(p, lp, LobbyFlag.TalkSP);
                     break;
                     
             }

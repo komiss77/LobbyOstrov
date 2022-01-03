@@ -141,7 +141,7 @@ public class QuestManager implements Listener {
             }
         }
  
-        Main.advance.sendComplete(p, cuboid.getName(), true);//Complete(p, cuboid.getName());
+        Main.advance.sendComplete(p, cuboid.getName(), false);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
         
         final EnumSet<Quest> childrenQuest = Quest.getChidren(cuboid.getName());

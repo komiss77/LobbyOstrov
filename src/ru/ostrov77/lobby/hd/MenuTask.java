@@ -42,7 +42,7 @@ class MenuTask implements Runnable {
         //z = center.getZ();
         
         //task = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.instance, this, 1, 10); HolographicDisplays ConcurrentModificationException
-        task = Bukkit.getScheduler().runTaskTimer(Main.instance, this, 1, 9);
+        task = Bukkit.getScheduler().runTaskTimer(Main.instance, this, 4, 8);
         p.playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, .5f, 2);
     }
     
@@ -98,13 +98,13 @@ class MenuTask implements Runnable {
                         lc = AreaManager.getCuboid(ci);
                         if (lp.isAreaDiscovered(lc.id)) {
                             h.getLines().appendText(lc.displayName);
-                            ApiOstrov.sendActionBarDirect(p, "§aКлик - ТП");
+                            ApiOstrov.sendActionBarDirect(p, "§a[Клик]§f - ТП");
                         } else {
-                            h.getLines().appendText("§8"+ChatColor.stripColor(lc.displayName));
+                            h.getLines().appendText("§7*???*");
                             if(lp.compasstarget==ci) {
-                                ApiOstrov.sendActionBarDirect(p, "§5Клик - сброс компаса");
+                                ApiOstrov.sendActionBarDirect(p, "§5[Клик]§f - Сброс Компаса");
                             } else {
-                                ApiOstrov.sendActionBarDirect(p, "§7(не изучено) §dКлик - навести компас");
+                                ApiOstrov.sendActionBarDirect(p, "§7(не изучено) §d[Клик]§f - Навести Компас");
                             }
                         }
                     

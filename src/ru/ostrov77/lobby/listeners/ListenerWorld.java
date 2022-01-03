@@ -515,6 +515,11 @@ System.out.println("ArmorEquipEvent");
                     e.setCancelled(true);
                     return;
                     //break;
+                case SUFFOCATION:   //зажатие в стене
+                	le.teleport(Main.getLocation(LocType.Spawn));
+                	le.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
+                	e.setCancelled(false);
+                    return;
 
                 case ENTITY_ATTACK: //ентити ударяет
                     if (e instanceof EntityDamageByEntityEvent) {

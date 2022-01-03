@@ -7,6 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
+import ru.komiss77.enums.Data;
+import ru.komiss77.modules.player.Oplayer;
+import ru.komiss77.modules.player.PM;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -98,6 +101,8 @@ public class LobbyPlayer {
     public boolean questDone(final Quest quest) {
         //boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questAccept.remove(quest) && questDone.add(quest)) {
+            final Oplayer op = PM.getOplayer(name);
+            op.setData(Data.RIL, op.getDataInt(Data.RIL)+quest.pay);
             progressCache.remove(quest);
             toSave = true;
             return true;

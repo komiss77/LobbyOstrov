@@ -218,7 +218,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
    /* @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onAdvChange(final AdvancementTabChangeEvent e) {
         final Player p = e.getPlayer();
-p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");        
+//p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");        
     }*/
 
 

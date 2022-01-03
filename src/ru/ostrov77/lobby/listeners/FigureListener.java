@@ -99,6 +99,12 @@ public class FigureListener implements Listener {
                     onSpeak(p, lp, LobbyFlag.TalkPVP);
                     break;
                     
+    		case CREEPER:
+                    fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро", "пожатовать на §3Архипелаг§f - лобби,", "где на каждом острове ты найдешь", "интересные и уникальные §6Большие Режымы§f,", "или §eМини-Игры§f для вас и ваших друзей!", "§eИссладуйте весь остров!"))
+                        .time(10).sound(Sound.ENTITY_CREEPER_HURT);
+                    onSpeak(p, lp, LobbyFlag.TalkPVP);
+                    break;
+                    
             }
             
             e.setAnswer(fa);
@@ -166,11 +172,7 @@ public class FigureListener implements Listener {
     public void onMission(final MissionEvent e) {
         if (e.action!=MissionEvent.MissionAction.Accept) return;
 //e.getPlayer().sendMessage("§8log: PandoraUseEvent");
-        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
-        if (QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.FirstMission)) {
-            final Oplayer op = PM.getOplayer(e.getPlayer());
-            op.setData(Data.RIL, op.getDataInt(Data.RIL)+10);
-        }
+        QuestManager.tryCompleteQuest(e.getPlayer(), Main.getLobbyPlayer(e.getPlayer()), Quest.FirstMission);
         //}
     }
 

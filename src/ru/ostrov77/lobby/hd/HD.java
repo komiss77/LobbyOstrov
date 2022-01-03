@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -14,6 +15,7 @@ import me.filoghost.holographicdisplays.api.beta.hologram.VisibilitySettings;
 import me.filoghost.holographicdisplays.api.beta.hologram.line.ItemHologramLine;
 import me.filoghost.holographicdisplays.api.beta.hologram.line.TextHologramLine;
 import ru.komiss77.ApiOstrov;
+import ru.komiss77.utils.ItemBuilder;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -22,7 +24,10 @@ import ru.ostrov77.lobby.area.LCuboid;
 
 
 public class HD {
+	
     protected static final ConcurrentHashMap<String,MenuTask> tasks = new ConcurrentHashMap<>();
+    private static final ItemStack arrow = new ItemBuilder(Material.ARROW).addEnchantment(Enchantment.ARROW_INFINITE, 1).build();
+    private static final ItemStack empty = new ItemStack(Material.GRAY_DYE);
 
     public static void openAreaMenu(Player p, LobbyPlayer lp) {
         
@@ -66,7 +71,7 @@ public class HD {
                 
               /*  final  TextHologramLine t = h.getLines().appendText(lc.displayName);
                 t.setClickListener( (cl) -> {
-p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
+//p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                         if (ci.canTp) {
                             tasks.get(p.getName()).cancel();
                             ApiOstrov.teleportSave(p, lc.spawnPoint, false);
@@ -77,16 +82,16 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                 
             } else {
 
-                final ItemHologramLine i = h.getLines().appendItem(new ItemStack(lp.compasstarget == lc.getInfo() ? Material.ARROW :  Material.GRAY_DYE));
+                final ItemHologramLine i = h.getLines().appendItem(lp.compasstarget == lc.getInfo() ? arrow : empty);
                 i.setClickListener( (cl) -> {
                         if (lp.compasstarget != lc.getInfo()) {
 //p.sendMessage(lc.getName()+" setCompassTarget");
                             setCompassTarget(p, lp, lc);
-                            i.setItemStack(new ItemStack(Material.ARROW));
+                            i.setItemStack(arrow);
                         } else {
 //p.sendMessage(lc.getName()+" resetCompassTarget");
                             AreaManager.resetCompassTarget(p, lp);
-                            i.setItemStack(new ItemStack(Material.GRAY_DYE));
+                            i.setItemStack(new ItemStack(empty));
                         }                    
                     }
                 );
@@ -144,7 +149,7 @@ p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
             final Hologram h = tasks.get(p.getName()).holo.get(lp.compasstarget); //вытаскиваем голограмму с предыдущей целью компаса
             if (h.getLines().size()!=0 && (h.getLines().get(0) instanceof ItemHologramLine)) { //первай строка - предмет
                 final ItemHologramLine i = (ItemHologramLine) h.getLines().get(0); //вытаскиваем строку-предмет
-                i.setItemStack(new ItemStack(Material.GRAY_DYE)); //меняем её тип (цель не могла быть ранее открыта, так что только серый шарик
+                i.setItemStack(empty); //меняем её тип (цель не могла быть ранее открыта, так что только серый шарик
             }
         }  
         AreaManager.setCompassTarget(p, lp, newTarget); //

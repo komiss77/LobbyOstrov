@@ -17,7 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
-import ru.komiss77.enums.Data;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.DonatEffect;
@@ -141,7 +140,7 @@ public class QuestManager implements Listener {
             }
         }
  
-        Main.advance.sendComplete(p, cuboid.getName(), true);//Complete(p, cuboid.getName());
+        Main.advance.sendComplete(p, cuboid.getName(), false);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
         
         final EnumSet<Quest> childrenQuest = Quest.getChidren(cuboid.getName());
@@ -223,7 +222,7 @@ public class QuestManager implements Listener {
                 break; 
                 
         }
-p.sendMessage("§8log: getProgress "+quest+"="+progress);
+//p.sendMessage("§8log: getProgress "+quest+"="+progress);
         lp.setProgress(quest, progress); //сохранить в кэш
         if (update) Main.advance.sendProgress(p, quest, progress);//progressAdv(p, lp, quest, dsc);
         return progress;

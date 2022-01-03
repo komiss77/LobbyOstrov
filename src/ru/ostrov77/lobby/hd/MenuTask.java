@@ -42,7 +42,7 @@ class MenuTask implements Runnable {
         //z = center.getZ();
         
         //task = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.instance, this, 1, 10); HolographicDisplays ConcurrentModificationException
-        task = Bukkit.getScheduler().runTaskTimer(Main.instance, this, 1, 9);
+        task = Bukkit.getScheduler().runTaskTimer(Main.instance, this, 4, 8);
         p.playSound(p.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, .5f, 2);
     }
     
@@ -85,9 +85,9 @@ class MenuTask implements Runnable {
                 h = holo.get(ci);
                 //final Location dir = h.getPosition().toLocation().subtract(eye);
                 
-                double dx = h.getPosition().getX() - eye.getX();
-                double dy = h.getPosition().getY() - eye.getY();
-                double dz = h.getPosition().getZ() - eye.getZ();
+                final double dx = h.getPosition().getX() - eye.getX();
+                final double dy = h.getPosition().getY() - eye.getY();
+                final double dz = h.getPosition().getZ() - eye.getZ();
                 
                 //if (Math.abs(dir.getX() / v.getX() - dir.getZ() / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dir.getX() * dir.getX() + dir.getZ() * dir.getZ()) - dir.getY()) < 0.6d) {
                 if (Math.abs(dx / v.getX() - dz / v.getZ()) < 0.6d && Math.abs(Math.tan(Math.toRadians(-eye.getPitch())) * Math.sqrt(dx * dx + dz * dz) - dy) < 0.6d) {
@@ -98,7 +98,7 @@ class MenuTask implements Runnable {
                             h.getLines().appendText(lc.displayName);
                             ApiOstrov.sendActionBarDirect(p, "§a[Клик]§f - ТП");
                         } else {
-                            h.getLines().appendText("§8"+ChatColor.stripColor(lc.displayName));
+                            h.getLines().appendText("§7*???*");
                             if(lp.compasstarget==ci) {
                                 ApiOstrov.sendActionBarDirect(p, "§5[Клик]§f - Сброс Компаса");
                             } else {

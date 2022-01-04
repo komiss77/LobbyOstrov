@@ -3,9 +3,19 @@ https://www.spigotmc.org/resources/crazy-advancements-api.51741/
 https://github.com/filoghost/HolographicDisplays/wiki/Individual-holograms
 
 если рестарт оба лобби, то выкидыв. с сервера
+карта в лобби
 
 жестко спамит name=Суслик,properties={},legacy=false] (<ip address withheld>): Failed to verify username!
 [22:22:59] [Netty Epoll Server IO #1/INFO]: Disconnecting 
+
+ Task #7268 for Ostrov v2.0 generated an exception
+java.lang.NullPointerException: Cannot invoke "ru.komiss77.modules.player.Oplayer.showScore()" because the return value of "ru.komiss77.modules.player.PM.getOplayer(org.bukkit.entity.Player)" is null
+	at ru.ostrov77.lobby.Main.giveItems(Main.java:304) ~[LobbyOstrov.jar:?]
+	at ru.ostrov77.lobby.listeners.ListenerWorld.lambda$onDataLoad$1(ListenerWorld.java:191) ~[LobbyOstrov.jar:?]
+	at ru.komiss77.Ostrov$1.run(Ostrov.java:433) ~[Ostrov.jar:?]
+
+лобби тп в воздух?
+автовыполнение дискавер если предыдущюю выполнил ранее
 
 меню тп не откр на полублоке
 

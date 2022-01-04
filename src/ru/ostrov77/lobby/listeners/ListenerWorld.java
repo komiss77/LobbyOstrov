@@ -55,6 +55,10 @@ import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.enums.Stat;
+import ru.komiss77.enums.StatFlag;
+import ru.komiss77.events.BungeeDataRecieved;
+import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.LocationUtil;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -68,7 +72,6 @@ import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.AdvanceCrazy;
 import ru.ostrov77.lobby.quest.QuestManager;
 
 
@@ -113,8 +116,17 @@ System.out.println("ArmorEquipEvent");
    // }   
     
     @EventHandler (priority = EventPriority.MONITOR)
-    public void onJoin(final PlayerJoinEvent e) {
+    //public void onJoin(final PlayerJoinEvent e) {
+    public void onData(final BungeeDataRecieved e) {
         final Player p = e.getPlayer();
+        
+        final Oplayer op = PM.getOplayer(p);
+        if (!op.hasFlag(StatFlag.NewBieDone) && op.getStat(Stat.PLAY_TIME)<100) {
+            op.setFlag(StatFlag.NewBieDone, true);
+            ApiOstrov.sendToServer(p, "nb01", "");
+            //return;
+        }
+        
         final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
         //QuestAdvance.onJoin(p);
         
@@ -172,7 +184,9 @@ System.out.println("ArmorEquipEvent");
     
 
     private void onDataLoad(final Player p, final LobbyPlayer lp, final String logoutLocString) {
-        Ostrov.sync(()-> {
+        //Ostrov.sync( ()-> Main.advance.join(p, lp), 2 );
+        
+        Ostrov.sync( ()-> {
             Main.lobbyPlayers.put(lp.name, lp); //заносим тут чтобы  квесты не срабаывали при мелькании на спавне
             Main.advance.join(p, lp);//Ostrov.async( ()-> Advance.send(p, lp), 10); //после добавления Lp!!!
                 
@@ -197,7 +211,7 @@ System.out.println("ArmorEquipEvent");
                 }
             }
             
-         }, 2);        
+         }, 3);        
     }
 
     

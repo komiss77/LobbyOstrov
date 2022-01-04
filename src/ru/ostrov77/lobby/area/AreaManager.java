@@ -235,6 +235,39 @@ public class AreaManager {
                         //еще надо ловить quitEvent
                         lp.lastCuboidId = currentCuboidId;
                     }
+                    
+                    
+                    
+                    
+                    if (lp.pkrist != null) {
+                       // final Player p = lp.getPlayer();
+                        final Parkur pr = lp.pkrist;
+                        final Location loc = p.getLocation();
+                        if (loc.getY() < pr.bLast.y) { //упал
+                            p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
+                            //Main.miniParks.remove(pr);
+                            //if (pr.jumps >= 12) {
+                            //    QuestManager.tryCompleteQuest(p, lp, Quest.MiniPark);
+                            //}
+                            lp.pkrist = null;
+                            loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setType(Material.AIR, false);
+                            loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setType(Material.AIR, false);
+                            p.teleport(getCuboid("parkur").spawnPoint);
+                            //p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
+                            lp.pkrist = null;
+                            Ostrov.sync(() -> {
+                                p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
+                                if (pr.jumps >= 12) {
+                                    QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark);
+                                }
+                            }, 4);
+                        } else if (loc.getBlockX() == pr.bNext.x && loc.getBlockZ() == pr.bNext.z) {
+                            p.playSound(loc, Sound.BLOCK_AMETHYST_BLOCK_HIT, 2f, 0.1f * pr.jumps + 0.5f);
+                            pr.nextBlock();
+                        }
+                    }                    
+                    
+                    
                 }
                 
                 if (ship!=null && !ship.playerNames.isEmpty()) {
@@ -245,11 +278,12 @@ public class AreaManager {
                 
             }
 
-        }.runTaskTimerAsynchronously(Main.instance, 20, 10);
+        //}.runTaskTimerAsynchronously(Main.instance, 20, 10); java.util.ConcurrentModificationException
+        }.runTaskTimer(Main.instance, 20, 8); 
         
         
         
-        new BukkitRunnable() {
+      /*  new BukkitRunnable() {
             @Override
             public void run() { //паркуристы
                 for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
@@ -284,7 +318,7 @@ public class AreaManager {
                 	}
                 }
 			}
-            }.runTaskTimer(Main.instance, 8, 8);
+            }.runTaskTimer(Main.instance, 8, 8);*/
     }
     
     

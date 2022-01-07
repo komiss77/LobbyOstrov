@@ -424,6 +424,8 @@ public class Main extends JavaPlugin {
             .duplicate(false)
             .leftClickCmd("oscom quest")
             .rightClickCmd("oscom area")
+            .rightShiftClickCmd("menu")
+            .leftShiftClickCmd("serv")
             .create();
 
         

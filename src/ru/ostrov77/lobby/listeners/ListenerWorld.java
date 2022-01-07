@@ -123,7 +123,7 @@ System.out.println("ArmorEquipEvent");
         final Oplayer op = PM.getOplayer(p);
         if (!op.hasFlag(StatFlag.NewBieDone) && op.getStat(Stat.PLAY_TIME)<100) {
             op.setFlag(StatFlag.NewBieDone, true);
-            ApiOstrov.sendToServer(p, "nb01", "");
+            ApiOstrov.sendToServer(p, "nb0", "");
             //return;
         }
         

@@ -1,11 +1,11 @@
 package ru.ostrov77.lobby.hd;
 
 import java.util.EnumMap;
+import me.filoghost.holographicdisplays.api.Position;
+import me.filoghost.holographicdisplays.api.hologram.Hologram;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
-import me.filoghost.holographicdisplays.api.beta.Position;
-import me.filoghost.holographicdisplays.api.beta.hologram.Hologram;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.util.Vector;

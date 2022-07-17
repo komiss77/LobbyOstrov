@@ -5,6 +5,9 @@ https://github.com/filoghost/HolographicDisplays/wiki/Individual-holograms
 если рестарт оба лобби, то выкидыв. с сервера
 карта в лобби
 
+!!переделать на высоту мира
+!!!баг в getCCloc - y&0xF должно быть z&0xF !!!
+
 жестко спамит name=Суслик,properties={},legacy=false] (<ip address withheld>): Failed to verify username!
 [22:22:59] [Netty Epoll Server IO #1/INFO]: Disconnecting 
 

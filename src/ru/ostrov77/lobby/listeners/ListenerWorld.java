@@ -194,11 +194,11 @@ System.out.println("ArmorEquipEvent");
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
                 //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
                 //NewBie.start(p, 0);
-                PM.getOplayer(p).hideScore();
                 p.teleport(Main.getLocation(LocType.newBieSpawn));// тп на 30 160 50
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
                 p.setCollidable(false);
                 Main.oscom.giveForce(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                if (PM.exist(p.getName())) PM.getOplayer(p).hideScore();
                 ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BarColor.PINK, BarStyle.SOLID, false);
             } else {
                 Main.giveItems(p);

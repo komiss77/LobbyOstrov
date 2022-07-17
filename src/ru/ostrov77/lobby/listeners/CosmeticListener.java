@@ -3,17 +3,18 @@ package ru.ostrov77.lobby.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
-import se.file14.procosmetics.api.ProCosmeticsAPI;
+import se.file14.procosmetics.ProCosmetics;
+import se.file14.procosmetics.api.ProCosmeticsProvider;
 import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
 import se.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
 import se.file14.procosmetics.user.User;
+
 
 
 
@@ -34,8 +35,8 @@ public class CosmeticListener implements Listener {
     
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public static void onCuboidEvent(final CuboidEvent e) {
-        
-        final User us = ProCosmeticsAPI.getUser(e.getPlayer());
+        final ProCosmetics api = ProCosmeticsProvider.get();
+        final User us = api.getUserManager().getUser(e.getPlayer());
         
         if (e.getPrevois()!=null && e.getPrevois().getInfo().unequpCosmetic) {
             if (us != null) {
@@ -75,21 +76,22 @@ public class CosmeticListener implements Listener {
         } else {
             if (lp.questDone.contains(Quest.DiscoverAllArea))return; 
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-            
-            if (e.getCosmeticType().getConfigPath().equals("mounts")) {
+            //final ProCosmetics api = ProCosmeticsProvider.get();
+
+            if (e.getCosmeticType().getCategoryPath().equals("mounts")) {
 //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
                 
-                switch (e.getCosmeticType().getVariableName()) {
+                switch (e.getCosmeticType().getName()) {
                     case "molten-snake":
                     case "ethereal-dragon":
                     case "hype-train":
                     case "pirate-ship":
                         e.setCancelled(true);
                 }
-            } else if (e.getCosmeticType().getConfigPath().equals("gadgets")) {
+            } else if (e.getCosmeticType().getCategoryPath().equals("gadgets")) {
                 
 //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-                switch (e.getCosmeticType().getVariableName()) {
+                switch (e.getCosmeticType().getName()) {
                     case "ethereal-pearl":
                     case "rocket":
                     case "trampoline":

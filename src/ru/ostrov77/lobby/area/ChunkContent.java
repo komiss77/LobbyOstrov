@@ -12,8 +12,8 @@ import org.bukkit.Location;
 public class ChunkContent {
     
     private Set<Integer>cuboids;
-    private Map <Integer,String>nearlyPortalData;
-    private Map <Integer,XYZ>plate;
+    private Map <Integer,String> nearlyPortalData;
+    private Map <Integer,XYZ> plate;
     
     
  /*

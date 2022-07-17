@@ -495,9 +495,9 @@ public class Main extends JavaPlugin {
 	}*/
 
     private static void loadLocaions(final World world) {
-        locations.put(LocType.Spawn,  new Location(world, 0.5, 100, 0.5, 0, 0));
-        locations.put(LocType.newBieSpawn,  new Location(world, 38.5, 160, -79.5, -90, 0));
-        locations.put(LocType.newBieArrive,  new Location(world, 16.5, 100, 25.5, 150, 0));
+        locations.put(LocType.Spawn,  new Location(world, 0.5, 100.5, 0.5, 0, 0));
+        locations.put(LocType.newBieSpawn,  new Location(world, 38.5, 160.5, -79.5, -90, 0));
+        locations.put(LocType.newBieArrive,  new Location(world, 16.5, 100.5, 25.5, 150, 0));
         locations.put(LocType.ginFinal,  new Location(world, 13.5, 102, 26.5));
         locations.put(LocType.ginLampShip,  new Location(world, 32.5, 162.5, -79.5));
         locations.put(LocType.ginLampArrive,  new Location(world, 13.5, 100, 26.5));

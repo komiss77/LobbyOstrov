@@ -325,7 +325,7 @@ public class AreaEditor implements InventoryProvider{
                     
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                     p.closeInventory();
-                    sm.lastEdit = SetupMode.LastEdit.Main;
+                    sm.lastEdit = SetupMode.LastEdit.Main.name();
                    // p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 5);
                    /* ConfirmationGUI.open( p, "§4Стереть ?", result -> {
                         if (result) {

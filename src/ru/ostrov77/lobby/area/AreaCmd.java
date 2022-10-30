@@ -132,7 +132,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
        // }
 
       //  p.sendMessage( "§cArea параметр?");
-        if (op.setup.lastEdit==LastEdit.SchemEdit) {
+        if (op.setup.lastEdit==LastEdit.SchemEdit.name()) {
             openAreaEditMenu(p, op.setup.schemName);
         } else {
             openAreaMainMenu(p);
@@ -145,7 +145,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
 
     public static void openAreaMainMenu(final Player p) {
         final Oplayer op = PM.getOplayer(p);
-        op.setup.lastEdit = LastEdit.SchemMain;
+        op.setup.lastEdit = LastEdit.SchemMain.name();
         SmartInventory
             .builder()
             .id("area"+p.getName())
@@ -164,7 +164,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
             openAreaMainMenu(p);
             return;
         }
-        op.setup.lastEdit = LastEdit.SchemEdit;
+        op.setup.lastEdit = LastEdit.SchemEdit.name();
         op.setup.schemName = schemName;
         SmartInventory.builder()
             .id("area"+schemName+p.getName())

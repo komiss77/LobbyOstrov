@@ -8,6 +8,7 @@ import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -284,7 +285,7 @@ System.out.println("ArmorEquipEvent");
     
     
     @EventHandler (ignoreCancelled = true)
-    public void onPlayerChat(AsyncChatEvent e) { //только когда новичёк пишет в чат
+    public void onPlayerChat(final AsyncChatEvent e) { //только когда новичёк пишет в чат
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
         if (lc!=null && lc.getName().equals("newbie")) {
@@ -556,7 +557,24 @@ System.out.println("ArmorEquipEvent");
             }
             
         } else {
-            e.setCancelled(true);
+        	switch(e.getEntityType()) {
+        	case HUSK:
+                if (e instanceof EntityDamageByEntityEvent) {
+                    final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
+                    if (ee.getDamager().getType() == EntityType.PLAYER) {
+                    	final Player dp = (Player) ee.getDamager();
+                    	e.setDamage(100d);
+                    	QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
+                        dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(), 
+                        	40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
+                    }
+                }
+        		break;
+        	default:
+                e.setCancelled(true);
+        		break;
+        	}
+        	
         }
                 
 

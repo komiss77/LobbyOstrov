@@ -45,13 +45,13 @@ public class AdvanceCrazy implements IAdvance, Listener {
     
     /*
     AdvancementFrame 
-    TASK-прямоугольная иконка, зелёные тосты
+    TASK-прямоугольная иконка, зелёные тосты 
     GOAL-иконка со скруглениями, зелёные тосты
     CHALLENGE-иконка в форме угольника, фиолетовые тосты
     */    
     public AdvanceCrazy () {
 
-        root = createCuboidAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.CHALLENGE, AdvancementVisibility.ALWAYS);
+        root = createCuboidAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", 	c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.CHALLENGE, AdvancementVisibility.ALWAYS);
         
         //даётся сразу всегда
         createCuboidAdv("newbie",   "§6§lМесто Прибытия          ", "Наконец-то здесь...",      c0, Material.OAK_BOAT,          -4f, 0, "", root, AdvancementFrame.TASK, AdvancementVisibility.ALWAYS);
@@ -64,7 +64,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
         createCuboidAdv("daaria",   "§a§lПерелесок          ", "Посети остров Даарии",          c0, Material.OAK_LOG,           5f, 2.5f, "", root, AdvancementFrame.GOAL, AdvancementVisibility.PARENT_GRANTED);// visOnDisc("spawn")));
         createCuboidAdv("sedna",    "§4§lКровавая Пустошь          ", "Найди остров Седны",     c0, Material.CRIMSON_NYLIUM,    4f, 5f, "", root, AdvancementFrame.GOAL, AdvancementVisibility.PARENT_GRANTED);// visOnDisc("spawn")));
         createCuboidAdv("midgard",  "§c§lХуторок          ", "Открой остров Мидгарда",          c0, Material.CAMPFIRE,          3f, 7.5f, "", root, AdvancementFrame.GOAL, AdvancementVisibility.PARENT_GRANTED);// visOnDisc("spawn")));
-        createCuboidAdv("pvp",      "§6§lДолина Войны          ", "Разведай остров ПВП Мини-Игр",c0,Material.NETHERITE_AXE,     2f, 10.5f, "", root, AdvancementFrame.GOAL, AdvancementVisibility.PARENT_GRANTED);// visOnDisc("spawn")));
+        createCuboidAdv("pvp",      "§6§lДолина Войны     ", "Разведай остров ПВП Мини-Игр",	c0,Material.NETHERITE_AXE,     2f, 10.5f, "", root, AdvancementFrame.GOAL, AdvancementVisibility.PARENT_GRANTED);// visOnDisc("spawn")));
 
         
         final EnumSet<Quest> find = EnumSet.allOf(Quest.class);

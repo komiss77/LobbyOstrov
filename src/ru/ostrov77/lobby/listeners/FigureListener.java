@@ -99,8 +99,14 @@ public class FigureListener implements Listener {
                     onSpeak(p, lp, LobbyFlag.TalkPVP);
                     break;
                     
+    		case ZOMBIFIED_PIGLIN:
+                    fa.set(Arrays.asList("Здравствуй, §4скиталец§f. Думаешь что", "обычные мобы тебе больше не помеха?", "Тогда залетай на §4Хардкор-РПГ §fмиры", "Седны, выбирай класс, и покажи насколько", "ты годен в гуще §4кровавого §fзамеса.!", "§eЭпические битвы ждут!"))
+                        .time(10).sound(Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT);
+                    onSpeak(p, lp, LobbyFlag.TalkSN);
+                    break;
+                    
     		case CREEPER:
-                    fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро", "пожаловать на §3Архипелаг§f - лобби,", "где на каждом острове ты найдешь", "интересные и уникальные §6Большие Режымы§f,", "или §eМини-Игры§f для вас и ваших друзей!", "§eИссладуйте весь остров!"))
+                    fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро", "пожаловать на §3Архипелаг§f - лобби,", "где на каждом острове ты найдешь", "интересные и уникальные §6Большие Режымы§f,", "или §eМини-Игры§f для вас и ваших друзей!", "§eИсследуйте весь остров!"))
                         .time(10).sound(Sound.ENTITY_CREEPER_HURT);
                     onSpeak(p, lp, LobbyFlag.TalkSP);
                     break;

@@ -186,13 +186,25 @@ public class QuestManager implements Listener {
                 break;
                 
             case FindBlock:
-                progress =  lp.getProgress(quest);
+                progress = lp.getProgress(quest);
                 if (update) Main.advance.sendProgress(p, quest, progress);
                 return progress; //тут не надо lp.setProgress, обновляется при интеракт
                 //break;
                 
-            case CobbleGen, MineDiam: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
-                final Material mat = quest == Quest.CobbleGen ? Material.COBBLESTONE : Material.DIAMOND;
+            case CobbleGen, MineDiam, KillMobs: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
+                final Material mat;
+            	switch (quest) {
+				case MineDiam:
+					mat = Material.DIAMOND;
+					break;
+				case KillMobs:
+					mat = Material.ROTTEN_FLESH;
+					break;
+				case CobbleGen:
+				default:
+					mat = Material.COBBLESTONE;
+					break;
+				}
                 final PlayerInventory pi = p.getInventory();
                 final ItemStack it = new ItemStack(mat);
                 progress = 1;
@@ -207,7 +219,7 @@ public class QuestManager implements Listener {
                     it.setAmount(progress);
                     pi.setItemInOffHand(it);
                 }
-                break; 
+                break;
                 
             case CollectTax:
             	progress = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);    
@@ -306,7 +318,7 @@ public class QuestManager implements Listener {
             }
 
 
-            case FindBlock -> {
+            case FindBlock, KillMobs -> {
                 if ( lp.getProgress(quest) < quest.ammount) {//if (tax < 13) {
                     return false;
                 } else {

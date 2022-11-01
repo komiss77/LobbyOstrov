@@ -10,7 +10,6 @@ import org.bukkit.entity.Blaze;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import ru.ostrov77.lobby.Main;
 import ru.komiss77.modules.world.XYZ;
 
 

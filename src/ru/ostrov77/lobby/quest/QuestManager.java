@@ -194,17 +194,18 @@ public class QuestManager implements Listener {
             case CobbleGen, MineDiam, KillMobs: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
                 final Material mat;
             	switch (quest) {
-				case MineDiam:
-					mat = Material.DIAMOND;
-					break;
-				case KillMobs:
-					mat = Material.ROTTEN_FLESH;
-					break;
-				case CobbleGen:
-				default:
-					mat = Material.COBBLESTONE;
-					break;
-				}
+                    case MineDiam:
+                            mat = Material.DIAMOND;
+                            break;
+                    case KillMobs:
+                            mat = Material.ROTTEN_FLESH;
+                            break;
+                    case CobbleGen:
+                    default:
+                        mat = Material.COBBLESTONE;
+                        break;
+                }
+//Ostrov.log("updateProgress "+quest+" mat="+mat);
                 final PlayerInventory pi = p.getInventory();
                 final ItemStack it = new ItemStack(mat);
                 progress = 1;

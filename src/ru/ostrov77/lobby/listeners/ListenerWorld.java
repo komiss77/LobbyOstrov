@@ -38,7 +38,6 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -557,23 +556,37 @@ System.out.println("ArmorEquipEvent");
             }
             
         } else {
-        	switch(e.getEntityType()) {
-        	case HUSK:
+            if (e.getEntityType()==EntityType.HUSK) {
                 if (e instanceof EntityDamageByEntityEvent) {
                     final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
-                    	final Player dp = (Player) ee.getDamager();
-                    	e.setDamage(100d);
-                    	QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
-                        dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(), 
-                        	40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
+                        final Player dp = (Player) ee.getDamager();
+                        e.setDamage(100d);
+                        QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
+                        dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
+                                40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
                     }
                 }
-        		break;
-        	default:
+            } else {
                 e.setCancelled(true);
-        		break;
-        	}
+            }
+           /* switch (e.getEntityType()) {
+                case HUSK:
+                    if (e instanceof EntityDamageByEntityEvent) {
+                        final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
+                        if (ee.getDamager().getType() == EntityType.PLAYER) {
+                            final Player dp = (Player) ee.getDamager();
+                            e.setDamage(100d);
+                            QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
+                            dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
+                                    40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
+                        }
+                    }
+                    break;
+                default:
+                    e.setCancelled(true);
+                    break;
+            }*/
         	
         }
                 

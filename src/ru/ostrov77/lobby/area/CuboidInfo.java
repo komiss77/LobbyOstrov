@@ -20,7 +20,7 @@ public enum CuboidInfo {
     DAARIA         (Material.OAK_LOG,  				25,  	true,  	false,      false,      48f, -4f),
     SKYWORLD       (Material.FLOWERING_AZALEA,                  43,  	true,  	false,      false,      42f, 16f),
     NOPVP          (Material.HONEYCOMB,  			50,  	true,  	false,      false,      12f, 24f),
-    SEDNA          (Material.CRIMSON_NYLIUM,                  47,  	true,  	false,      false,      -28f, -16f),
+    SEDNA          (Material.CRIMSON_NYLIUM,                  47,  	true,  	false,      false,      -28f, 16f),
     PARKUR         (Material.FEATHER,  				28,  	true,  	false,      false,      -48f, 0f),
     PVP            (Material.NETHERITE_AXE,                     10,  	true,  	false,      false,      -32f, -24f),
     SUMO           (Material.REDSTONE,  			2,  	true,  	false,      true,       -12f, -32f),

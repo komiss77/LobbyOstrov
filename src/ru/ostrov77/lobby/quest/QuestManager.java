@@ -230,8 +230,16 @@ public class QuestManager implements Listener {
                 break; 
                 
             case TalkAllNpc:
-                for (LobbyFlag f:LobbyFlag.values()) {
-                    if (f.tag>4 && f.tag<=13 && lp.hasFlag(f)) progress++;
+                for (final LobbyFlag f:LobbyFlag.values()) {
+                	switch (f.tag) {
+					case 4, 5, 6, 7, 8, 
+					9, 10, 11, 12, 13:
+						if (lp.hasFlag(f)) {
+							progress++;
+						}
+					default:
+						break;
+					}
                 }
                 break; 
                 

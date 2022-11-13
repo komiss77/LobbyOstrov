@@ -41,7 +41,7 @@ public enum Quest {
     Elytra                  ('r',  -2,   0,  0, Material.WRITTEN_BOOK,          "GreetNewBie",     	"Доктор Географ. Наук",     "Выполни все задания в Лобби : 8рил", 8),
 
     Passport                ('s',  2,   0,  50, Material.PAPER,                 "DiscoverAllArea",     	"Гражданин Острова",    "Заполни более 50% полей Паспорта Островитянина", 0),
-    TalkAllNpc              ('t', -2,   0,   8, Material.BOOKSHELF,             "OpenTreassureChest",   "Комерческий Агент",    "Поговори со всеми НПС : 4рил", 4),
+    TalkAllNpc              ('t', -2,   0,  10, Material.BOOKSHELF,             "OpenTreassureChest",   "Комерческий Агент",    "Поговори со всеми НПС : 4рил", 4),
     FirstMission            ('u',  0,   2,   0, Material.GOLD_INGOT,            "GreetNewBie",          "Путь к Успеху",        "Прими первую Миссию : 2рил", 2),
     ;
 

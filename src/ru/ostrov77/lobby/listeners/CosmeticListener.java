@@ -6,6 +6,8 @@ import org.bukkit.event.Listener;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -74,13 +76,12 @@ public class CosmeticListener implements Listener {
         if (lp==null || !lp.hasFlag(LobbyFlag.NewBieDone)) {
             e.setCancelled(true);
         } else {
-            if (lp.questDone.contains(Quest.DiscoverAllArea))return; 
+            if (lp.questDone.contains(Quest.DiscoverAllArea) && AreaManager.getCuboid(e.getPlayer().getLocation()).getInfo() != CuboidInfo.SUMO) return; 
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
             //final ProCosmetics api = ProCosmeticsProvider.get();
 
             if (e.getCosmeticType().getCategoryPath().equals("mounts")) {
 //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-                
                 switch (e.getCosmeticType().getName()) {
                     case "molten-snake":
                     case "ethereal-dragon":
@@ -98,10 +99,19 @@ public class CosmeticListener implements Listener {
                     case "wither-missile":
                         e.setCancelled(true);
                 }
+            } else if (e.getCosmeticType().getCategoryPath().equals("morphs")) {
+                
+//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+                switch (e.getCosmeticType().getName()) {
+                    case "bat":
+                    case "wither":
+                    case "blaze":
+                        e.setCancelled(true);
+                }
             }
             
             if (e.isCancelled()) {
-                e.getPlayer().sendMessage("§6*Вы сможете использовать "+e.getCosmeticType().getName()+" §6когда выполните задание "+Quest.DiscoverAllArea.displayName);
+                e.getPlayer().sendMessage("§6*Вы не сможете использовать §с"+e.getCosmeticType().getName()+" §6здесь!");
             }
             
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());

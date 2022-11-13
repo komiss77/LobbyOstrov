@@ -11,8 +11,11 @@ import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
+import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.QuestManager;
 
 
 
@@ -105,6 +108,8 @@ public class AreaViewMenu implements InventoryProvider {
                 content.set(ci.slot, ClickableItem.of(is, ci.canTp ? e-> 
                         ApiOstrov.teleportSave(p, lc.spawnPoint, false)
                     : e->{}));
+                
+            if (lp.hasFlag(LobbyFlag.NewBieDone)) QuestManager.tryCompleteQuest(p, lp, Quest.Navigation);
                         
         } else {
 

@@ -54,7 +54,7 @@ public class FigureListener implements Listener {
                     break;
                     
     		case ZOMBIE_VILLAGER:
-                    fa.set(Arrays.asList("Приветствую тебя, игрок, на", "режиме §aДаария§f - ванильном", "выживании, с поддержкой всех", "последних обновлений §aМайнкрафта§f!", "§eСчастливых похождений!"))
+                    fa.set(Arrays.asList("Приветствую тебя, игрок, на", "режиме §aДаарии§f - ванильном", "выживании, с поддержкой всех", "последних обновлений §aМайнкрафта§f!", "§eСчастливых похождений!"))
                         .time(10).sound(Sound.ENTITY_ZOMBIE_VILLAGER_AMBIENT);
                     onSpeak(p, lp, LobbyFlag.TalkDA);
                     break;

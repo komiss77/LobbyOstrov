@@ -74,7 +74,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             cs.sendMessage("§cВы ГОСТЬ, либо нед данных с прокси!");
             return true;
         }
-        final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+        //final LCuboid lc = AreaManager.getCuboid(p.getLocation());
         
         
         
@@ -157,6 +157,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         p.sendMessage("§cНадо спешиться!");
                         return true;
                     }
+                    final LCuboid lc = AreaManager.getCuboid(p.getLocation());
                     if (lc==null || !lc.getName().equals("newbie")) {
                         p.sendMessage("§cНадо быть на кораблике!");
                         return true;

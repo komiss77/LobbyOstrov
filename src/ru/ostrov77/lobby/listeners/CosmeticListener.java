@@ -8,6 +8,7 @@ import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
+import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -76,8 +77,13 @@ public class CosmeticListener implements Listener {
         if (lp==null || !lp.hasFlag(LobbyFlag.NewBieDone)) {
             e.setCancelled(true);
             return;
+        }
+        if (lp.questDone.contains(Quest.DiscoverAllArea)) {
+            final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
+            if (lc!=null && lc.getInfo() != CuboidInfo.SUMO) {
+                return;
+            } 
         } 
-        if (lp.questDone.contains(Quest.DiscoverAllArea) && AreaManager.getCuboid(e.getPlayer().getLocation()).getInfo() != CuboidInfo.SUMO) return; 
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
         //final ProCosmetics api = ProCosmeticsProvider.get();
 

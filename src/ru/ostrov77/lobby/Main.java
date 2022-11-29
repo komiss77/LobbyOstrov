@@ -283,6 +283,7 @@ public class Main extends JavaPlugin {
     public static void giveItems(final Player p) {
         p.getInventory().clear();
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        if (lp==null) return;
         if (lp.hasFlag(LobbyFlag.Elytra)) {
             p.getInventory().setItem(2, fw); //2
             elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38

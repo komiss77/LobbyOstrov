@@ -36,11 +36,12 @@ public class LobbyPlayer {
     
     public boolean toSave = false;
     public boolean updAdv = false;
-    
+    public final boolean isGuest;
     
     
     public LobbyPlayer(final String name) {
         this.name = name;
+        isGuest = name.startsWith("guest_");
     }
     
     

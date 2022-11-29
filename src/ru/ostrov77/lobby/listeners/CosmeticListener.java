@@ -75,47 +75,48 @@ public class CosmeticListener implements Listener {
 //e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (lp==null || !lp.hasFlag(LobbyFlag.NewBieDone)) {
             e.setCancelled(true);
-        } else {
-            if (lp.questDone.contains(Quest.DiscoverAllArea) && AreaManager.getCuboid(e.getPlayer().getLocation()).getInfo() != CuboidInfo.SUMO) return; 
+            return;
+        } 
+        if (lp.questDone.contains(Quest.DiscoverAllArea) && AreaManager.getCuboid(e.getPlayer().getLocation()).getInfo() != CuboidInfo.SUMO) return; 
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-            //final ProCosmetics api = ProCosmeticsProvider.get();
+        //final ProCosmetics api = ProCosmeticsProvider.get();
 
-            if (e.getCosmeticType().getCategoryPath().equals("mounts")) {
+        if (e.getCosmeticType().getCategoryPath().equals("mounts")) {
 //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-                switch (e.getCosmeticType().getName()) {
-                    case "molten-snake":
-                    case "ethereal-dragon":
-                    case "hype-train":
-                    case "pirate-ship":
-                        e.setCancelled(true);
-                }
-            } else if (e.getCosmeticType().getCategoryPath().equals("gadgets")) {
-                
-//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-                switch (e.getCosmeticType().getName()) {
-                    case "ethereal-pearl":
-                    case "rocket":
-                    case "trampoline":
-                    case "wither-missile":
-                        e.setCancelled(true);
-                }
-            } else if (e.getCosmeticType().getCategoryPath().equals("morphs")) {
-                
-//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-                switch (e.getCosmeticType().getName()) {
-                    case "bat":
-                    case "wither":
-                    case "blaze":
-                        e.setCancelled(true);
-                }
+            switch (e.getCosmeticType().getName()) {
+                case "molten-snake":
+                case "ethereal-dragon":
+                case "hype-train":
+                case "pirate-ship":
+                    e.setCancelled(true);
             }
-            
-            if (e.isCancelled()) {
-                e.getPlayer().sendMessage("§6*Вы не сможете использовать §с"+e.getCosmeticType().getName()+" §6здесь!");
+        } else if (e.getCosmeticType().getCategoryPath().equals("gadgets")) {
+
+//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+            switch (e.getCosmeticType().getName()) {
+                case "ethereal-pearl":
+                case "rocket":
+                case "trampoline":
+                case "wither-missile":
+                    e.setCancelled(true);
             }
-            
-//e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+        } else if (e.getCosmeticType().getCategoryPath().equals("morphs")) {
+
+//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+            switch (e.getCosmeticType().getName()) {
+                case "bat":
+                case "wither":
+                case "blaze":
+                    e.setCancelled(true);
+            }
         }
+
+        if (e.isCancelled()) {
+            e.getPlayer().sendMessage("§6*Вы не сможете использовать §с"+e.getCosmeticType().getName()+" §6здесь!");
+        }
+
+//e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+
     }
     
     

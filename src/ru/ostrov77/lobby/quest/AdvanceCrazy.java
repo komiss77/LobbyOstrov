@@ -20,7 +20,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 import ru.komiss77.Ostrov;
 import ru.komiss77.objects.CaseInsensitiveMap;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -204,6 +203,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
     public void onAdvClose(final AdvancementScreenCloseEvent e) {
         final Player p = e.getPlayer();
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        if (lp==null) return;
         if (!lp.questAccept.contains(Quest.OpenAdvancements)) return; //чтобы лишний раз не дрючить Ostrov.sync
         if(Bukkit.isPrimaryThread()) {
             QuestManager.tryCompleteQuest(p, lp, Quest.OpenAdvancements);

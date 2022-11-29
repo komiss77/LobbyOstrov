@@ -39,6 +39,7 @@ public class QuestManager implements Listener {
     public static void onInvClose(final InventoryCloseEvent e) {
         if (e.getInventory().getType()==InventoryType.CHEST && e.getView().getTitle().equals("Профиль : Паспорт")) {
             final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer().getName());
+            if (lp==null) return;
             if (lp.hasQuest(Quest.Passport)) {
                 //final Oplayer op = PM.getOplayer(e.getPlayer().getName());
                 //e.getPlayer().sendMessage("getPasportFillPercent="+op.getPasportFillPercent());
@@ -51,21 +52,14 @@ public class QuestManager implements Listener {
     
     //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
     @EventHandler
-    public static void onCuboidEvent(final CuboidEvent e) {
+    public static void onCuboidEvent(final CuboidEvent e) {  //если лоббиплеер нуль, то сюда никогда не придёт
     	
         if (e.getPrevois() != null) {
             switch (e.getPrevois().getName()) {
-                
-                case "daaria":
-                case "skyworld":
-                case "sumo":
+                case "daaria", "skyworld", "sumo" -> {
                     e.getPlayer().getInventory().setItem(2, e.getLobbyPlayer().hasFlag(LobbyFlag.Elytra) ? Main.fw : Main.air);
-                    break;
-                    
-                default:
-                    break;
                 }
-
+            }
         }
         
     	if (e.getCurrent() == null) {
@@ -83,40 +77,38 @@ public class QuestManager implements Listener {
             
             switch (e.getCurrent().getName()) {
                 
-                case "start":
-                if (e.getLobbyPlayer().isAreaDiscovered(AreaManager.getCuboid("nopvp").id)) {
-                	final Player p = e.getPlayer();
-                	p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
-                    p.sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
-                    e.getLobbyPlayer().raceTime = 0;
-                } else {
-                    e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
+                case "start" -> {
+                    if (e.getLobbyPlayer().isAreaDiscovered(AreaManager.getCuboid("nopvp").id)) {
+                        final Player p = e.getPlayer();
+                        p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
+                        p.sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
+                        e.getLobbyPlayer().raceTime = 0;
+                    } else {
+                        e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
+                    }
                 }
-                break;
                     
-                case "end":
+                case "end" -> {
                     if (e.getLobbyPlayer().raceTime > 0) {
-                    	final Player p = e.getPlayer();
-                    	p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
-                    	p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.getLobbyPlayer().raceTime / 2));
+                        final Player p = e.getPlayer();
+                        p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
+                        p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(e.getLobbyPlayer().raceTime / 2));
                         QuestManager.tryCompleteQuest(p, e.getLobbyPlayer(), Quest.MiniRace);
-                    	e.getLobbyPlayer().raceTime = -1;
+                        e.getLobbyPlayer().raceTime = -1;
                         //lp.questDone(p, quest, true);
                     }
-                    break;
+                }
                     
-                case "daaria":
-                case "skyworld":
+                case "daaria", "skyworld" -> {
                     Main.pickaxe.giveForce(e.getPlayer());
-                    break;
-                    
-                case "sumo":
+                }
+                
+                case "sumo" -> {
                     Main.stick.giveForce(e.getPlayer());
-                    break;
-                    
-                default:
-                    break;
+                }
+
             }
+            
         }
 
         
@@ -130,15 +122,19 @@ public class QuestManager implements Listener {
         
         if (!lp.hasFlag(LobbyFlag.NewBieDone) && p.getTicksLived()>20) {  //новичёк - пока не откроет спавн, другие не давать + защита от появления на спавне после reset
     	    switch (cuboid.getName()) {
-                case "spawn"://новичёк дошел до спавна
+                case "spawn" -> {//новичёк дошел до спавна
                     tryCompleteQuest(p, lp, Quest.ReachSpawn);
-                    break;
-                case "newbie"://для кубоида новичков даём первые задания ниже
-                    break;
-                default://на остальные кубоиды новичёк не реагирует
+                }
+                case "newbie" -> {
+                    //идём ниже
+                }
+                default -> {
+                    //на остальные кубоиды новичёк не реагирует
                     return;
+                }
             }
-        }
+            //для кубоида новичков даём первые задания ниже
+                    }
  
         Main.advance.sendComplete(p, cuboid.getName(), false);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
@@ -231,16 +227,14 @@ public class QuestManager implements Listener {
                 break; 
                 
             case TalkAllNpc:
-                for (final LobbyFlag f:LobbyFlag.values()) {
-                	switch (f.tag) {
-					case 4, 5, 6, 7, 8, 
-					9, 10, 11, 12, 13:
-						if (lp.hasFlag(f)) {
-							progress++;
-						}
-					default:
-						break;
-					}
+                for (final LobbyFlag f : LobbyFlag.values()) {
+                    switch (f.tag) {
+                        case 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 -> {
+                            if (lp.hasFlag(f)) {
+                                progress++;
+                            }
+                        }
+                    }
                 }
                 break; 
                 
@@ -301,6 +295,7 @@ public class QuestManager implements Listener {
                     return false;
                 }
                 Main.pipboy.giveForce(p);
+                tryCompleteQuest(p, lp, Quest.Navigation);
                 //tryCompleteQuest(p, lp, Quest.Passport); //заслать автоматом, вдруг уже  заполнен
             }
                 

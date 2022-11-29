@@ -44,7 +44,6 @@ public class QuestViewMenu implements InventoryProvider {
         content.fillRect(0,0, 4,8, fill);
         
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
-
         
         final Pagination pagination = content.pagination();
 

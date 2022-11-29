@@ -10,12 +10,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import ru.komiss77.Ostrov;
-import ru.komiss77.enums.Data;
 import ru.komiss77.events.FigureClickEvent;
 import ru.komiss77.events.MissionEvent;
 import ru.komiss77.events.PandoraUseEvent;
-import ru.komiss77.modules.player.Oplayer;
-import ru.komiss77.modules.player.PM;
 import ru.komiss77.objects.FigureAnswer;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
@@ -35,7 +32,7 @@ public class FigureListener implements Listener {
         final Player p = e.getPlayer();
 //p.sendMessage("§8log: tag="+e.getFigure().getTag()+" left?"+e.isLeftClick());
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
-        
+        if (lp==null) return;
         if (e.getFigure().getTag().equals("info")) {
             final FigureAnswer fa = new FigureAnswer().vibration(true).beforeEyes(true);
             
@@ -177,16 +174,23 @@ public class FigureListener implements Listener {
     @EventHandler (priority = EventPriority.MONITOR)
     public void onMission(final MissionEvent e) {
         if (e.action!=MissionEvent.MissionAction.Accept) return;
+        //final Oplayer op = PM.getOplayer(e.getPlayer());
+        //if (op.hasFlag(StatFlag.FirstMissionDone)) {
+        //    return;
+        //}
 //e.getPlayer().sendMessage("§8log: PandoraUseEvent");
-        QuestManager.tryCompleteQuest(e.getPlayer(), Main.getLobbyPlayer(e.getPlayer()), Quest.FirstMission);
+        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
+        if (lp==null) return;
+        QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.FirstMission);
         //}
     }
 
     @EventHandler (priority = EventPriority.MONITOR)
     public void onPandoraUse(final PandoraUseEvent e) {
 //e.getPlayer().sendMessage("§8log: PandoraUseEvent");
-        //if (e.luck()) {
-            QuestManager.tryCompleteQuest(e.getPlayer(), Main.getLobbyPlayer(e.getPlayer()), Quest.PandoraLuck);
+        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
+        if (lp==null) return;
+            QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.PandoraLuck);
         //}
     }
 

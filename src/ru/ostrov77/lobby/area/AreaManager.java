@@ -32,7 +32,6 @@ import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.hd.HD;
 import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
@@ -165,7 +164,7 @@ public class AreaManager {
             @Override
             public void run() {
                 
-                for (final LobbyPlayer lp : Main.getLobbyPlayers()) {
+                for (final LobbyPlayer lp : Main.getLobbyPlayers()) { //if (lp==null) return; чекать не надо, перебор только созданныхлоббиплееров
                     final Player p = lp.getPlayer();
                     if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                                                         //причём в QuestManager так нельзя, или не детектит вход новичка!
@@ -258,7 +257,7 @@ public class AreaManager {
                             Ostrov.sync(() -> {
                                 p.playSound(loc, Sound.BLOCK_AMETHYST_CLUSTER_PLACE, 2f, 0.6f);
                                 if (pr.jumps >= 12) {
-                                    QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark);
+                                    QuestManager.tryCompleteQuest(p, lp, Quest.MiniPark);
                                 }
                             }, 4);
                         } else if (loc.getBlockX() == pr.bNext.x && loc.getBlockZ() == pr.bNext.z) {
@@ -454,7 +453,7 @@ public class AreaManager {
         if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
             final ItemMeta im = compass.getItemMeta();
             if (im.hasLore()) {
-                final List<Component> lore = new ArrayList<Component>();
+                final List<Component> lore = new ArrayList<>();
                 for (final String s : compasslore) {
                 	lore.add(Component.text(s));
                 }
@@ -479,7 +478,7 @@ public class AreaManager {
         if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
             final ItemMeta im = compass.getItemMeta();
             if (im.hasLore()) {
-                final List<Component> lore = new ArrayList<Component>();
+                final List<Component> lore = new ArrayList<>();
                 for (final String s : compasslore) {
                 	lore.add(Component.text(s));
                 }

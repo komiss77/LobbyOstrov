@@ -70,6 +70,10 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         final Player p = (Player) cs;
         
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        if (lp==null) {
+            cs.sendMessage("§cВы ГОСТЬ, либо нед данных с прокси!");
+            return true;
+        }
         final LCuboid lc = AreaManager.getCuboid(p.getLocation());
         
         
@@ -92,7 +96,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     return true;
                     
                 case "reset":
-                    //if (ApiOstrov.isLocalBuilder(cs, true)) {
+                    if (ApiOstrov.isLocalBuilder(cs, true)) {
                         p.getInventory().clear();
                         p.closeInventory();
                         Main.advance.resetProgress(p);
@@ -101,7 +105,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';");
                             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `playerData` WHERE `name` = '"+p.getName()+"';");
                         }, 20);
-                    //}
+                    }
                     return true;
 
                     

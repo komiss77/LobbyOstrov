@@ -48,6 +48,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
@@ -80,7 +81,7 @@ import ru.ostrov77.lobby.quest.QuestManager;
 
 public class ListenerWorld implements Listener {
     
-    private static final BlockFace[] nr = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
+    private static final BlockFace[] NEAREST = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
 
    /* @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onArmor (final ArmorEquipEvent e) {
@@ -108,12 +109,14 @@ System.out.println("ArmorEquipEvent");
     
     
     
-   // @EventHandler (priority = EventPriority.MONITOR)
-   // public void onBungeeData(final BungeeDataRecieved e) {
-       // final Player p = e.getPlayer();
-        //final LobbyPlayer lp = Main.getLobbyPlayer(p);
+   /* @EventHandler (priority = EventPriority.MONITOR)
+    public void onLogin(final PlayerJoinEvent e) {
+        final Player p = e.getPlayer();
+        if (!Main.lobbyPlayers.containsKey(p.getName())) {
+            final LobbyPlayer lp = new LobbyPlayer(p.getName());
+        }
         
-   // }   
+    }   */
     
     @EventHandler (priority = EventPriority.MONITOR)
     //public void onJoin(final PlayerJoinEvent e) {
@@ -121,6 +124,16 @@ System.out.println("ArmorEquipEvent");
         final Player p = e.getPlayer();
         
         final Oplayer op = PM.getOplayer(p);
+        if (op.isGuest) { //лоббиплеера не создаём, просто даём часики и на спавн
+            Main.pipboy.giveForce(p);
+            //Main.oscom.giveForce(p);
+            p.teleport(Main.getLocation(Main.LocType.Spawn));
+            if (op.getStat(Stat.PLAY_TIME)<300) {
+                ApiOstrov.sendTitle(p, "","§fЧасики откроют меню", 20, 100, 40);
+            }
+            return;
+        }
+        
         if (!op.hasFlag(StatFlag.NewBieDone) && op.getStat(Stat.PLAY_TIME)<100) {
             op.setFlag(StatFlag.NewBieDone, true);
             ApiOstrov.sendToServer(p, "nb0", "");
@@ -137,7 +150,7 @@ System.out.println("ArmorEquipEvent");
             String logoutLoc = "";
             
             try {  
-                stmt = LocalDB.GetConnection().createStatement(); 
+                stmt = LocalDB.getConnection().createStatement(); 
                 rs = stmt.executeQuery( "SELECT * FROM `lobbyData` WHERE `name` = '"+lp.name+"' LIMIT 1" );
                 
                 if (rs.next()) {
@@ -189,7 +202,7 @@ System.out.println("ArmorEquipEvent");
         Ostrov.sync( ()-> {
             Main.lobbyPlayers.put(lp.name, lp); //заносим тут чтобы  квесты не срабаывали при мелькании на спавне
             Main.advance.join(p, lp);//Ostrov.async( ()-> Advance.send(p, lp), 10); //после добавления Lp!!!
-                
+            
             if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
                 //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
                 //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
@@ -448,9 +461,10 @@ System.out.println("ArmorEquipEvent");
         }
         if (e.getRightClicked().getType()==EntityType.PLAYER) {
             final LobbyPlayer lp = Main.getLobbyPlayer(p);
+            if (lp==null) return;
             final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
 //p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
-            if (lp!=null && clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
+            if (clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
                 QuestManager.tryCompleteQuest(p, lp, Quest.GreetNewBie);
             }
         }
@@ -495,22 +509,23 @@ System.out.println("ArmorEquipEvent");
                     e.setDamage(0);
                     final Player p = (Player) e.getEntity();
                     final LobbyPlayer lp = Main.getLobbyPlayer(p);
-                    if (lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
+                    if (lp==null || lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
                     	final Location loc = p.getLocation();
                     	final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
                         p.teleport(lc == null ? Main.getLocation(LocType.Spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
-                        
-                        
                     } else { //новичков - если прыгнул за борт - на точку прибытия
                         Main.arriveNewBie(p);
                     }
                     final EntityDamageEvent de = le.getLastDamageCause();
                     if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
                     	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
-                    	QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.SumoVoid);
-                        for (final Player pl : dp.getWorld().getPlayers()) {
-                            pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 в пустоту!");
-                        }                    
+                        final LobbyPlayer lp2 = Main.getLobbyPlayer(dp);
+                        if (lp2!=null) {
+                            QuestManager.tryCompleteQuest(dp, lp2, Quest.SumoVoid);
+                            for (final Player pl : dp.getWorld().getPlayers()) {
+                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 в пустоту!");
+                            }
+                        }
                     }
                     return;
                     
@@ -562,9 +577,12 @@ System.out.println("ArmorEquipEvent");
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
                         final Player dp = (Player) ee.getDamager();
                         e.setDamage(100d);
-                        QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
-                        dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
-                                40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
+                        final LobbyPlayer lp2 = Main.getLobbyPlayer(dp);
+                        if (lp2!=null) {
+                            QuestManager.tryCompleteQuest(dp, lp2, Quest.KillMobs);
+                            dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
+                                    40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
+                        }
                     }
                 }
             } else {
@@ -879,7 +897,7 @@ System.out.println("ArmorEquipEvent");
 	}
 
 	public boolean ntAirMinBlck(final Block b, byte amt) {
-		for (final BlockFace bf : nr) {
+		for (final BlockFace bf : NEAREST) {
 			if (!b.getRelative(bf).getType().isAir()) {
 				amt--;
 			}

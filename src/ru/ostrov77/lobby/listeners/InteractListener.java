@@ -39,7 +39,7 @@ public class InteractListener implements Listener {
     public void onInteract(final PlayerInteractEvent e) {
         final Player p = e.getPlayer();
         final LobbyPlayer lp = Main.getLobbyPlayer(p);
-        
+        if (lp==null) return;
         if (e.getClickedBlock() != null) {
             final Block b = e.getClickedBlock();
             //для элитр

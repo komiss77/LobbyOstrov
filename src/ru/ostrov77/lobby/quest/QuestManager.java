@@ -70,7 +70,7 @@ public class QuestManager implements Listener {
 
             ApiOstrov.sendActionBarDirect(e.getPlayer(), "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
             if (!e.getLobbyPlayer().isAreaDiscovered(e.getCurrent().id)) {
-                onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent()); //новичёк или нет - обработается внутри
+               onNewAreaDiscover(e.getPlayer(), e.getLobbyPlayer(), e.getCurrent()); //новичёк или нет - обработается внутри
             }
     		
             if (!e.getLobbyPlayer().hasFlag(LobbyFlag.NewBieDone)) return; //далее - новичкам ничего не надо
@@ -134,7 +134,7 @@ public class QuestManager implements Listener {
                 }
             }
             //для кубоида новичков даём первые задания ниже
-                    }
+        }
  
         Main.advance.sendComplete(p, cuboid.getName(), false);//Complete(p, cuboid.getName());
         lp.setAreaDiscovered(cuboid.id);
@@ -152,6 +152,11 @@ public class QuestManager implements Listener {
         }
       
         if (cuboid.getInfo().canTp) {
+            //Софтлок (нельзя пройти) задания Навигатор, если все локации открыты -
+            //при открытии последней новой зоны сначала автовыполнение навигатора
+            if (lp.getProgress(Quest.DiscoverAllArea)>=Quest.DiscoverAllArea.ammount) {
+                tryCompleteQuest(p, lp, Quest.Navigation, false);
+            }
             tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
             if (lp.compasstarget==cuboid.getInfo()) {
@@ -295,7 +300,7 @@ public class QuestManager implements Listener {
                     return false;
                 }
                 Main.pipboy.giveForce(p);
-                tryCompleteQuest(p, lp, Quest.Navigation);
+                //tryCompleteQuest(p, lp, Quest.Navigation); - так не сработает
                 //tryCompleteQuest(p, lp, Quest.Passport); //заслать автоматом, вдруг уже  заполнен
             }
                 

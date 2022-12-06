@@ -1,11 +1,14 @@
 package ru.ostrov77.lobby;
 
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -24,6 +27,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import net.kyori.adventure.text.Component;
+import net.minecraft.server.dedicated.DedicatedServer;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
@@ -34,6 +40,7 @@ import ru.komiss77.utils.OstrovConfigManager;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.bots.BotManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.Quest;
@@ -67,20 +74,22 @@ public class Main extends JavaPlugin {
     public static Main instance;
 
     public static RealTime timeManager;
+    public static BotManager botManager;
     public static AreaManager areaManager;
     public static QuestManager questManager;
     public static OstrovConfigManager configManager;
     
-
+    public static Random rnd = new Random();
     
     public static boolean langUtils = false;
     public static IAdvance advance;
     public static boolean holo = false;
     
     public static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
-    private static final EnumMap<LocType,Location>locations = new EnumMap(LocType.class);
+    private static final EnumMap<LocType,Location>locations = new EnumMap<LocType, Location>(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
+	public static DedicatedServer ds;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<>();//порталы по типу точка портала : сервер
 
@@ -103,9 +112,15 @@ public class Main extends JavaPlugin {
         }
 
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
-
+        
+		try {
+	    	ds = (DedicatedServer) getServer().getClass().getMethod("getServer").invoke(getServer());
+	    } catch (IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+	    	e.printStackTrace();
+	    }
         
         timeManager = new RealTime();
+        botManager = new BotManager();
         areaManager = new AreaManager();
         questManager = new QuestManager();
         
@@ -149,7 +164,13 @@ public class Main extends JavaPlugin {
 
     }
     
-    
+    @Override
+    public void onDisable() {
+		for (final Player pl : getServer().getOnlinePlayers()) {
+			BotManager.removePlayer(pl);
+		}
+    	BotManager.clearBots();
+    }
     
     
     public static void arriveNewBie(final Player p) {
@@ -157,7 +178,7 @@ public class Main extends JavaPlugin {
         
         if (p.getVehicle()!=null) {
             final Entity gin = p.getVehicle();
-            gin.setCustomName("§cРаб лампы"); //!! сначала сменит имя, или сработает onDismount cancel!!
+            gin.customName(Component.text("§cРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
             p.getVehicle().eject();
             ((LivingEntity)gin).setAI(false);
 //p.sendMessage("loc="+gin.getLocation()); 13.8 102.72 24.8

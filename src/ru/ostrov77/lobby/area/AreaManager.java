@@ -31,6 +31,8 @@ import ru.komiss77.utils.OstrovConfig;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.bots.BotManager;
+import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quest;
@@ -75,8 +77,8 @@ public class AreaManager {
     protected static void addCuboid(final LCuboid lc, final boolean save) {
         cuboids.put(lc.id, lc);
         cuboidNames.put(lc.getName(), lc.id);
-        Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
-        Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
+        final Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
+        final Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
         while (it.hasNext()) {
             cLocs.add(getcLoc(it.next()));
         }
@@ -108,7 +110,18 @@ public class AreaManager {
         areaConfig.saveConfig();
     }
 
-
+    public static void saveSpot(final XYZ loc, final SpotType st) {
+        if (st==null) { //удаление
+            areaConfig.set("spot." + loc.toString(), null);
+        	Bukkit.broadcast(Component.text("removing-" + loc.toString()));
+        } else {
+            areaConfig.set("spot." + loc.toString(), st.toString());
+        	Bukkit.broadcast(Component.text("created-" + loc.toString()));
+        }
+        
+        areaConfig.saveConfig();
+    }
+    
     public AreaManager () {
 
         chunkContetnt = new HashMap<>();
@@ -146,7 +159,12 @@ public class AreaManager {
                 cc.addPlate(first, second);
             }
         }
-
+        
+        if (areaConfig.getConfigurationSection("spot")!=null) {
+            for (String spotData : areaConfig.getConfigurationSection("spot").getKeys(false)) {
+                BotManager.addSpot(XYZ.fromString(spotData), SpotType.valueOf(areaConfig.getString("spot."+spotData)));
+            }
+        }
         
         if (playerMoveTask!=null) {
             playerMoveTask.cancel();

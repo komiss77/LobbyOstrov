@@ -1,9 +1,9 @@
 package ru.ostrov77.lobby.listeners;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -13,6 +13,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
@@ -45,13 +47,12 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import net.kyori.adventure.text.TextComponent;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
+
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.TextComponent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
@@ -61,7 +62,9 @@ import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.BungeeDataRecieved;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.LocationUtil;
+import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
@@ -69,9 +72,12 @@ import ru.ostrov77.lobby.Main.LocType;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.komiss77.modules.world.XYZ;
+import ru.ostrov77.lobby.bots.Bot;
+import ru.ostrov77.lobby.bots.BotManager;
+import ru.ostrov77.lobby.bots.BotType;
+import ru.ostrov77.lobby.bots.spots.Spot;
+import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.quest.Quest;
 import ru.ostrov77.lobby.quest.QuestManager;
 
@@ -104,7 +110,12 @@ System.out.println("ArmorEquipEvent");
                     p.performCommand("server "+Main.serverPortals.get(xyzw));
                 }
             }
-        }
+        } else {
+			final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
+			if (bt != null) {
+				bt.remove(true);
+			}
+		}
     }
     
     
@@ -141,6 +152,7 @@ System.out.println("ArmorEquipEvent");
         }
         
         final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
+		BotManager.injectPlayer(p);
         //QuestAdvance.onJoin(p);
         
         Ostrov.async( () -> {
@@ -246,6 +258,7 @@ System.out.println("ArmorEquipEvent");
             }
         }
         p.removeMetadata("tp", Main.instance);
+		BotManager.removePlayer(e.getPlayer());
         Main.advance.onQuit(p);
     }    
     
@@ -338,6 +351,7 @@ System.out.println("ArmorEquipEvent");
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
         
         final Block b = e.getBlockPlaced();
+        final Location loc;
 		
         switch (b.getType()) {
             
@@ -346,8 +360,7 @@ System.out.println("ArmorEquipEvent");
                     final ItemStack it = e.getItemInHand();
                     if (it.getType()!=Material.AIR && it.hasItemMeta()) {
                         final String servername = ((TextComponent) it.getItemMeta().displayName()).content();
-                        final Location loc = b.getLocation();
-                        Main.serverPortals.put(new XYZ(loc), servername);
+                        Main.serverPortals.put(new XYZ(b.getLocation()), servername);
                         Main.savePortals();
                     }
                 }
@@ -356,7 +369,7 @@ System.out.println("ArmorEquipEvent");
                 
             case HEAVY_WEIGHTED_PRESSURE_PLATE:
                 final Player p = e.getPlayer();
-                final Location loc = b.getLocation();
+                loc = b.getLocation();
                 
                 if (p.hasMetadata("tp")) {
                     final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
@@ -382,6 +395,26 @@ System.out.println("ArmorEquipEvent");
                 Main.loadCfgs();
                 e.getPlayer().sendMessage("§eПерезагружено!");
                 break;
+                
+                
+            case DEAD_BRAIN_CORAL:
+                loc = b.getLocation();
+            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.SPAWN);
+                break;
+            case DEAD_TUBE_CORAL:
+                loc = b.getLocation();
+            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.WALK);
+                break;
+            case DEAD_FIRE_CORAL:
+                loc = b.getLocation();
+            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.END);
+                break;
+            case DEAD_BUBBLE_CORAL:
+            	final Spot sp = BotManager.getRndSpawnSpot();
+            	if (sp != null) {
+            		new Bot(sp, e.getBlock().getWorld(), BotType.PIRATE);
+            	}
+                break;
 			default:
 				break;
                 
@@ -399,9 +432,11 @@ System.out.println("ArmorEquipEvent");
     public void onBreak(final BlockBreakEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         if (!ApiOstrov.isLocalBuilder(e.getPlayer()) ) e.setCancelled(true);
+        final Location loc = e.getBlock().getLocation();
         
-        if (e.getBlock().getType() == Material.NETHER_PORTAL && !Main.serverPortals.isEmpty()) {
-                final Location loc = e.getBlock().getLocation();
+        switch (e.getBlock().getType()) {
+		case NETHER_PORTAL:
+			if (!Main.serverPortals.isEmpty()) {
                 XYZ find = null;
                 for (final XYZ xyzw : Main.serverPortals.keySet()) {
                     if (xyzw.nearly(loc, 16)) {
@@ -414,11 +449,9 @@ System.out.println("ArmorEquipEvent");
                     Main.savePortals();
                 }
                 return;
-        } 
-
-        if (e.getBlock().getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE) { //ставим золотую плату, чтобы убрать обработчик
-
-            final Location loc = e.getBlock().getLocation();
+			}
+			break;
+		case LIGHT_WEIGHTED_PRESSURE_PLATE:
             final ChunkContent cc = AreaManager.getChunkContent(loc);
 //System.out.println("§8log: cc="+cc+" has?"+(cc!=null && cc.hasPlate()));  
             if (cc!=null && cc.hasPlate()) {
@@ -430,7 +463,16 @@ System.out.println("ArmorEquipEvent");
                     e.getPlayer().sendMessage("§6Плита, ведущаяя к §a"+second+" §6убрана!");
                 }
             }
-        }
+			break;
+		case DEAD_HORN_CORAL:
+			BotManager.deleteSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+			break;
+        case DEAD_BUBBLE_CORAL:
+        	BotManager.clearBots();
+        	break;
+		default:
+			break;
+		}
         
     }
 
@@ -575,6 +617,12 @@ System.out.println("ArmorEquipEvent");
                 if (e instanceof EntityDamageByEntityEvent) {
                     final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
+                    	final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
+                    	if (bt != null) {
+                    		e.setDamage(0d);
+                    		//bt.remove(true);
+                    		return;
+                    	}
                         final Player dp = (Player) ee.getDamager();
                         e.setDamage(100d);
                         final LobbyPlayer lp2 = Main.getLobbyPlayer(dp);

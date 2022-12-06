@@ -24,6 +24,7 @@ import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 
@@ -151,10 +152,19 @@ public class QuestManager implements Listener {
             }
         }
       
-        if (cuboid.getInfo().canTp) {
+        if (cuboid.getInfo().canTp) {  //значимый кубоид для счётчика в DiscoverAllArea
             //Софтлок (нельзя пройти) задания Навигатор, если все локации открыты -
             //при открытии последней новой зоны сначала автовыполнение навигатора
-            if (lp.getProgress(Quest.DiscoverAllArea)>=Quest.DiscoverAllArea.ammount) {
+            //lp.getProgress(Quest.DiscoverAllArea) выдаст 0, т.к. квест DiscoverAllArea не начат!
+            //нужно вручную посчитать уже открытые зоны
+            int opened = 0;
+            for (LCuboid lc : AreaManager.getCuboids()) {
+                if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
+                    opened++;
+                }
+            }
+//Ostrov.log("DiscoverAllArea "+opened+" tryCompleteQuest complete Navigation ? "+(opened==Quest.DiscoverAllArea.ammount));
+            if (opened==Quest.DiscoverAllArea.ammount) {
                 tryCompleteQuest(p, lp, Quest.Navigation, false);
             }
             tryCompleteQuest(p, lp, Quest.DiscoverAllArea);

@@ -3,8 +3,6 @@ package ru.ostrov77.lobby.bots;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
-
 import org.bukkit.entity.EntityType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,40 +11,26 @@ import org.json.simple.parser.ParseException;
 
 import com.mojang.datafixers.util.Pair;
 
+import ru.komiss77.Ostrov;
+
 public enum BotType {
 	
-	REGULAR(new String[] {"PirateChris", "litb", "NoLongerAPirate"}, "dry_ocean", EntityType.CREEPER, true, EntityType.VINDICATOR, EntityType.CREEPER, EntityType.PILLAGER, EntityType.RAVAGER, EntityType.ILLUSIONER);
+	REGULAR(EntityType.HUSK, "soja", "Corwin4_", "ProKirill", "Colorsss", "scbro", "fnf_", 
+		"UEI", "jakubak", "Scail", "shyrezz", "EpexLord", "Stijnaaa", "Tatyan", "Zadan", 
+			"Dark_Chara", "devim", "CrashGod", "skarti", "arthuga", "boysi");
 	
 	public final Pair<String, String>[] txs;
-	public final String biome;
 	public final EntityType from;
-	public final boolean invTgt;
-	public final EntityType[] noTgt;
-	
-	private static final HashMap<String, BotType> types = BTByBiome();
-	
-	private static HashMap<String, BotType> BTByBiome() {
-		final HashMap<String, BotType> bts = new HashMap<String, BotType>();
-		for (final BotType bt : values()) {
-			bts.put(bt.biome, bt);
-		}
-		return bts;
-	}
-
-	public static BotType getBotType(final String bm) {
-		return types.get(bm);
-	}
 	
 	@SuppressWarnings("unchecked")
-	private BotType(final String[] nms, final String biome, final EntityType from, final boolean invTgt, final EntityType... noTgt) {
+	private BotType(final EntityType from, final String... nms) {
 		txs = (Pair<String, String>[]) new Pair<?, ?>[nms.length];
-		this.biome = biome;
 		this.from = from;
-		this.invTgt = invTgt;
-		this.noTgt = noTgt;
-		for (int i = 0; i < txs.length; i++) {
-			txs[i] = getSkin(nms[i]);
-		}
+		Ostrov.async(() -> {
+			for (int i = 0; i < txs.length; i++) {
+				txs[i] = getSkin(nms[i]);
+			}
+		});
 	}
 	
     private Pair<String, String> getSkin(final String nm) {

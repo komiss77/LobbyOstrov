@@ -15,7 +15,7 @@ import com.mojang.datafixers.util.Pair;
 
 public enum BotType {
 	
-	PIRATE(new String[] {"PirateChris", "litb", "NoLongerAPirate"}, "dry_ocean", EntityType.CREEPER, true, EntityType.VINDICATOR, EntityType.CREEPER, EntityType.PILLAGER, EntityType.RAVAGER, EntityType.ILLUSIONER);
+	REGULAR(new String[] {"PirateChris", "litb", "NoLongerAPirate"}, "dry_ocean", EntityType.CREEPER, true, EntityType.VINDICATOR, EntityType.CREEPER, EntityType.PILLAGER, EntityType.RAVAGER, EntityType.ILLUSIONER);
 	
 	public final Pair<String, String>[] txs;
 	public final String biome;

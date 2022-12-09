@@ -140,7 +140,7 @@ System.out.println("ArmorEquipEvent");
             //Main.oscom.giveForce(p);
             p.teleport(Main.getLocation(Main.LocType.Spawn));
             if (op.getStat(Stat.PLAY_TIME)<300) {
-                ApiOstrov.sendTitle(p, "","§fЧасики откроют меню", 20, 100, 40);
+                ApiOstrov.sendTitle(p, "","§eЧасики откроют меню", 20, 100, 40);
             }
             return;
         }
@@ -412,7 +412,7 @@ System.out.println("ArmorEquipEvent");
             case DEAD_BUBBLE_CORAL:
             	final Spot sp = BotManager.getRndSpawnSpot();
             	if (sp != null) {
-            		new Bot(sp, e.getBlock().getWorld(), BotType.PIRATE);
+            		new Bot(sp, BotType.REGULAR);
             	}
                 break;
 			default:
@@ -632,6 +632,18 @@ System.out.println("ArmorEquipEvent");
                                     40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
                         }
                     }
+                } else {
+                	switch (e.getCause()) {
+                	case VOID, CRAMMING, CUSTOM, SUFFOCATION:
+                    	final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
+                    	if (bt != null) {
+                    		e.setDamage(0d);
+                    		//bt.remove(true);
+                    		return;
+                    	}
+					default:
+						break;
+                	}
                 }
             } else {
                 e.setCancelled(true);

@@ -72,9 +72,20 @@ public class BotManager {
 
 	public BotManager() {
 		
+		BotType.values();
+		
 		for (final Player pl : Bukkit.getOnlinePlayers()) {
 			injectPlayer(pl);
 		}
+		
+		Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
+			final Spot sp = BotManager.getRndSpawnSpot();
+        	if (sp != null) {
+    			for (int i = Bukkit.getOnlinePlayers().size() - 1; i >= 0; i--) {
+    				new Bot(sp, BotType.REGULAR);
+    			}
+        	}
+		}, 200, 2000);
         
 		/*new BukkitRunnable() {
 			
@@ -202,10 +213,6 @@ public class BotManager {
 			}
 		}
 	}
-	
-	public static void hideTag(final net.minecraft.world.level.World w) {
-		sendWrldPckts(w, sbd);
-	}
     
     public static void removePlayer(final Player p) {
     	final Channel channel = Main.ds.bh().a(p.getName()).b.b.m;
@@ -216,7 +223,8 @@ public class BotManager {
     }
 
     public static void injectPlayer(final Player p) {
-    	Main.ds.bh().a(p.getName()).networkManager.m.pipeline().addBefore("packet_handler", p.getName(), new ChannelDuplexHandler() {
+    	final NetworkManager nm = Main.ds.bh().a(p.getName()).networkManager;
+    	nm.m.pipeline().addBefore("packet_handler", p.getName(), new ChannelDuplexHandler() {
             @Override
             public void channelRead(final ChannelHandlerContext chc, final Object packet) throws Exception  {
             	if (packet instanceof PacketPlayInUseEntity) {
@@ -242,6 +250,9 @@ public class BotManager {
                 super.write(chc, packet, channelPromise);
             }
         });
+    	for (final Bot bt : npcs.values()) {
+    		bt.updateAll(nm);
+    	}
     }
     
     public static net.minecraft.world.item.ItemStack getItem(final ItemStack it) {

@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.bots;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -7,6 +8,7 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Husk;
 import org.bukkit.entity.LivingEntity;
@@ -17,6 +19,7 @@ import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 
+import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
 import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.EndSpot;
@@ -26,7 +29,7 @@ import ru.ostrov77.lobby.bots.spots.Spot;
 
 public class BotGoal implements Goal<Husk> {
     
-    public static final String ginName = "§6Исполняю желание хозяина";
+    public static final int MAX_LIVE_TICKS = 2000;
     
     private final GoalKey<Husk> key;
     private final Bot bot;
@@ -36,6 +39,9 @@ public class BotGoal implements Goal<Husk> {
 	
 	private Location tgt;
 	private int lstSpTime;
+	
+	private WeakReference<LivingEntity> tgtLE;
+	
 	private int busy;
     
     public BotGoal(final Bot bot) {
@@ -43,6 +49,7 @@ public class BotGoal implements Goal<Husk> {
         this.bot = bot;
 		this.last = new ArrayList<>();
 		this.pth = bot.rplc.getPathfinder();
+		this.tgtLE = new WeakReference<LivingEntity>(null);
 		this.tgt = null;
 		this.busy = 0;
     }
@@ -67,17 +74,28 @@ public class BotGoal implements Goal<Husk> {
     
     @Override
     public void tick() {
-		if (bot.rplc == null || !bot.rplc.isValid()) {
+		if (bot.rplc == null || !bot.rplc.isValid() || bot.rplc.getTicksLived() > MAX_LIVE_TICKS) {
 			bot.remove(true);
 			return;
 		} else {
 			
 			final Location loc = bot.rplc.getLocation();
+			final Vector vc;
+			//Bukkit.broadcast(Component.text("le-" + tgtLE.get()));
 			
 			if (busy != 0) {
 				pth.stopPathfinding();
-				bot.move(loc, bot.rplc.getEyeLocation().getDirection(), true);
 				busy--;
+				if (tgtLE.get() != null) {
+					tgt = tgtLE.get().getLocation();
+					//Bukkit.broadcast(Component.text("tgt-" + tgt.toVector().toString()));
+					vc = new Vector(tgt.getX() - loc.getX(), tgt.getY() - loc.getY(), tgt.getZ() - loc.getZ());
+					bot.move(loc, vc, true);
+					if ((busy & 7) == 0 && Main.rnd.nextBoolean()) {
+						loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_ATTACK_NODAMAGE, 0.6f, 1f);
+						BotManager.sendWrldPckts(bot.s, new PacketPlayOutAnimation(bot, 0));
+					}
+				}
 				return;
 			}
 			
@@ -103,7 +121,7 @@ public class BotGoal implements Goal<Husk> {
 				lstSpTime = 200;
 				return;
 			} else {
-				if (tgt.distanceSquared(loc) < 10d) {
+				if (tgt.distanceSquared(loc) < 8d) {
 					pth.stopPathfinding();
 					final Spot lst = last.get(last.size() - 1);
 					switch (lst.getType()) {
@@ -112,15 +130,15 @@ public class BotGoal implements Goal<Husk> {
 						if (prtl != null) {
 							tgt = prtl.getCenterLoc();
 							pth.moveTo(tgt, 1.4d);
-							lstSpTime = 200;
+							lstSpTime = 240;
 							break;
 						}
 					case WALK:
 						if (Main.rnd.nextBoolean()) {
 							final LivingEntity close = getCloseLE(loc, 8, bot.rid);
 							if (close != null) {
-								bot.look(close, true);
-								busy = 100;
+								tgtLE = new WeakReference<LivingEntity>(close);
+								busy = 40;
 								return;
 							}
 						}
@@ -139,7 +157,7 @@ public class BotGoal implements Goal<Husk> {
 				}
 			}
 
-			final Vector vc = new Vector(tgt.getX() - loc.getX(), tgt.getY() - loc.getY(), tgt.getZ() - loc.getZ());
+			vc = new Vector(tgt.getX() - loc.getX(), tgt.getY() - loc.getY(), tgt.getZ() - loc.getZ());
 			
 			//attackMelee(ln);
 			
@@ -178,12 +196,12 @@ public class BotGoal implements Goal<Husk> {
 		for (final LivingEntity le : loc.getWorld().getLivingEntities()) {
 			final Location ll = le.getLocation();
 			final int d = Math.abs(ll.getBlockX() - X) + Math.abs(ll.getBlockY() - Y) + Math.abs(ll.getBlockZ() - Z);
-			if (d < dst && d < dd && !(le instanceof HumanEntity) && le.getEntityId() != botID) {
+			if (d < dd && !(le instanceof HumanEntity) && le.getEntityId() != botID) {
 				cls = le;
 				dd = d;
 			}
 		}
-		return cls;
+		return dd < dst ? cls : null;
 	}
 
 	@Override

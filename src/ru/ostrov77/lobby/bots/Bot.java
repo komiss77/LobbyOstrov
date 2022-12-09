@@ -27,8 +27,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
 
+import net.minecraft.EnumChatFormat;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
 import net.minecraft.network.protocol.game.PacketPlayOutEntity;
 import net.minecraft.network.protocol.game.PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
@@ -37,10 +37,12 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityHeadRotation;
 import net.minecraft.network.protocol.game.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo;
 import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
+import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.phys.Vec3D;
-import ru.komiss77.Ostrov;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.ScoreboardTeam;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.version.VM;
 import ru.ostrov77.lobby.Main;
@@ -52,13 +54,15 @@ public class Bot extends EntityPlayer {
 	//стрейфы
 	
 	public static final String nm = "";
+	public static final EnumChatFormat clr = EnumChatFormat.h;
 	
 	private final World w;
+	private final String name;
 	public final Mob rplc;
 	public final int rid;
 	
-	public Bot(final Spot start, final World w, final BotType bt) {
-		super(Main.ds, BotManager.getNMSWrld(w), new GameProfile(UUID.randomUUID(), 
+	public Bot(final Spot start, final BotType bt) {
+		super(Main.ds, BotManager.getNMSWrld(start.getWorld()), new GameProfile(UUID.randomUUID(), 
 			BotManager.names[Main.rnd.nextInt(BotManager.names.length)]), null);
     	//final Pair<String, String> pr = getSkin("litb");
     	final Pair<String, String> pr = bt.txs[Main.rnd.nextInt(bt.txs.length)];
@@ -67,9 +71,10 @@ public class Bot extends EntityPlayer {
     	this.setPosRaw(loc.x + 0.5d, loc.y + 0.1d, loc.z + 0.5d, true);
 		//MainLis.bott = true;
 		//this.this = this;
+		this.w = start.getWorld();
 		this.rplc = (Mob) w.spawnEntity(new Location(w, loc.x + 0.5d, loc.y + 0.1d, loc.z + 0.5d), EntityType.HUSK, false);
 		this.rid = rplc.getEntityId();
-		this.w = w;
+		this.name = this.fy().getName();
 //		this.bt = bt;
 //		this.atkCD = 0;
 //		this.strX = 0;
@@ -83,6 +88,16 @@ public class Bot extends EntityPlayer {
 			new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.a, this), 
 			new PacketPlayOutNamedEntitySpawn(this),
 			new PacketPlayOutEntityDestroy(rid));
+		final Scoreboard sb = this.c.aF();
+		final ScoreboardTeam st = sb.g(name);
+		//st.b(IChatBaseComponent.a("§7"));
+		st.a(clr);
+		BotManager.sendWrldPckts(this.s, 
+			PacketPlayOutScoreboardTeam.a(st), 
+			PacketPlayOutScoreboardTeam.a(st, true), 
+			PacketPlayOutScoreboardTeam.a(st, name, PacketPlayOutScoreboardTeam.a.a), 
+			PacketPlayOutScoreboardTeam.a(st, false));
+		sb.d(st);
 		//TitleManager.hideTag(this.s);
 		BotManager.npcs.put(rid, this);
 		//Ostrov.log_warn("Bot at " + rplc.getLocation().toString());
@@ -140,8 +155,11 @@ public class Bot extends EntityPlayer {
 					//Bukkit.broadcast(Component.text("u=" + upY));
 					//Bukkit.broadcast(Component.text("i=" + i));
 					if (upY < 4) {
-						final Vector vec = vc.clone().setY(0.145d * (2 + upY)).multiply((i + 3) * 0.11d);
-						rplc.setVelocity(vec);
+						/*final Vector vec = upY > 2 ? 
+							vc.clone().multiply((i) * 0.16d + (upY) * 0.1d - 0.02d).setY(0.42d) :
+							vc.clone().multiply((i) * 0.16d + (upY) * 0.1d - 0.02d).setY(0.42d);*/
+						rplc.setVelocity(upY > 2 ? vc.clone().multiply((i) * 0.15d + (upY) * 0.14d - 0.08d).setY(0.42d) 
+								: vc.clone().multiply((i) * 0.15d + (upY) * 0.12d - 0.08d).setY(0.42d));
 						return true;
 					}
 				}
@@ -179,13 +197,6 @@ public class Bot extends EntityPlayer {
 		//loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_HURT, 1f, 1f);
 		//Ostrov.sync(() -> dmgr.attack(rplc));
 		//tgt = dmgr != null && dmgr instanceof LivingEntity ? (LivingEntity) dmgr : tgt;*/
-	}
-
-	public void look(final LivingEntity at, final boolean punch) {
-		final Location loc = rplc.getEyeLocation();
-		loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1f, 1.2f);
-		rplc.lookAt(at.getEyeLocation());
-		Ostrov.sync(() -> BotManager.sendWrldPckts(this.s, new PacketPlayOutAnimation(this, 0)), 4);
 	}
 
 	public void remove(final boolean anmt) {
@@ -261,12 +272,22 @@ public class Bot extends EntityPlayer {
 	}
 
 	public void updateAll(final NetworkManager nm) {
+		nm.getPlayer().getBukkitEntity().sendMessage("updated");
 		nm.a(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.a, this));
 		nm.a(new PacketPlayOutNamedEntitySpawn(this));
 		nm.a(new PacketPlayOutEntityDestroy(rid));
 		nm.a(new PacketPlayOutEntityHeadRotation(this, (byte) (this.getBukkitYaw() * 256 / 360)));
 		nm.a(new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(this.ae(), (short) 0, (short) 0, (short) 0, (byte) 0, (byte) 0, false));
 		nm.a(new PacketPlayOutEntityEquipment(this.ae(), updateIts()));
+		final Scoreboard sb = this.c.aF();
+		final ScoreboardTeam st = sb.g(name);
+		//st.b(IChatBaseComponent.a("§7"));
+		st.a(clr);
+		nm.a(PacketPlayOutScoreboardTeam.a(st));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, true));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, name, PacketPlayOutScoreboardTeam.a.a));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, false));
+		sb.d(st);
 	}
 
 	private BlockFace getVec4Face(final Vector vc) {

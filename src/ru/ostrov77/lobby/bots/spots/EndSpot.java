@@ -14,13 +14,14 @@ public class EndSpot implements Spot {
 	private final XYZ loc;
 	private final SpotType st;
 	private final XYZ prtl;
+	private final World w;
 	
 	private static final int prtlDst = 3;
 	
 	public EndSpot(final XYZ loc) {
 		this.loc = loc;
 		this.st = SpotType.END;
-		final World w = Bukkit.getWorld(loc.worldName);
+		this.w = Bukkit.getWorld(loc.worldName);
 		final IServer sv = VM.getNmsServer();
 		XYZ portal = null;
 		int dst = Integer.MAX_VALUE;
@@ -68,5 +69,10 @@ public class EndSpot implements Spot {
 	@Override
 	public String toString() {
 		return loc.toString() + ", t-" + st.toString();
+	}
+
+	@Override
+	public World getWorld() {
+		return w;
 	}
 }

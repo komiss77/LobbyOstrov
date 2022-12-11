@@ -277,7 +277,7 @@ public class QuestManager implements Listener {
     	if (!Bukkit.isPrimaryThread()) {
             Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
         }
-Ostrov.log("§7log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
+//Ostrov.log("§7log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
         if (!lp.hasQuest(quest)) return false;
         
         if (checkProgress && quest.ammount>0) { //перед завершением квестов со счётчиками обновить прогресс
@@ -313,7 +313,7 @@ Ostrov.log("§7log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
                //         opened++;
                 //    }
                 //}
-Ostrov.log("Complete  HeavyFoot tryAutoComplete Navigation ");
+//Ostrov.log("Complete  HeavyFoot tryAutoComplete Navigation ");
                // if (opened==Quest.DiscoverAllArea.ammount) {
                     tryAutoComplete = Quest.DiscoverAllArea; //зрены к этому моменту уже могли быть все изучены, в конце или выполнится автоматом, или обновится прогресс
                 //    tryCompleteQuest(p, lp, Quest.Navigation, false);
@@ -388,7 +388,7 @@ Ostrov.log("Complete  HeavyFoot tryAutoComplete Navigation ");
         if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
             for (Quest childQuest : childrenQuest) {
                 if (lp.addQuest(childQuest)) {
-Ostrov.log("§8log: +новое задание с выполнением  квеста "+quest+" -> "+childQuest.displayName);
+//Ostrov.log("§8log: +новое задание с выполнением  квеста "+quest+" -> "+childQuest.displayName);
                     if (childQuest.ammount>0) {
                         Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
                     }

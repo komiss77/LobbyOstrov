@@ -195,7 +195,7 @@ class MenuTask implements Runnable {
         for (Hologram h : holo.values()) {
             h.delete();
         }
-        HD.tasks.remove(lp.name);
+        HD.TASKS.remove(lp.name);
         
     }
     

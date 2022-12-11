@@ -24,7 +24,6 @@ import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 
@@ -157,17 +156,20 @@ public class QuestManager implements Listener {
             //при открытии последней новой зоны сначала автовыполнение навигатора
             //lp.getProgress(Quest.DiscoverAllArea) выдаст 0, т.к. квест DiscoverAllArea не начат!
             //нужно вручную посчитать уже открытые зоны
-            int opened = 0;
-            for (LCuboid lc : AreaManager.getCuboids()) {
-                if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
-                    opened++;
+            if (!lp.hasQuest(Quest.DiscoverAllArea)) { //изучаем зону, когда квест DiscoverAllArea еще на получен. (получен будет после хэвифут)
+                int opened = 0;
+                for (LCuboid lc : AreaManager.getCuboids()) {
+                    if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
+                        opened++;
+                   }
                 }
+    //Ostrov.log("DiscoverAllArea "+opened+" tryCompleteQuest complete Navigation ? "+(opened==Quest.DiscoverAllArea.ammount));
+                if (opened==Quest.DiscoverAllArea.ammount) {
+                    tryCompleteQuest(p, lp, Quest.Navigation, false);
+                }
+            } else {
+                tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             }
-//Ostrov.log("DiscoverAllArea "+opened+" tryCompleteQuest complete Navigation ? "+(opened==Quest.DiscoverAllArea.ammount));
-            if (opened==Quest.DiscoverAllArea.ammount) {
-                tryCompleteQuest(p, lp, Quest.Navigation, false);
-            }
-            tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
             if (lp.compasstarget==cuboid.getInfo()) {
                 AreaManager.resetCompassTarget(p, lp);
@@ -192,31 +194,31 @@ public class QuestManager implements Listener {
         
         switch (quest) {
             
-            case DiscoverAllArea:
-                progress = lp.getOpenAreaCount(); //открытые добавляются выше в onNewAreaDiscover
-                break;
+            case DiscoverAllArea -> progress = lp.getOpenAreaCount(); //открытые добавляются выше в onNewAreaDiscover
                 
-            case FindBlock:
+            case FindBlock -> {
                 progress = lp.getProgress(quest);
                 if (update) Main.advance.sendProgress(p, quest, progress);
                 return progress; //тут не надо lp.setProgress, обновляется при интеракт
                 //break;
-                
-            case CobbleGen, MineDiam, KillMobs: // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
+            }
+            
+            case CobbleGen, MineDiam, KillMobs -> {
+                // вызов когда киркой ломаешь булыгу // вызов когда киркой ломаешь алмазы
                 final Material mat;
-            	switch (quest) {
+                switch (quest) {
                     case MineDiam:
-                            mat = Material.DIAMOND;
-                            break;
+                        mat = Material.DIAMOND;
+                        break;
                     case KillMobs:
-                            mat = Material.ROTTEN_FLESH;
-                            break;
+                        mat = Material.ROTTEN_FLESH;
+                        break;
                     case CobbleGen:
                     default:
                         mat = Material.COBBLESTONE;
                         break;
                 }
-//Ostrov.log("updateProgress "+quest+" mat="+mat);
+                //Ostrov.log("updateProgress "+quest+" mat="+mat);
                 final PlayerInventory pi = p.getInventory();
                 final ItemStack it = new ItemStack(mat);
                 progress = 1;
@@ -231,17 +233,13 @@ public class QuestManager implements Listener {
                     it.setAmount(progress);
                     pi.setItemInOffHand(it);
                 }
-                break;
+            }
                 
-            case CollectTax:
-            	progress = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0);    
-                break; 
+            case CollectTax -> progress = (lp.hasFlag(LobbyFlag.MI1) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI2) ? 5 : 0) + (lp.hasFlag(LobbyFlag.MI3) ? 3 : 0); 
                 
-            case Passport:
-            	progress = op==null ? 0 : op.getPasportFillPercent();    
-                break; 
+            case Passport -> progress = op==null ? 0 : op.getPasportFillPercent(); 
                 
-            case TalkAllNpc:
+            case TalkAllNpc -> {
                 for (final LobbyFlag f : LobbyFlag.values()) {
                     switch (f.tag) {
                         case 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 -> {
@@ -251,9 +249,10 @@ public class QuestManager implements Listener {
                         }
                     }
                 }
-                break; 
+            } 
                 
         }
+        
 //p.sendMessage("§8log: getProgress "+quest+"="+progress);
         lp.setProgress(quest, progress); //сохранить в кэш
         if (update) Main.advance.sendProgress(p, quest, progress);//progressAdv(p, lp, quest, dsc);
@@ -278,12 +277,14 @@ public class QuestManager implements Listener {
     	if (!Bukkit.isPrimaryThread()) {
             Ostrov.log_warn("Асинхронный вызов tryCompleteQuest :"+quest+", "+p.getName());
         }
-//p.sendMessage("§8log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
+Ostrov.log("§7log: tryCompleteQuest "+quest+" has?"+lp.hasQuest(quest));
         if (!lp.hasQuest(quest)) return false;
         
         if (checkProgress && quest.ammount>0) { //перед завершением квестов со счётчиками обновить прогресс
             updateProgress(p, lp, quest, true);
         }
+        
+        Quest tryAutoComplete = null;
         
         switch (quest) {
             
@@ -304,7 +305,22 @@ public class QuestManager implements Listener {
                     PM.getOplayer(p).showScore();
                 }
             }
-                
+            
+            case HeavyFoot -> { //после хэвифут чекнуть открытые локации
+                //int opened = 0;
+                //for (LCuboid lc : AreaManager.getCuboids()) {
+                //    if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
+               //         opened++;
+                //    }
+                //}
+Ostrov.log("Complete  HeavyFoot tryAutoComplete Navigation ");
+               // if (opened==Quest.DiscoverAllArea.ammount) {
+                    tryAutoComplete = Quest.DiscoverAllArea; //зрены к этому моменту уже могли быть все изучены, в конце или выполнится автоматом, или обновится прогресс
+                //    tryCompleteQuest(p, lp, Quest.Navigation, false);
+                //}
+            }
+            //case HeavyFoot -> updateProgress(p, lp, Quest.DiscoverAllArea, true);
+            
             case DiscoverAllArea -> {
                 if (lp.getProgress(quest)<quest.ammount) { //недостаточно - выход
                     return false;
@@ -353,7 +369,6 @@ public class QuestManager implements Listener {
             }
             
                 
-            case HeavyFoot -> updateProgress(p, lp, Quest.DiscoverAllArea, true);
                 
         }
         
@@ -373,7 +388,7 @@ public class QuestManager implements Listener {
         if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
             for (Quest childQuest : childrenQuest) {
                 if (lp.addQuest(childQuest)) {
-//p.sendMessage("§8log: +новое задание с выполнением  квеста "+quest+" -> "+childQuest.displayName);
+Ostrov.log("§8log: +новое задание с выполнением  квеста "+quest+" -> "+childQuest.displayName);
                     if (childQuest.ammount>0) {
                         Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
                     }
@@ -385,6 +400,11 @@ public class QuestManager implements Listener {
             tryCompleteQuest(p, lp, Quest.Elytra); //осторожно, можно упасть в деадЛок если сделать кривую проверку!
         }
         ApiOstrov.addExp(p, 30);
+        
+        if (tryAutoComplete!=null) {
+            tryCompleteQuest(p, lp, tryAutoComplete);
+        }
+        
         return true;
     }
 

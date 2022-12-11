@@ -44,7 +44,7 @@ public enum Quest {
     TalkAllNpc              ('t', -2,   0,  10, Material.BOOKSHELF,             "OpenTreassureChest","Комерческий Агент",    "Поговори со всеми НПС : 4рил", 4),
     FirstMission            ('u',  0,   2,   0, Material.GOLD_INGOT,            "GreetNewBie",      "Путь к Успеху",        "Прими первую Миссию : 2рил", 2),
     ;
-
+    //Навести компас на цель (или ТП, если всё открыто) в меню локаций
 
     
     
@@ -105,6 +105,7 @@ public enum Quest {
         return nameMap.get(name);//intMap.containsKey(tag) ? intMap.get(tag) : EMPTY;
     }
     
+    //найти зависимые квесты по названию выполненного или по названию открытого кубоида!
     public static EnumSet<Quest> getChidren(String parentName) {
         //parentName = parentName.toLowerCase();
         final EnumSet<Quest> result = EnumSet.noneOf(Quest.class);

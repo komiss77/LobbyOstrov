@@ -109,7 +109,7 @@ public class AreaViewMenu implements InventoryProvider {
                         ApiOstrov.teleportSave(p, lc.spawnPoint, false)
                     : e->{}));
                 
-            if (lp.hasFlag(LobbyFlag.NewBieDone)) QuestManager.tryCompleteQuest(p, lp, Quest.Navigation);
+            //if (lp.hasFlag(LobbyFlag.NewBieDone)) QuestManager.tryCompleteQuest(p, lp, Quest.Navigation);
                         
         } else {
 

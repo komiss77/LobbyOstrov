@@ -24,7 +24,7 @@ import ru.ostrov77.lobby.area.LCuboid;
 
 public class HD {
 	
-    protected static final ConcurrentHashMap<String,MenuTask> tasks = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<String,MenuTask> TASKS = new ConcurrentHashMap<>();
     private static final ItemStack arrow = new ItemBuilder(Material.ARROW).addEnchantment(Enchantment.ARROW_INFINITE, 1).build();
     private static final ItemStack empty = new ItemStack(Material.GRAY_DYE);
 
@@ -59,10 +59,10 @@ public class HD {
             if (lp.isAreaDiscovered(lc.id)) {
 
                 final ItemHologramLine i = h.getLines().appendItem(new ItemStack(ci.icon));
-                i.setClickListener( (cl) -> {
+                i.setClickListener((cl) -> {
 //p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
                         if (ci.canTp) {
-                            tasks.get(p.getName()).cancel();
+                            TASKS.get(p.getName()).cancel();
                             ApiOstrov.teleportSave(p, lc.spawnPoint, false);
                         }
                     }
@@ -117,7 +117,7 @@ public class HD {
         
         
         final MenuTask a = new MenuTask(p, center, holo);
-        tasks.put(p.getName(), a);
+        TASKS.put(p.getName(), a);
         
        /* Hologram h = HolographicDisplaysAPI.get(Main.instance).createHologram(p.getEyeLocation());
         final VisibilitySettings visiblity = h.getVisibilitySettings();
@@ -133,7 +133,7 @@ public class HD {
     }
 
     public static boolean isOpen( final Player p) {
-        return tasks.containsKey(p.getName()) && tasks.get(p.getName())!=null && !tasks.get(p.getName()).isCanceled() ;
+        return TASKS.containsKey(p.getName()) && TASKS.get(p.getName())!=null && !TASKS.get(p.getName()).isCanceled() ;
     }
    /* protected static Location getHoloCentr(final Player p) {
         //final Location l = p.getEyeLocation();
@@ -144,8 +144,8 @@ public class HD {
     }*/
 
     private static void setCompassTarget(final Player p, final LobbyPlayer lp, final LCuboid newTarget) {
-        if (isOpen(p) && tasks.get(p.getName()).holo.containsKey(lp.compasstarget)) { //в карте есть пункт с предыдущей целью компаса
-            final Hologram h = tasks.get(p.getName()).holo.get(lp.compasstarget); //вытаскиваем голограмму с предыдущей целью компаса
+        if (isOpen(p) && TASKS.get(p.getName()).holo.containsKey(lp.compasstarget)) { //в карте есть пункт с предыдущей целью компаса
+            final Hologram h = TASKS.get(p.getName()).holo.get(lp.compasstarget); //вытаскиваем голограмму с предыдущей целью компаса
             if (h.getLines().size()!=0 && (h.getLines().get(0) instanceof ItemHologramLine)) { //первай строка - предмет
                 final ItemHologramLine i = (ItemHologramLine) h.getLines().get(0); //вытаскиваем строку-предмет
                 i.setItemStack(empty); //меняем её тип (цель не могла быть ранее открыта, так что только серый шарик

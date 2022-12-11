@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -27,7 +26,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.dedicated.DedicatedServer;
 import ru.komiss77.Ostrov;
@@ -89,7 +87,7 @@ public class Main extends JavaPlugin {
     private static final EnumMap<LocType,Location>locations = new EnumMap<LocType, Location>(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
-	public static DedicatedServer ds;
+    public static DedicatedServer ds;
     
     public static final HashMap<XYZ, String> serverPortals = new HashMap<>();//порталы по типу точка портала : сервер
 
@@ -113,11 +111,11 @@ public class Main extends JavaPlugin {
 
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
         
-		try {
-	    	ds = (DedicatedServer) getServer().getClass().getMethod("getServer").invoke(getServer());
-	    } catch (IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-	    	e.printStackTrace();
-	    }
+        try {
+            ds = (DedicatedServer) getServer().getClass().getMethod("getServer").invoke(getServer());
+        } catch (IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+            e.printStackTrace();
+        }
         
         timeManager = new RealTime();
         botManager = new BotManager();

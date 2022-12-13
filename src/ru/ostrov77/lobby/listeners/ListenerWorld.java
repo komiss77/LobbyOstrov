@@ -15,6 +15,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
@@ -31,6 +32,7 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -44,6 +46,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -52,6 +55,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
@@ -113,7 +117,7 @@ System.out.println("ArmorEquipEvent");
         } else {
 			final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
 			if (bt != null) {
-				bt.remove(true);
+				bt.remove(true, true);
 			}
 		}
     }
@@ -633,6 +637,7 @@ System.out.println("ArmorEquipEvent");
                         }
                     }
                 } else {
+					//Bukkit.broadcast(Component.text("c=" + e.getCause().toString()));
                 	switch (e.getCause()) {
                 	case VOID, CRAMMING, CUSTOM, SUFFOCATION:
                     	final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
@@ -673,6 +678,16 @@ System.out.println("ArmorEquipEvent");
 
 
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityLoad(final EntitiesUnloadEvent e) {
+    	for (final Entity en : e.getEntities()) {
+			//Bukkit.broadcast(Component.text("u=" + en.getType().toString()));
+        	final Bot bt = BotManager.npcs.get(en.getEntityId());
+        	if (bt != null) {
+        		bt.remove(false, true);
+        	}
+    	}
+    }
 
 
 

@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -84,6 +85,15 @@ public class BotManager {
     			for (int i = Bukkit.getOnlinePlayers().size() - 1; i >= 0; i--) {
     				new Bot(sp, BotType.REGULAR);
     			}
+    			
+    			final Iterator<Bot> it = npcs.values().iterator();
+    			while (it.hasNext()) {
+    				final Bot bt = it.next();
+    				if (bt.rplc == null || !bt.rplc.isValid()) {
+    					bt.remove(false, false);
+    					it.remove();
+    				}
+				}
         	}
 		}, 200, 2000);
         
@@ -358,7 +368,7 @@ public class BotManager {
 		final HashMap<Integer, Bot> ns = new HashMap<>();
 		ns.putAll(npcs);
 		for (final Bot bt : ns.values()) {
-			bt.remove(false);
+			bt.remove(false, false);
 		}
 		npcs.clear();
 	}

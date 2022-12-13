@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -19,6 +20,7 @@ import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 
+import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
 import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.Main;
@@ -70,15 +72,16 @@ public class BotGoal implements Goal<Husk> {
  
     @Override
     public void stop() {
+		bot.remove(false, true);
     }
     
     @Override
     public void tick() {
 		if (bot.rplc == null || !bot.rplc.isValid() || bot.rplc.getTicksLived() > MAX_LIVE_TICKS) {
-			bot.remove(true);
+			bot.remove(true, true);
 			return;
 		} else {
-			
+			//Bukkit.broadcast(Component.text("le-" + bot.rplc.getName()));
 			final Location loc = bot.rplc.getLocation();
 			final Vector vc;
 			//Bukkit.broadcast(Component.text("le-" + tgtLE.get()));
@@ -102,7 +105,7 @@ public class BotGoal implements Goal<Husk> {
 			if (last.isEmpty()) {
 				final Spot sp = BotManager.getCloseSpot(loc, Collections.emptyList());
 				if (sp == null) {
-					bot.remove(true);
+					bot.remove(true, true);
 					return;
 				}
 				last.add(sp);
@@ -113,7 +116,7 @@ public class BotGoal implements Goal<Husk> {
 				pth.stopPathfinding();
 				final Spot sp = BotManager.getCloseSpot(loc, last);
 				if (sp == null) {
-					bot.remove(true);
+					bot.remove(true, true);
 					return;
 				}
 				last.add(sp);
@@ -146,7 +149,7 @@ public class BotGoal implements Goal<Husk> {
 					default:
 						final Spot sp = BotManager.getCloseSpot(loc, last);
 						if (sp == null) {
-							bot.remove(true);
+							bot.remove(true, true);
 							return;
 						}
 						last.add(sp);

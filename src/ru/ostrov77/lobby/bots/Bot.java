@@ -199,8 +199,10 @@ public class Bot extends EntityPlayer {
 		//tgt = dmgr != null && dmgr instanceof LivingEntity ? (LivingEntity) dmgr : tgt;*/
 	}
 
-	public void remove(final boolean anmt) {
-		BotManager.npcs.remove(rid);
+	public void remove(final boolean anmt, final boolean npc) {
+		if (npc) {
+			BotManager.npcs.remove(rid);
+		}
 		if (anmt) {
 			w.spawnParticle(Particle.SOUL, rplc.getLocation(), 40, 0.4d, 1.2d, 0.4d, 0d, null, false);
 		}

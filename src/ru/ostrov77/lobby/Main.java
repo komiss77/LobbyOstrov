@@ -118,7 +118,7 @@ public class Main extends JavaPlugin {
         }
         
         timeManager = new RealTime();
-        //botManager = new BotManager();
+        botManager = new BotManager();
         areaManager = new AreaManager();
         questManager = new QuestManager();
         

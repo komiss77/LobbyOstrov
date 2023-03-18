@@ -274,7 +274,6 @@ public class Bot extends EntityPlayer {
 	}
 
 	public void updateAll(final NetworkManager nm) {
-		nm.getPlayer().getBukkitEntity().sendMessage("updated");
 		nm.a(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.a, this));
 		nm.a(new PacketPlayOutNamedEntitySpawn(this));
 		nm.a(new PacketPlayOutEntityDestroy(rid));

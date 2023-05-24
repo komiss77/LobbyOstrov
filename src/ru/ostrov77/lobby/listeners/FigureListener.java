@@ -60,7 +60,7 @@ public class FigureListener implements Listener {
                     if (lp.hasFlag(LobbyFlag.NewBieDone)) {
     			fa.set(Arrays.asList("§fРад видеть тебя снова!")).time(5).beforeEyes(false).sound(Sound.ENTITY_VILLAGER_AMBIENT);
                     } else {
-    			fa.set(new ArrayList<String>(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§f чтобы", "увидеть следующие задания!", "Кликни на лампу, и §6Джин§f мигом", "отвезет тебя на §6Спавн§f"))).add(Material.SOUL_LANTERN).add("Либо просто пригни за борт!")
+    			fa.set(new ArrayList<String>(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§f чтобы", "увидеть следующие задания!", "Кликни на лампу, и §6Джин§f мигом", "отвезет тебя на §6Спавн§f"))).add(Material.SOUL_LANTERN).add("Либо просто прыгни за борт!")
                             .time(10).sound(Sound.ENTITY_VILLAGER_AMBIENT);
     			QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
                     }

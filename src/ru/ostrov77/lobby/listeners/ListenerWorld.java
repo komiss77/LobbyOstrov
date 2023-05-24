@@ -64,6 +64,7 @@ import ru.komiss77.Timer;
 import ru.komiss77.enums.Stat;
 import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.BungeeDataRecieved;
+import ru.komiss77.events.LocalDataLoadEvent;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.world.XYZ;
@@ -135,6 +136,12 @@ System.out.println("ArmorEquipEvent");
     
     @EventHandler (priority = EventPriority.MONITOR)
     //public void onJoin(final PlayerJoinEvent e) {
+    public void onLocalData(final LocalDataLoadEvent e) {
+        e.setLogoutLocation(null); //чтобы не ставило стёклышки
+    } 
+    
+    @EventHandler (priority = EventPriority.MONITOR)
+    //public void onJoin(final PlayerJoinEvent e) {
     public void onData(final BungeeDataRecieved e) {
         final Player p = e.getPlayer();
         
@@ -156,7 +163,8 @@ System.out.println("ArmorEquipEvent");
         }
         
         final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
-		BotManager.injectPlayer(p);
+	
+        BotManager.injectPlayer(p);
         //QuestAdvance.onJoin(p);
         
         Ostrov.async( () -> {
@@ -484,7 +492,7 @@ System.out.println("ArmorEquipEvent");
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
     public void onHangingBreakByEntityEvent(final HangingBreakByEntityEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
-        if (  e.getRemover()!=null && e.getRemover().getType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
+        if (  e.getRemover()!=null && e.getRemover().getType()==EntityType.PLAYER && PM.exist(e.getEntity().getName()) ) {
                 if (!ApiOstrov.isLocalBuilder((Player) e.getRemover()) ) e.setCancelled(true);
         } 
 
@@ -548,7 +556,7 @@ System.out.println("ArmorEquipEvent");
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
        
-        if (e.getEntityType()==EntityType.PLAYER && !Ostrov.isCitizen(e.getEntity()) ) {
+        if (e.getEntityType()==EntityType.PLAYER && PM.exist(e.getEntity().getName()) ) {
             final LivingEntity le = (LivingEntity) e.getEntity();
             switch (e.getCause()) {
                 case VOID:

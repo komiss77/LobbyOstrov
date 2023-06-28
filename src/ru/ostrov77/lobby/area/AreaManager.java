@@ -1,6 +1,5 @@
 package ru.ostrov77.lobby.area;
 
-import ru.komiss77.modules.world.XYZ;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +27,7 @@ import ru.komiss77.Timer;
 import ru.komiss77.objects.CaseInsensitiveMap;
 import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
+import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
@@ -96,7 +96,7 @@ public class AreaManager {
     protected static void saveCuboid(final LCuboid lc) {
         areaConfig.set("areas."+lc.id+".name", lc.getName());
         areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
-        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.StringFromLocWithYawPitch(lc.spawnPoint));
+        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.toString(lc.spawnPoint));
         areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
         areaConfig.saveConfig();
     }

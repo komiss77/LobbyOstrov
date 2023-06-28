@@ -53,20 +53,20 @@ public class AreaMainMenu implements InventoryProvider {
                         
                 menuEntry.add(ClickableItem.of(new ItemBuilder( Material.BOOKSHELF )
                     .name(lc.getName())
-                    .lore("ID: §3"+lc.id)
-                    .lore("displayName: "+lc.displayName)
-                    .lore("§7Размер: §b"+lc.getSizeX()+"§7x§b"+lc.getSizeY()+"§7x§b"+lc.getSizeZ())
-                    .lore("§7Объём: §b"+lc.getSize()+" блоков")
-                    .lore("")
-                    .lore("ЛКМ - §6тп в точку спавна кубоида")
-                    .lore("ПКМ - §6редактировать")
-                    .lore("клав.Q - §cудалить")
-                    .lore("")
-                    //.lore("§8редактирование может")
-                    //.lore("§8когда-нибудь допилю,")
-                    //.lore("§8пока упор на скорость,")
-                    //.lore("§8так что можно только")
-                    //.lore("§8удалить и сделать новый.")
+                    .addLore("ID: §3"+lc.id)
+                    .addLore("displayName: "+lc.displayName)
+                    .addLore("§7Размер: §b"+lc.getSizeX()+"§7x§b"+lc.getSizeY()+"§7x§b"+lc.getSizeZ())
+                    .addLore("§7Объём: §b"+lc.getSize()+" блоков")
+                    .addLore("")
+                    .addLore("ЛКМ - §6тп в точку спавна кубоида")
+                    .addLore("ПКМ - §6редактировать")
+                    .addLore("клав.Q - §cудалить")
+                    .addLore("")
+                    //.addLore("§8редактирование может")
+                    //.addLore("§8когда-нибудь допилю,")
+                    //.addLore("§8пока упор на скорость,")
+                    //.addLore("§8так что можно только")
+                    //.addLore("§8удалить и сделать новый.")
                     .build(), e -> {
                         
                 
@@ -121,10 +121,10 @@ public class AreaMainMenu implements InventoryProvider {
 
         contents.set(5, 2 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.BOOK)
             .name("§fCоздать зону")
-            .lore("При нажатии нужно будет")
-            .lore("ввести уникальное название")
-            .lore("без пробелов для")
-            .lore("идентификации в плагине.")
+            .addLore("При нажатии нужно будет")
+            .addLore("ввести уникальное название")
+            .addLore("без пробелов для")
+            .addLore("идентификации в плагине.")
             .build(), "name", newName -> {
 
                 if(newName.isEmpty() || newName.length()>16 || !ApiOstrov.checkString(newName,true,true) ) {

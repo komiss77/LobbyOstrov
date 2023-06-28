@@ -327,9 +327,9 @@ public class Main extends JavaPlugin {
     public static final ItemStack air = new ItemStack(Material.AIR);
     
     public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
-        .setName("§7Топливо для §bКрыльев")
-        .lore("§7Осторожно,")
-        .lore("§7иногда взрывается!")
+        .name("§7Топливо для §bКрыльев")
+        .addLore("§7Осторожно,")
+        .addLore("§7иногда взрывается!")
         .build()
     );
 
@@ -385,10 +385,10 @@ public class Main extends JavaPlugin {
     
     private void createMenuItems() {
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
-            .setName("§bКрылья Островитянина")
+            .name("§bКрылья Островитянина")
             .setUnbreakable(true)
-            .lore("§7Используйте для")
-            .lore("§7перемещения по §eОстрову§7!")
+            .addLore("§7Используйте для")
+            .addLore("§7перемещения по §eОстрову§7!")
             .build();
         elytra = new MenuItemBuilder("elytra", is)
             .slot(38) //Chestplate
@@ -403,9 +403,9 @@ public class Main extends JavaPlugin {
         
 
         final ItemStack pip=new ItemBuilder(Material.CLOCK)
-            .setName(" §6ЛКМ§e-профиль §2ПКМ§a-сервера")
+            .name(" §6ЛКМ§e-профиль §2ПКМ§a-сервера")
             .setUnbreakable(true)
-            .unsaveEnchantment(Enchantment.LUCK, 1)
+            .unsafeEnchantment(Enchantment.LUCK, 1)
             .build();
         pipboy = new MenuItemBuilder("pipboy", pip)
             .slot(8)
@@ -423,9 +423,9 @@ public class Main extends JavaPlugin {
         
         
         final ItemStack newbie=new ItemBuilder(Material.COMPASS)
-            .setName("§3ОСКом")
-            .lore("§6ЛКМ§e - задачи")
-            .lore("§2ПКМ§a - локации")
+            .name("§3ОСКом")
+            .addLore("§6ЛКМ§e - задачи")
+            .addLore("§2ПКМ§a - локации")
             .setUnbreakable(true)
             .addFlags(ItemFlag.HIDE_UNBREAKABLE)
             .addFlags(ItemFlag.HIDE_ENCHANTS)
@@ -450,8 +450,8 @@ public class Main extends JavaPlugin {
 
         
         final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
-            .setName("§aИндивидуальность")
-            .lore("§7Для Игроманов - всё и сразу!")
+            .name("§aИндивидуальность")
+            .addLore("§7Для Игроманов - всё и сразу!")
             .build();
         cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
             .slot(4)
@@ -468,9 +468,9 @@ public class Main extends JavaPlugin {
             .create();
         
         final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
-            .setName("§bРазрушитель 3000")
-            .lore("§7Cносит блоки с одного удара!,")
-            .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
+            .name("§bРазрушитель 3000")
+            .addLore("§7Cносит блоки с одного удара!,")
+            .addLore("§7(но только §fБулыжник §7и §bАлмазы§7)")
             .build();
         pickaxe = new MenuItemBuilder("pickaxe", pckx)
             .slot(2)
@@ -485,8 +485,8 @@ public class Main extends JavaPlugin {
             .create();
         
          final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
-                .setName("§6Заряженый Жезл")
-                .lore("§7Враги улетят в след. измерение!")
+                .name("§6Заряженый Жезл")
+                .addLore("§7Враги улетят в след. измерение!")
                 .addEnchantment(Enchantment.KNOCKBACK, 1)
                 .build();
         stick = new MenuItemBuilder("stick", st)

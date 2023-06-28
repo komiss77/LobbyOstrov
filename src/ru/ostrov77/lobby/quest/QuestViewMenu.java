@@ -56,10 +56,10 @@ public class QuestViewMenu implements InventoryProvider {
             
             final ItemStack is = new ItemBuilder(Material.SCUTE)
                     .name(q.displayName)
-                    .lore(Quest.getLore(q))
-                    .lore("§aАктивно" + (q.ammount>0 ? "§7, прогресс: §f"+lp.getProgress(q)+" §7из §f"+q.ammount : "") )
-                    .lore(builder ? "§b*Отладка: §eЛКМ-завершить" : "")
-                    .lore(builder && q.ammount>0 ? "§b*Отладка: §eПКМ-добавить процесс" : "")
+                    .addLore(Quest.getLore(q))
+                    .addLore("§aАктивно" + (q.ammount>0 ? "§7, прогресс: §f"+lp.getProgress(q)+" §7из §f"+q.ammount : "") )
+                    .addLore(builder ? "§b*Отладка: §eЛКМ-завершить" : "")
+                    .addLore(builder && q.ammount>0 ? "§b*Отладка: §eПКМ-добавить процесс" : "")
                     .build();
                     
             if (builder) {
@@ -98,10 +98,10 @@ public class QuestViewMenu implements InventoryProvider {
                     
                     is = new ItemBuilder(Material.FIRE_CHARGE)
                     .name(q.displayName)
-                    .lore(Quest.getLore(q))
-                    .lore("§6Предстоит")
-                    .lore("§7Откроется после выполнения")
-                    .lore(parent.displayName)
+                    .addLore(Quest.getLore(q))
+                    .addLore("§6Предстоит")
+                    .addLore("§7Откроется после выполнения")
+                    .addLore(parent.displayName)
                     .build();
                     buttons.add(ClickableItem.empty(is));
                     
@@ -111,11 +111,11 @@ public class QuestViewMenu implements InventoryProvider {
                     if (lc!=null) {
                         is = new ItemBuilder(Material.FIRE_CHARGE)
                             .name(q.displayName)
-                            .lore(Quest.getLore(q))
-                            .lore("§6Предстоит")
-                            .lore("§7Откроется при изучении локации")
-                            .lore(lc.displayName)
-                            .lore(builder ? "§b*Отладка: §eЛКМ-расшарить" : "")
+                            .addLore(Quest.getLore(q))
+                            .addLore("§6Предстоит")
+                            .addLore("§7Откроется при изучении локации")
+                            .addLore(lc.displayName)
+                            .addLore(builder ? "§b*Отладка: §eЛКМ-расшарить" : "")
                             .build();
                         
                         if (builder) {
@@ -133,8 +133,8 @@ public class QuestViewMenu implements InventoryProvider {
                         
                         is = new ItemBuilder(Material.FIRE_CHARGE)
                            .name(q.displayName)
-                           .lore(Quest.getLore(q))
-                           .lore("§6Предстоит")
+                           .addLore(Quest.getLore(q))
+                           .addLore("§6Предстоит")
                            .build();
                         buttons.add(ClickableItem.empty(is));
                         
@@ -152,7 +152,7 @@ public class QuestViewMenu implements InventoryProvider {
             
             final ItemStack is = new ItemBuilder(Material.FIREWORK_STAR)
                     .name(q.displayName)
-                    .lore("§8Завершено")
+                    .addLore("§8Завершено")
                     .build();
             
                 buttons.add(ClickableItem.empty(is));

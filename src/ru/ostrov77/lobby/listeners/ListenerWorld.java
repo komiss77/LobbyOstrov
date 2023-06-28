@@ -3,7 +3,6 @@ package ru.ostrov77.lobby.listeners;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -32,7 +31,6 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -53,9 +51,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
-
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
@@ -260,7 +256,7 @@ System.out.println("ArmorEquipEvent");
         //NewBie__.stop(p);
         final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
         if (lp!=null) {
-            final String logoutLoc = LocationUtil.StringFromLocWithYawPitch(p.getLocation());
+            final String logoutLoc = LocationUtil.toDirString(p.getLocation());
             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
             final LCuboid exitCuboid = AreaManager.getCuboid(p.getLocation());
             if (exitCuboid!=null) {

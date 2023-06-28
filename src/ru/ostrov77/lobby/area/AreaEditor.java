@@ -47,18 +47,18 @@ public class AreaEditor implements InventoryProvider{
         if (sm.getCuboid()==null) {
             contents.set(0, 4, ClickableItem.empty(new ItemBuilder(Material.PAPER)
                 .name("§7локация §f"+sm.schemName)
-                .lore("")
-                .lore("§7Создайте кубоид точками диагоналей.")
+                .addLore("")
+                .addLore("§7Создайте кубоид точками диагоналей.")
 
-                .lore("")
+                .addLore("")
                 .build()));
         } else {
             contents.set(0, 4, ClickableItem.empty(new ItemBuilder(Material.PAPER)
                 .name("§7локация §f"+sm.schemName)
-                .lore("ID: §3"+sm.param)
-                .lore("displayName: §e"+sm.extra1)
-                .lore("§7Размер: §b"+sm.getCuboid().getSizeX()+"§7x§b"+sm.getCuboid().getSizeY()+"§7x§b"+sm.getCuboid().getSizeZ())
-                .lore("§7Объём: §e"+sm.getCuboid().getSize())
+                .addLore("ID: §3"+sm.param)
+                .addLore("displayName: §e"+sm.extra1)
+                .addLore("§7Размер: §b"+sm.getCuboid().getSizeX()+"§7x§b"+sm.getCuboid().getSizeY()+"§7x§b"+sm.getCuboid().getSizeZ())
+                .addLore("§7Объём: §e"+sm.getCuboid().getSize())
                 .build()));
         }
         
@@ -102,8 +102,8 @@ public class AreaEditor implements InventoryProvider{
         if (sm.pos2==null) {
              contents.set(1, 4, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7верхняя точка кубоида.")
-                .lore("§cне установлена")
-                .lore("§7Клик - установить.")
+                .addLore("§cне установлена")
+                .addLore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                     sm.pos2=p.getLocation();
@@ -114,9 +114,9 @@ public class AreaEditor implements InventoryProvider{
         } else {
             contents.set(1, 4, ClickableItem.of( new ItemBuilder(Material.OAK_FENCE)
                 .name("§7верхняя точка кубоида.")
-                .lore("§7")
-                .lore("§7ЛКМ-тп")
-                .lore("§7ПКМ-установить")
+                .addLore("§7")
+                .addLore("§7ЛКМ-тп")
+                .addLore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
                         p.teleport(sm.pos2);
@@ -143,8 +143,8 @@ public class AreaEditor implements InventoryProvider{
         if (sm.pos1==null) {
              contents.set(4, 1, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7нижняя точка кубоида.")
-                .lore("§cне установлена")
-                .lore("§7Клик - установить.")
+                .addLore("§cне установлена")
+                .addLore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                     sm.pos1=p.getLocation();
@@ -157,9 +157,9 @@ public class AreaEditor implements InventoryProvider{
         } else {
             contents.set(4, 1, ClickableItem.of( new ItemBuilder(Material.OAK_FENCE)
                 .name("§7нижняя точка кубоида.")
-                .lore("§7")
-                .lore("§7ЛКМ-тп")
-                .lore("§7ПКМ-установить")
+                .addLore("§7")
+                .addLore("§7ЛКМ-тп")
+                .addLore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
                         p.teleport(sm.spawnPoint);
@@ -180,9 +180,9 @@ public class AreaEditor implements InventoryProvider{
     
         contents.set(1, 6, ClickableItem.of( new ItemBuilder(sm.spawnPoint==null ? Material.BARRIER : Material.ENDER_EYE)
             .name("§7точка спавна кубоида.")
-            .lore("§7")
-            .lore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
-            .lore("§7ПКМ-установить")
+            .addLore("§7")
+            .addLore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
+            .addLore("§7ПКМ-установить")
             .build(), e -> {
                 if (e.isLeftClick() && sm.spawnPoint!=null) {
                     p.teleport(sm.spawnPoint);
@@ -213,9 +213,9 @@ public class AreaEditor implements InventoryProvider{
     
         contents.set(1, 6, ClickableItem.of( new ItemBuilder(sm.spawnPoint==null ? Material.BARRIER : Material.ENDER_EYE)
             .name("§7точка спавна кубоида.")
-            .lore("§7")
-            .lore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
-            .lore("§7ПКМ-установить")
+            .addLore("§7")
+            .addLore(sm.spawnPoint==null ? "§cне установлена": "§7ЛКМ-тп")
+            .addLore("§7ПКМ-установить")
             .build(), e -> {
                 if (e.isLeftClick() && sm.spawnPoint!=null) {
                     p.teleport(sm.spawnPoint);
@@ -243,8 +243,8 @@ public class AreaEditor implements InventoryProvider{
         
         contents.set(2, 6 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.BARRIER)
             .name("§fУстановить ИД")
-            .lore( (id<1 || id>32) ? "Уникальное число от 1 до 32" : "")
-            .lore( (AreaManager.getCuboid(id)!=null) ? "Локация с ИД "+id+" уже есть!" : "")
+            .addLore( (id<1 || id>32) ? "Уникальное число от 1 до 32" : "")
+            .addLore( (AreaManager.getCuboid(id)!=null) ? "Локация с ИД "+id+" уже есть!" : "")
             .build(), "1-32", param -> {
                 sm.param = param;
                 reopen(p, contents);
@@ -254,7 +254,7 @@ public class AreaEditor implements InventoryProvider{
         
         contents.set(2, 6 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.NAME_TAG)
             .name("§fРедактировать ИД")
-            .lore("§7Сейчас: §a"+id)
+            .addLore("§7Сейчас: §a"+id)
             .build(), "1-32", param -> {
                 sm.param = param;
                 reopen(p, contents);
@@ -268,8 +268,8 @@ public class AreaEditor implements InventoryProvider{
         
         contents.set(3, 6 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.NAME_TAG)
             .name("§fРедактировать DisplayName")
-            .lore("§7Сейчас:")
-            .lore(sm.extra1)
+            .addLore("§7Сейчас:")
+            .addLore(sm.extra1)
             .build(), sm.extra1.replaceAll("§", "&"), displayName -> {
                 sm.extra1 = displayName;
                 if(displayName.length()>64 ) {
@@ -346,9 +346,9 @@ public class AreaEditor implements InventoryProvider{
             
             contents.set(5, 6, ClickableItem.empty(new ItemBuilder(Material.JUKEBOX)
                 .name("§6Для сохранения:")
-                .lore(selected ? "" : "§cнет выделения")
-                .lore( wrongID ? "§cневерный ИД" : "")
-                .lore((overlap!=null) ? "§cвыделение пересекается с "+overlap.getName()+" (ID="+overlap.id+")" : "")
+                .addLore(selected ? "" : "§cнет выделения")
+                .addLore( wrongID ? "§cневерный ИД" : "")
+                .addLore((overlap!=null) ? "§cвыделение пересекается с "+overlap.getName()+" (ID="+overlap.id+")" : "")
                 .build()
             ));
             

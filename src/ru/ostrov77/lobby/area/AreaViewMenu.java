@@ -11,12 +11,8 @@ import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
-import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
-
 
 
 
@@ -101,8 +97,8 @@ public class AreaViewMenu implements InventoryProvider {
 
                 final ItemStack is = new ItemBuilder(ci.icon)
                         .name(lc.displayName)
-                        .lore("§7Открыта")
-                        .lore(ci.canTp ? "§7ЛКМ - тп" : "")
+                        .addLore("§7Открыта")
+                        .addLore(ci.canTp ? "§7ЛКМ - тп" : "")
                         .build();
 
                 content.set(ci.slot, ClickableItem.of(is, ci.canTp ? e-> 
@@ -115,9 +111,9 @@ public class AreaViewMenu implements InventoryProvider {
 
             final ItemStack is = new ItemBuilder(lp.compasstarget == lc.getInfo() ? Material.CLAY_BALL :  Material.GRAY_DYE)
                     .name(lc.displayName)
-                    .lore("§7Не изучена")
-                    .lore(lp.compasstarget == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
-                    .lore(lp.compasstarget == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
+                    .addLore("§7Не изучена")
+                    .addLore(lp.compasstarget == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
+                    .addLore(lp.compasstarget == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
                     .build();
 
             content.set(ci.slot, ClickableItem.of(is, e-> {

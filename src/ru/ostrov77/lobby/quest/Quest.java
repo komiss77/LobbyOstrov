@@ -86,7 +86,7 @@ public enum Quest {
         for (final Quest d : Quest.values()) {
             c.put(d.code,d);
             n.put(d.name(),d);
-            l.put(d,ItemUtils.Gen_lore(null, d.description, "§7"));
+            l.put(d,ItemUtils.genLore(null, d.description, "§7"));
         }
         codeMap = Collections.unmodifiableMap(c);
         nameMap = Collections.unmodifiableMap(n);

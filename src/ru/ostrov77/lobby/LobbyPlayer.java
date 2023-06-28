@@ -103,7 +103,9 @@ public class LobbyPlayer {
         //boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
         if (questAccept.remove(quest) && questDone.add(quest)) {
             final Oplayer op = PM.getOplayer(name);
-            op.setData(Data.RIL, op.getDataInt(Data.RIL)+quest.pay);
+            if (quest.pay>0) {
+                op.setData(Data.RIL, op.getDataInt(Data.RIL)+quest.pay);
+            }
             progressCache.remove(quest);
             toSave = true;
             if (quest==Quest.FindBlock) {

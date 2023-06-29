@@ -235,40 +235,41 @@ public class BotManager {
     }
 
     public static void injectPlayer(final Player p) {
-        final NetworkManager nm = Main.ds.bh().a(p.getName()).networkManager;
-        
-        nm.m.pipeline().addBefore("packet_handler", p.getName(), new ChannelDuplexHandler() {
-            @Override
-            public void channelRead(final ChannelHandlerContext chc, final Object packet) throws Exception {
-                if (packet instanceof PacketPlayInUseEntity) {
-                    final PacketPlayInUseEntity uep = (PacketPlayInUseEntity) packet;
-                    if (uep.getActionType() == b.b) {
-                        for (final Bot bt : BotManager.npcs.values()) {
-                            if (bt.ae() == uep.getEntityId()) {
-                                bt.hurt(p);
-                                id.set(uep, bt.rid);
-                                break;
-                            }
-                        }
-                    }
+    	final NetworkManager nm = Main.ds.bh().a(p.getName()).networkManager;
+    	try {
+        	nm.m.pipeline().addBefore("packet_handler", p.getName(), new ChannelDuplexHandler() {
+                @Override
+                public void channelRead(final ChannelHandlerContext chc, final Object packet) throws Exception  {
+                	if (packet instanceof PacketPlayInUseEntity) {
+                		final PacketPlayInUseEntity uep = (PacketPlayInUseEntity) packet;
+                		if (uep.getActionType() == b.b) {
+                			for (final Bot bt : BotManager.npcs.values()) {
+                				if (bt.ae() == uep.getEntityId()) {
+                    				bt.hurt(p);
+                    				id.set(uep, bt.rid);
+                    				break;
+                				}
+                			}
+                		}
+                	}
+                    super.channelRead(chc, packet);
                 }
-                super.channelRead(chc, packet);
-            }
-
-            @Override
-            public void write(final ChannelHandlerContext chc, final Object packet, final ChannelPromise channelPromise) throws Exception {
-                if (packet instanceof PacketPlayOutSpawnEntity) {
-                    if (BotManager.npcs.get(((PacketPlayOutSpawnEntity) packet).b()) != null) {
-                        return;
-                    }
+                
+    			@Override
+                public void write(final ChannelHandlerContext chc, final Object packet, final ChannelPromise channelPromise) throws Exception {
+    			if (packet instanceof PacketPlayOutSpawnEntity) {
+    				if (BotManager.npcs.get(((PacketPlayOutSpawnEntity) packet).b()) != null) return;
+    			}
+                    super.write(chc, packet, channelPromise);
                 }
-                super.write(chc, packet, channelPromise);
-            }
-        });
-        
-        for (final Bot bt : npcs.values()) {
-            bt.updateAll(nm);
-        }
+            });
+		} catch (IllegalArgumentException e) {
+			//хз смысла фиксить нет
+			Ostrov.log_warn("Уже подключен игрок " + p.getName());
+		}
+    	for (final Bot bt : npcs.values()) {
+    		bt.updateAll(nm);
+    	}
     }
 
     public static net.minecraft.world.item.ItemStack getItem(final ItemStack it) {

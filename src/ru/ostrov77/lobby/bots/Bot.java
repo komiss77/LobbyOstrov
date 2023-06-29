@@ -295,19 +295,37 @@ public class Bot extends EntityPlayer {
         sb.d(st);
     }
 
-    private BlockFace getVec4Face(final Vector vc) {
-        if (Math.abs(vc.getX()) > Math.abs(vc.getZ())) {
-            if (vc.getX() > 0) {
-                return BlockFace.EAST;
-            } else {
-                return BlockFace.WEST;
-            }
-        } else {
-            if (vc.getZ() > 0) {
-                return BlockFace.SOUTH;
-            } else {
-                return BlockFace.NORTH;
-            }
-        }
-    }
+	public void updateAll(final NetworkManager nm) {
+		nm.a(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.a, this));
+		nm.a(new PacketPlayOutNamedEntitySpawn(this));
+		nm.a(new PacketPlayOutEntityDestroy(rid));
+		nm.a(new PacketPlayOutEntityHeadRotation(this, (byte) (this.getBukkitYaw() * 256 / 360)));
+		nm.a(new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(this.ae(), (short) 0, (short) 0, (short) 0, (byte) 0, (byte) 0, false));
+		nm.a(new PacketPlayOutEntityEquipment(this.ae(), updateIts()));
+		final Scoreboard sb = this.c.aF();
+		final ScoreboardTeam st = sb.g(name);
+		//st.b(IChatBaseComponent.a("§7"));
+		st.a(clr);
+		nm.a(PacketPlayOutScoreboardTeam.a(st));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, true));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, name, PacketPlayOutScoreboardTeam.a.a));
+		nm.a(PacketPlayOutScoreboardTeam.a(st, false));
+		sb.d(st);
+	}
+
+	private BlockFace getVec4Face(final Vector vc) {
+		if (Math.abs(vc.getX()) > Math.abs(vc.getZ())) {
+			if (vc.getX() > 0) {
+				return BlockFace.EAST;
+			} else {
+				return BlockFace.WEST;
+			}
+		} else {
+			if (vc.getZ() > 0) {
+				return BlockFace.SOUTH;
+			} else {
+				return BlockFace.NORTH;
+			}
+		}
+	}
 }

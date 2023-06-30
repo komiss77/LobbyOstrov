@@ -420,7 +420,7 @@ System.out.println("ArmorEquipEvent");
             case DEAD_BUBBLE_CORAL:
             	final Spot sp = BotManager.getRndSpawnSpot();
             	if (sp != null) {
-            		new Bot(sp, BotType.REGULAR);
+            		//new Bot(sp, BotType.REGULAR);
             	}
                 break;
 			default:

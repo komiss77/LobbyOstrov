@@ -1,5 +1,12 @@
 package ru.ostrov77.lobby.bots;
 
+import java.util.HashMap;
+import org.bukkit.entity.Player;
+import ru.komiss77.modules.world.XYZ;
+import ru.ostrov77.lobby.bots.spots.Spot;
+import ru.ostrov77.lobby.bots.spots.SpotType;
+
+/*
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -52,10 +59,31 @@ import ru.ostrov77.lobby.bots.spots.SpawnSpot;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.bots.spots.WalkSpot;
-
+*/
 public class BotManager {
-
+    
     public static final HashMap<Integer, Bot> npcs = new HashMap<>();
+
+    //заглушки 
+    public static void addSpot(XYZ fromString, SpotType valueOf) {
+    }
+
+    public static void removePlayer(Player pl) {
+    }
+
+    public static void clearBots() {
+    }
+    public static void injectPlayer(Player p) {
+    }
+
+    public static Spot getRndSpawnSpot() {
+        return null;
+    }
+
+    public static void deleteSpot(XYZ xyz) {
+    }
+
+/*
     protected static final List<Spot> spots = new ArrayList<>();
 
     protected static final String[] names = readNames();
@@ -111,7 +139,7 @@ public class BotManager {
 					}
 				}
 			}
-		}.runTaskTimer(Main.instance, 20, 2);*/
+		}.runTaskTimer(Main.instance, 20, 2);** /
     }
 
     public static String[] readNames() {
@@ -206,7 +234,7 @@ public class BotManager {
 			e.printStackTrace();
 			return null;
 		}
-	}*/
+	}* /
     public static final Field id = getIdFld();
 
     private static Field getIdFld() {
@@ -393,5 +421,7 @@ public class BotManager {
                 bt.updateAll(nm);
             }
         }
-    }
+    }*/
+
+
 }

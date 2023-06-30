@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.bots;
-
+/*
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -216,4 +216,4 @@ public class BotGoal implements Goal<Husk> {
     public EnumSet<GoalType> getTypes() {
         return EnumSet.of(GoalType.MOVE, GoalType.LOOK);
     }
-}
+}*/

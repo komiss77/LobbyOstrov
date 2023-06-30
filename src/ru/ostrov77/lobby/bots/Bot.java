@@ -1,5 +1,13 @@
 package ru.ostrov77.lobby.bots;
 
+import com.mojang.authlib.GameProfile;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
+import ru.ostrov77.lobby.Main;
+import ru.ostrov77.lobby.bots.spots.Spot;
+
+/*
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -47,9 +55,19 @@ import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.version.VM;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
+*/
 
 public class Bot extends EntityPlayer {
+    //заглушки 
+    //ListenerWorld line 423 - закоменчено!
+    public Bot(MinecraftServer server, WorldServer world, GameProfile profile) {
+        super(server, world, profile);
+    }
 
+    public void remove(boolean b, boolean b0) {
+    }    
+
+/*
     //лестницы-
     //стрейфы
     public static final String nm = "";
@@ -102,20 +120,7 @@ public class Bot extends EntityPlayer {
         //Ostrov.log_warn("Bot at " + rplc.getLocation().toString());
     }
 
-    /*private Location getStrfLoc(final Vector vc,final double ln) {
-		if (ln < 12d) {
-			if (Main.rnd.nextInt(4) == 0) {
-				final BlockFace bf = getVec4Face(vc).getOppositeFace();
-				return bf.getModX() == 0 ? 
-					tgt.getLocation().add(strX = Main.rnd.nextBoolean() ? 2 : -2, 0d, strZ = (Main.rnd.nextBoolean() ? 1 : 2) * bf.getModZ()) 
-					: 
-					tgt.getLocation().add(strX = (Main.rnd.nextBoolean() ? 1 : 2) * bf.getModX(), 0d, strZ = Main.rnd.nextBoolean() ? 2 : -2);
-			}
-			return tgt.getLocation().add(strX, 0d, strZ);
-		} else {
-			return tgt.getLocation();
-		}
-	}*/
+
     protected boolean tryLadder(final Block on, final Vector vc) {
         final BlockFace bf = getVec4Face(vc);
         if (on.getType() == Material.LADDER && ((Directional) on.getBlockData()).getFacing().getOppositeFace() == bf) {
@@ -159,7 +164,7 @@ public class Bot extends EntityPlayer {
                     if (upY < 4) {
                         /*final Vector vec = upY > 2 ? 
 							vc.clone().multiply((i) * 0.16d + (upY) * 0.1d - 0.02d).setY(0.42d) :
-							vc.clone().multiply((i) * 0.16d + (upY) * 0.1d - 0.02d).setY(0.42d);*/
+							vc.clone().multiply((i) * 0.16d + (upY) * 0.1d - 0.02d).setY(0.42d);*
                         rplc.setVelocity(upY > 2 ? vc.clone().multiply((i) * 0.15d + (upY) * 0.14d - 0.08d).setY(0.42d)
                                 : vc.clone().multiply((i) * 0.15d + (upY) * 0.12d - 0.08d).setY(0.42d));
                         return true;
@@ -200,7 +205,7 @@ public class Bot extends EntityPlayer {
         //BotManager.sendWrldPckts(this.s, new PacketPlayOutAnimation(this, 1));
         //loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_HURT, 1f, 1f);
         //Ostrov.sync(() -> dmgr.attack(rplc));
-        //tgt = dmgr != null && dmgr instanceof LivingEntity ? (LivingEntity) dmgr : tgt;*/
+        //tgt = dmgr != null && dmgr instanceof LivingEntity ? (LivingEntity) dmgr : tgt;*
     }
 
     public void remove(final boolean anmt, final boolean npc) {
@@ -238,7 +243,7 @@ public class Bot extends EntityPlayer {
 	private int getDmgFrom(ItemStack hnd) {
 		
 		return 0;
-	}*/
+	}*
     protected void pickupIts(final Location loc) {
         for (final Item it : w.getEntitiesByClass(Item.class)) {
             //rplc.getWorld().getPlayers().get(0).sendMessage(loc.distanceSquared(it.getLocation()) + "");
@@ -327,5 +332,7 @@ public class Bot extends EntityPlayer {
 				return BlockFace.NORTH;
 			}
 		}
-	}
+	}*/
+
+
 }

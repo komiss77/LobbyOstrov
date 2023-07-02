@@ -86,7 +86,7 @@ public class AdvanceVanila implements IAdvance, Listener {
     @Override
     public void sendToast(final Player p, final LobbyPlayer lp, final Quest quest) {
 //p.sendMessage("§8log: onQuestAdd ToastNotification - "+quest);  
-        ApiOstrov.sendTitleDelay(p, "", "§7Квест: "+quest.displayName, 20, 40, 20);
+        ApiOstrov.sendTitle(p, "", "§7Квест: "+quest.displayName, 20, 40, 20);
     }
 
     

@@ -1,6 +1,7 @@
 package ru.ostrov77.lobby.quest;
 
 import java.util.EnumSet;
+import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -170,7 +171,7 @@ public class QuestManager implements Listener {
             } else {
                 tryCompleteQuest(p, lp, Quest.DiscoverAllArea);
             }
-            ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BarColor.GREEN, BarStyle.SOLID, false);
+            ApiOstrov.sendBossbar(p, "Открыта новая локация: "+cuboid.displayName, 7, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS, false);
             if (lp.compasstarget==cuboid.getInfo()) {
                 AreaManager.resetCompassTarget(p, lp);
             }

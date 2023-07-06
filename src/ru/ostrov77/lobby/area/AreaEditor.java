@@ -57,16 +57,16 @@ public class AreaEditor implements InventoryProvider{
                 .name("§7локация §f"+sm.schemName)
                 .addLore("ID: §3"+sm.param)
                 .addLore("displayName: §e"+sm.extra1)
-                .addLore("§7Размер: §b"+sm.getCuboid().getSizeX()+"§7x§b"+sm.getCuboid().getSizeY()+"§7x§b"+sm.getCuboid().getSizeZ())
-                .addLore("§7Объём: §e"+sm.getCuboid().getSize())
+                .addLore("§7Размер: §b"+sm.getCuboid().sizeX()+"§7x§b"+sm.getCuboid().sizeY()+"§7x§b"+sm.getCuboid().sizeZ())
+                .addLore("§7Объём: §e"+sm.getCuboid().volume())
                 .build()));
         }
         
 
 
-        final boolean selected = sm.pos1!=null && sm.pos2!=null
-                    && sm.pos1.getWorld().getName().equals(sm.pos2.getWorld().getName())
-                    && p.getWorld().getName().equals(sm.pos1.getWorld().getName());
+        final boolean selected = sm.min!=null && sm.max!=null
+                    && sm.min.getWorld().getName().equals(sm.max.getWorld().getName())
+                    && p.getWorld().getName().equals(sm.min.getWorld().getName());
 
 
         
@@ -99,14 +99,14 @@ public class AreaEditor implements InventoryProvider{
 
        
 
-        if (sm.pos2==null) {
+        if (sm.max==null) {
              contents.set(1, 4, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7верхняя точка кубоида.")
                 .addLore("§cне установлена")
                 .addLore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                    sm.pos2=p.getLocation();
+                    sm.max=p.getLocation();
                     sm.checkPosition(p);
                     //p.sendBlockChange(p.getLocation(), Material.EMERALD_BLOCK.createBlockData());
                     reopen(p, contents);
@@ -119,11 +119,11 @@ public class AreaEditor implements InventoryProvider{
                 .addLore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
-                        p.teleport(sm.pos2);
+                        p.teleport(sm.max);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                        sm.pos2=p.getLocation();
+                        sm.max=p.getLocation();
                         sm.checkPosition(p);
                         reopen(p, contents);
                     }
@@ -140,14 +140,14 @@ public class AreaEditor implements InventoryProvider{
 
         
         
-        if (sm.pos1==null) {
+        if (sm.min==null) {
              contents.set(4, 1, ClickableItem.of( new ItemBuilder(Material.BARRIER)
                 .name("§7нижняя точка кубоида.")
                 .addLore("§cне установлена")
                 .addLore("§7Клик - установить.")
                 .build(), e -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                    sm.pos1=p.getLocation();
+                    sm.min=p.getLocation();
                     sm.spawnPoint=p.getLocation();
                     sm.spawnPoint.setY(p.getLocation().getYaw());
                     sm.spawnPoint.setPitch(p.getLocation().getPitch());
@@ -166,7 +166,7 @@ public class AreaEditor implements InventoryProvider{
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                        sm.pos1=p.getLocation();
+                        sm.min=p.getLocation();
                         sm.spawnPoint=p.getLocation();
                         sm.spawnPoint.setY(p.getLocation().getYaw());
                         sm.spawnPoint.setPitch(p.getLocation().getPitch());
@@ -320,7 +320,7 @@ public class AreaEditor implements InventoryProvider{
                     
                     
                     AreaManager.deleteCuboid(id); //вычистить старые ChunkContent, если были
-                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.spawnPoint, sm.pos1, sm.pos2);
+                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.spawnPoint, sm.min, sm.max);
                     AreaManager.addCuboid(lc, true);
                     
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);

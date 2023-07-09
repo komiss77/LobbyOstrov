@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.Material;
 import ru.komiss77.objects.CaseInsensitiveMap;
@@ -77,24 +78,29 @@ public enum Quest {
     
     private static final Map<Character,Quest> codeMap;
     private static final Map<String,Quest> nameMap;
-    private static final Map<Quest,List<String>> loreMap;
+    private static final Map<Quest,List<Component>> loreMap;
     
     static {
         Map<Character,Quest> c = new ConcurrentHashMap<>();
         Map<String,Quest> n = new CaseInsensitiveMap<>();
-        Map<Quest,List<String>> l = new ConcurrentHashMap<>();
+        //Map<Quest,List<String>> l = new ConcurrentHashMap<>();
         for (final Quest d : Quest.values()) {
             c.put(d.code,d);
             n.put(d.name(),d);
-            l.put(d,ItemUtils.genLore(null, d.description, "§7"));
+            //l.put(d,ItemUtils.genLore(null, d.description, "§7"));
         }
         codeMap = Collections.unmodifiableMap(c);
         nameMap = Collections.unmodifiableMap(n);
-        loreMap = Collections.unmodifiableMap(l);
+        loreMap = new ConcurrentHashMap<>();
+        //loreMap = Collections.unmodifiableMap(l);
     }
     
-    public static List<String> getLore(final Quest q){
-        return loreMap.get(q);
+    public static List<Component> getLore(final Quest q){
+        //return loreMap.get(q);
+        if (loreMap.containsKey(q)) return loreMap.get(q);
+        final List l = ItemUtils.genLore(null, q.description);
+        loreMap.put(q, l);
+        return l;
     }
     
     public static Quest byCode(final char code){

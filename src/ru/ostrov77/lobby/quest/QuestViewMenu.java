@@ -56,7 +56,7 @@ public class QuestViewMenu implements InventoryProvider {
             
             final ItemStack is = new ItemBuilder(Material.SCUTE)
                     .name(q.displayName)
-                    .addLore(Quest.getLore(q))
+                    .setLore(Quest.getLore(q))
                     .addLore("§aАктивно" + (q.ammount>0 ? "§7, прогресс: §f"+lp.getProgress(q)+" §7из §f"+q.ammount : "") )
                     .addLore(builder ? "§b*Отладка: §eЛКМ-завершить" : "")
                     .addLore(builder && q.ammount>0 ? "§b*Отладка: §eПКМ-добавить процесс" : "")
@@ -111,7 +111,7 @@ public class QuestViewMenu implements InventoryProvider {
                     if (lc!=null) {
                         is = new ItemBuilder(Material.FIRE_CHARGE)
                             .name(q.displayName)
-                            .addLore(Quest.getLore(q))
+                            .setLore(Quest.getLore(q))
                             .addLore("§6Предстоит")
                             .addLore("§7Откроется при изучении локации")
                             .addLore(lc.displayName)
@@ -133,7 +133,7 @@ public class QuestViewMenu implements InventoryProvider {
                         
                         is = new ItemBuilder(Material.FIRE_CHARGE)
                            .name(q.displayName)
-                           .addLore(Quest.getLore(q))
+                           .setLore(Quest.getLore(q))
                            .addLore("§6Предстоит")
                            .build();
                         buttons.add(ClickableItem.empty(is));

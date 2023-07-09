@@ -1,6 +1,5 @@
 package ru.ostrov77.lobby.listeners;
 
-import com.meowj.langutils.lang.LanguageHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -21,6 +20,8 @@ import org.bukkit.util.Vector;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
+import ru.komiss77.modules.translate.EnumLang;
+import ru.komiss77.modules.translate.Translate;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -71,7 +72,7 @@ public class InteractListener implements Listener {
                 //final int sz = lp.foundBlocks.size();
                 //QuestManager.progressAdv(p, lp, Quest.FindBlock, sz);
                 if (found < Quest.FindBlock.ammount) {
-                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + LanguageHelper.getMaterialName(b.getType(), "RU_ru") + "§7, осталось: §e" + (Quest.FindBlock.ammount - found));
+                    ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Translate.getMaterialName(b.getType(), EnumLang.RU_RU) + "§7, осталось: §e" + (Quest.FindBlock.ammount - found));
                 } else {
                     //lp.foundBlocks.clear();
                     QuestManager.tryCompleteQuest(p, lp, Quest.FindBlock);

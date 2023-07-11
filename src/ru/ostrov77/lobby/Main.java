@@ -487,7 +487,7 @@ public class Main extends JavaPlugin {
          final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
                 .name("§6Заряженый Жезл")
                 .addLore("§7Враги улетят в след. измерение!")
-                .addEnchantment(Enchantment.KNOCKBACK, 1)
+                .addEnchant(Enchantment.KNOCKBACK, 1)
                 .build();
         stick = new MenuItemBuilder("stick", st)
             .slot(2)

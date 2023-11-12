@@ -1,14 +1,11 @@
 package ru.ostrov77.lobby.listeners;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
@@ -29,6 +26,7 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -36,9 +34,10 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -49,21 +48,27 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
+
 import io.papermc.paper.event.player.AsyncChatEvent;
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.TextComponent;
 import ru.komiss77.ApiOstrov;
-import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.enums.Stat;
 import ru.komiss77.enums.StatFlag;
-import ru.komiss77.events.BungeeDataRecieved;
 import ru.komiss77.events.LocalDataLoadEvent;
-import ru.komiss77.modules.player.Oplayer;
+import ru.komiss77.events.QuestCompleteEvent;
+import ru.komiss77.events.ScoreWorldRecordEvent;
+import ru.komiss77.modules.bots.BotEntity;
+import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.Quest;
+import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.LocationUtil;
+import ru.komiss77.utils.TCUtils;
 import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
@@ -71,14 +76,16 @@ import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.Main.LocType;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
+import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.bots.Bot;
-import ru.ostrov77.lobby.bots.BotManager;
+import ru.ostrov77.lobby.bots.LobbyBot;
+import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
+import ru.ostrov77.lobby.game.RaceBoard;
+import ru.ostrov77.lobby.game.SumoBoard;
+import ru.ostrov77.lobby.quest.Quests;
 
 
 
@@ -87,6 +94,8 @@ import ru.ostrov77.lobby.quest.QuestManager;
 public class ListenerWorld implements Listener {
     
     private static final BlockFace[] NEAREST = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
+    private static final RaceBoard race = new RaceBoard("§б§nСостязание", new WXYZ(Main.getLocation(LocType.raceLoc)));
+    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", new WXYZ(Main.getLocation(LocType.sumoLoc)));
 
    /* @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onArmor (final ArmorEquipEvent e) {
@@ -110,10 +119,8 @@ System.out.println("ArmorEquipEvent");
                 }
             }
         } else {
-			final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
-			if (bt != null) {
-				bt.remove(true, true);
-			}
+			final BotEntity bt = BotManager.getBot(e.getEntity().getEntityId(), BotEntity.class);
+			if (bt != null) bt.remove();
 		}
     }
     
@@ -131,142 +138,58 @@ System.out.println("ArmorEquipEvent");
     @EventHandler (priority = EventPriority.MONITOR)
     //public void onJoin(final PlayerJoinEvent e) {
     public void onLocalData(final LocalDataLoadEvent e) {
-        e.setLogoutLocation(null); //чтобы не ставило стёклышки
-    } 
-    
-    @EventHandler (priority = EventPriority.MONITOR)
-    //public void onJoin(final PlayerJoinEvent e) {
-    public void onData(final BungeeDataRecieved e) {
-        final Player p = e.getPlayer();
-        
-        final Oplayer op = PM.getOplayer(p);
-        if (op.isGuest) { //лоббиплеера не создаём, просто даём часики и на спавн
-            Main.pipboy.giveForce(p);
-            //Main.oscom.giveForce(p);
-            p.teleport(Main.getLocation(Main.LocType.Spawn));
-            if (op.getStat(Stat.PLAY_TIME)<300) {
-                ApiOstrov.sendTitle(p, "","§eЧасики откроют меню", 20, 100, 40);
-            }
-            return;
-        }
-        
-        if (!op.hasFlag(StatFlag.NewBieDone) && op.getStat(Stat.PLAY_TIME)<100) {
-            op.setFlag(StatFlag.NewBieDone, true);
-            ApiOstrov.sendToServer(p, "nb0", "");
-            //return;
-        }
-        
-        final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
-	
-        BotManager.injectPlayer(p);
-        //QuestAdvance.onJoin(p);
-        
-        Ostrov.async( () -> {
-
-            Statement stmt = null;
-            ResultSet rs = null;
-            String logoutLoc = "";
-            
-            try {  
-                stmt = LocalDB.getConnection().createStatement(); 
-                rs = stmt.executeQuery( "SELECT * FROM `lobbyData` WHERE `name` = '"+lp.name+"' LIMIT 1" );
-                
-                if (rs.next()) {
-                    logoutLoc = rs.getString("logoutLoc");
-                    lp.setFlags(rs.getInt("flags"));
-                    lp.setOpenedArea(rs.getInt("openedArea"));
-                    Quest quest;
-                    for (char c : rs.getString("questDone").toCharArray()) {
-                        quest = Quest.byCode(c);
-                        if (quest!=null) {
-                            lp.questDone.add(quest);
-                        }
-                    }
-                    for (char c : rs.getString("questAccept").toCharArray()) {
-                        quest = Quest.byCode(c);
-                        if (quest!=null) {
-                            lp.questAccept.add(quest);
-                        }
-                    }
-                } else { //создать сразу запись, или не будут работать save : executePstAsync UPDATE
-                    LocalDB.executePstAsync(Bukkit.getConsoleSender(), "INSERT INTO `lobbyData` (name) VALUES ('"+lp.name+"') ");
+    	if (e.getOplayer() instanceof final LobbyPlayer lp) {
+    		final Player pl = e.getPlayer();
+            if (lp.isGuest) { //данные не грузим, просто даём часики и на спавн
+                Main.pipboy.giveForce(pl);
+                //Main.oscom.giveForce(p);
+                pl.teleport(Main.getLocation(Main.LocType.Spawn));
+                if (lp.getStat(Stat.PLAY_TIME)<300) {
+                    ApiOstrov.sendTitle(pl, "","§eЧасики откроют меню", 20, 100, 40);
                 }
- 
-            } catch (SQLException ex) {
-
-                Ostrov.log_err("ListenerOne error  "+lp.name+" -> "+ex.getMessage());
-
-            } finally {
-                
-                    onDataLoad(p, lp, logoutLoc);
-
-                try{
-                    if (rs!=null && !rs.isClosed()) rs.close();
-                    if (stmt!=null) stmt.close();
-                } catch (SQLException ex) {
-                    Ostrov.log_err("ListenerOne close error - "+ex.getMessage());
-                }
+                return;
             }
             
-        }, 0);
-
+            if (!lp.hasFlag(StatFlag.NewBieDone) && lp.getStat(Stat.PLAY_TIME)<100) {
+            	lp.setFlag(StatFlag.NewBieDone, true);
+                ApiOstrov.sendToServer(pl, "nb0", "");
+                //return;
+            }
+            
+            //создается в острове
+//            final LobbyPlayer lp = new LobbyPlayer(p.getName());//Main.createLobbyPlayer(p); тут только создаём, или квесты срабаывают при появлении на спавне
+            
+            final String flags = lp.mysqlData.get("flags");
+            lp.setFlags(flags == null || flags.isEmpty() ? 0 : Integer.parseInt(flags));
+            final String areas = lp.mysqlData.get("area");
+            lp.setOpenedArea(areas == null || areas.isEmpty() ? 0 : Integer.parseInt(areas));
+            
+            onDataLoad(pl, lp);
+//            for (final Entry<Quest, IProgress> en : lp.quests.entrySet()) {
+//            	pl.sendMessage("q-" + en.getKey().toString());
+//            }
+    	}
     }
     
     
 
-    private void onDataLoad(final Player p, final LobbyPlayer lp, final String logoutLocString) {
-        //Ostrov.sync( ()-> Main.advance.join(p, lp), 2 );
-        
-        Ostrov.sync( ()-> {
-            Main.lobbyPlayers.put(lp.name, lp); //заносим тут чтобы  квесты не срабаывали при мелькании на спавне
-            Main.advance.join(p, lp);//Ostrov.async( ()-> Advance.send(p, lp), 10); //после добавления Lp!!!
-            
-            if (!lp.hasFlag(LobbyFlag.NewBieDone)) {
-                //p.getInventory().clear(); - не надо, инв. не сохраняется, при входе будет пусто
-                //lp.setFlag(LobbyFlag.NewBieDone, true); -не ставитть сразу, или не смогут выполнить задание приветствие новичка
-                //NewBie.start(p, 0);
-                p.teleport(Main.getLocation(LocType.newBieSpawn));// тп на 30 160 50
-                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 5));
-                p.setCollidable(false);
-                Main.oscom.giveForce(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
-                if (PM.exist(p.getName())) PM.getOplayer(p).hideScore();
-                ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS, false);
-            } else {
-                Main.giveItems(p);
-                final Location logoutLoc = LocationUtil.LocFromString(logoutLocString);
-                if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
-//ApiOstrov.sendActionBarDirect(p, "§8log: тп на точку выхода");
-                } else {
-                    p.teleport(Main.getLocation(Main.LocType.Spawn));
-//ApiOstrov.sendActionBarDirect(p, "§8log: точка выхода опасна, тп на спавн");
-                }
-            }
-            
-         }, 3);        
-    }
-
-    
-    
-    
-    @EventHandler (priority = EventPriority.NORMAL)
-    public void onQuit(final PlayerQuitEvent e) {
-        final Player p = e.getPlayer();
-        //NewBie__.stop(p);
-        final LobbyPlayer lp = Main.lobbyPlayers.remove(p.getName());
-        if (lp!=null) {
-            final String logoutLoc = LocationUtil.toDirString(p.getLocation());
-            LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `logoutLoc` = '"+logoutLoc+"' WHERE `name` = '"+lp.name+"';");
-            final LCuboid exitCuboid = AreaManager.getCuboid(p.getLocation());
-            if (exitCuboid!=null) {
-                if (exitCuboid.playerNames.remove(p.getName())) {
-                    Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, exitCuboid, null, lp.cuboidEntryTime));
-                }
-            }
+    private void onDataLoad(final Player p, final LobbyPlayer lp) {//, final String logoutLocString
+        if (QuestManager.isComplete(lp, Quests.ostrov)) {
+            Main.giveItems(p);
+//            final Location logoutLoc = LocationUtil.LocFromString(logoutLocString);
+//            if (logoutLoc !=null && ApiOstrov.teleportSave(p, logoutLoc, false)) {
+//            } else {
+//                p.teleport(Main.getLocation(Main.LocType.Spawn));
+//            }
+        } else {
+            p.teleport(Main.getLocation(LocType.newBieSpawn));// тп на 30 160 50
+            p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 64, 5));
+            p.setCollidable(false);
+            Main.oscom.giveForce(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+            if (PM.exist(p.getName())) PM.getOplayer(p).hideScore();
+            ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS);
         }
-        p.removeMetadata("tp", Main.instance);
-		BotManager.removePlayer(e.getPlayer());
-        Main.advance.onQuit(p);
-    }    
+    }
     
     
     
@@ -283,18 +206,16 @@ System.out.println("ArmorEquipEvent");
     
     
     // ******** эвенты по новичку
-    
+    /*
     @EventHandler (priority = EventPriority.MONITOR)
     public static void onCuboidEvent(final CuboidEvent e) {
         
-        if (e.getPrevois()!=null && e.getPrevois().getInfo().hidePlayers ) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
+        if (e.getLast()!=null && e.getLast().getInfo().hidePlayers ) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
             final Player p = e.getPlayer();
-            for (final Player cp : e.getPrevois().getCuboidPlayers()) {
+            for (final Player cp : e.getLast().getCuboidPlayers()) {
                 if (!cp.getName().equals(p.getName())) {
                     cp.showPlayer(Main.instance, p);
-                    p.showPlayer(Main.instance, cp);
-//cp.sendMessage("§8log: §c showPlayer "+p.getName());
-//p.sendMessage("§8log: §c showPlayer "+cp.getName());                  
+                    p.showPlayer(Main.instance, cp);      
                 }
             }
         }
@@ -304,12 +225,190 @@ System.out.println("ArmorEquipEvent");
                 if (!cp.getName().equals(p.getName())) {
                     cp.hidePlayer(Main.instance, p);
                     p.hidePlayer(Main.instance, cp);
-//cp.sendMessage("§8log: §c hidePlayer "+p.getName());
-//p.sendMessage("§8log: §c hidePlayer "+cp.getName());              
                 }
             }
         }
-    }    
+    }*/
+    
+    @EventHandler (priority = EventPriority.MONITOR)
+    public static void onQuest(final QuestCompleteEvent e) {
+        final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
+    	if (e.getQuest().equals(Quests.doctor)) {
+            Main.elytra.giveForce(e.getPlayer());
+            new CuboidEvent(e.getPlayer(), lp, lp.getCuboid(), lp.getCuboid(), lp.cuboidEntryTime).callEvent();
+            return;
+    	}
+    	
+        for (final Quest qs : QuestManager.getQuests(q -> !q.equals(Quests.doctor))) {
+        	if (!QuestManager.isComplete(lp, qs)) return;
+        }
+        
+        QuestManager.complete(e.getPlayer(), lp, Quests.doctor);
+    }
+    
+    @EventHandler (priority = EventPriority.MONITOR)
+    public static void onInvClose(final InventoryCloseEvent e) {
+        if (e.getInventory().getType()==InventoryType.CHEST) {
+            final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
+            if (lp.getPasportFillPercent() > 20) QuestManager.complete((Player) e.getPlayer(), lp, Quests.pass);
+        }
+    }
+    
+    //нописание в actionbar куда человек зашел + квест на гонку для ПВЕ мини-игр
+    @EventHandler
+    public static void onCuboidEvent(final CuboidEvent e) {  //если лоббиплеер нуль, то сюда никогда не придёт
+    	
+        if (e.getLast() != null) {
+        	if (e.getLast().getInfo().hidePlayers) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
+                final Player p = e.getPlayer();
+                for (final Player cp : e.getLast().getCuboidPlayers()) {
+                    if (!cp.getName().equals(p.getName())) {
+                        cp.showPlayer(Main.instance, p);
+                        p.showPlayer(Main.instance, cp);      
+                    }
+                }
+        		
+        	}
+            switch (e.getLast().getName()) {
+                case "daaria", "skyworld", "sumo" -> {
+                    e.getPlayer().getInventory().setItem(2, QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor) ? Main.fw : Main.air);
+                }
+            }
+        }
+        
+    	if (e.getCurrent() == null) {
+            
+            ApiOstrov.sendActionBarDirect(e.getPlayer(), "§7§l⟣ §3§lАрхипелаг §7§l⟢");
+            
+    	} else {
+    		if (e.getCurrent().getInfo().hidePlayers) {//вход в со скрытием //if (e.getCurrent()!=null && e.getCurrent().getName().equals("newbie")) { 
+                final Player p = e.getPlayer();
+                for (final Player cp : e.getCurrent().getCuboidPlayers()) {
+                    if (!cp.getName().equals(p.getName())) {
+                        cp.hidePlayer(Main.instance, p);
+                        p.hidePlayer(Main.instance, cp);
+                    }
+                }
+    		}
+    		
+    		final LobbyPlayer lp = e.getLobbyPlayer();
+            ApiOstrov.sendActionBarDirect(e.getPlayer(), "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
+            if (!lp.isAreaDiscovered(e.getCurrent().id)) {
+               onNewAreaDiscover(e.getPlayer(), lp, e.getCurrent()); //новичёк или нет - обработается внутри
+            }
+            
+            if (!lp.hasFlag(LobbyFlag.NewBieDone)) return; //далее - новичкам ничего не надо
+            
+            switch (e.getCurrent().getName()) {
+                
+                case "start" -> {
+                    if (lp.isAreaDiscovered(AreaManager.getCuboid("nopvp").id)) {
+                        final Player p = e.getPlayer();
+                        p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
+                        p.sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
+                        lp.raceTime = 0;
+                        Main.elytra.takeAway(p);
+                    } else {
+                        e.getPlayer().sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
+                    }
+                }
+                
+                case "end" -> {
+                    if (lp.raceTime > 0) {
+                        final Player p = e.getPlayer();
+                        p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
+                        p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(lp.raceTime));
+                    	QuestManager.complete(p, e.getLobbyPlayer(), Quests.race);
+                        race.tryAdd(p.getName(), lp.raceTime);
+                        lp.raceTime = -1;
+                        Main.elytra.giveForce(p);
+                        //lp.questDone(p, quest, true);
+                    }
+                }
+                    
+                case "daaria", "skyworld" -> {
+                    Main.pickaxe.giveForce(e.getPlayer());
+                }
+                
+                case "sumo" -> {
+                    Main.stick.giveForce(e.getPlayer());
+                }
+
+            }
+            
+        }
+
+        
+    }
+    
+    
+    
+    //SYNC !!!
+    public static void onNewAreaDiscover(final Player p, final LobbyPlayer lp, final LCuboid cuboid) {
+        lp.setAreaDiscovered(cuboid.id);
+        
+        final CuboidInfo ci = cuboid.getInfo();
+        lp.setAreaDiscovered(cuboid.id);
+        if (QuestManager.complete(p, lp, ci.quest)) 
+        	QuestManager.addProgress(p, lp, Quests.discover);
+        
+        if (ci.quest.equals(Quests.ostrov)) lp.setFlag(LobbyFlag.NewBieDone, true);
+        
+        if (QuestManager.isComplete(lp, Quests.discover)) {
+        	QuestManager.complete(p, lp, Quests.navig);
+        	ApiOstrov.giveMenuItem(p);
+        }
+        
+        ApiOstrov.sendBossbar(p, "Открыта Локация: "+cuboid.displayName, 7, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+        if (lp.target==cuboid.getInfo()) {
+            AreaManager.resetCompassTarget(p, lp);
+        }
+        
+        sound(p);
+        
+        /*final EnumSet<Quest__> childrenQuest = Quest__.getChidren(cuboid.getName());
+        if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
+            for (Quest__ childQuest : childrenQuest) {
+                if (lp.addQuest(childQuest)) {
+//p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.getName()+" -> "+childQuest.displayName);
+                    if (childQuest.ammount>0) {
+                        Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
+                    }
+                }
+            }
+        }
+      
+        if (cuboid.getInfo().canTp) {  //значимый кубоид для счётчика в DiscoverAllArea
+            //Софтлок (нельзя пройти) задания Навигатор, если все локации открыты -
+            //при открытии последней новой зоны сначала автовыполнение навигатора
+            //lp.getProgress(Quest.DiscoverAllArea) выдаст 0, т.к. квест DiscoverAllArea не начат!
+            //нужно вручную посчитать уже открытые зоны
+            if (!lp.hasQuest(Quest__.DiscoverAllArea)) { //изучаем зону, когда квест DiscoverAllArea еще на получен. (получен будет после хэвифут)
+                int opened = 0;
+                for (LCuboid lc : AreaManager.getCuboids()) {
+                    if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
+                        opened++;
+                   }
+                }
+    //Ostrov.log("DiscoverAllArea "+opened+" tryCompleteQuest complete Navigation ? "+(opened==Quest.DiscoverAllArea.ammount));
+                if (opened==Quest__.DiscoverAllArea.ammount) {
+                    tryCompleteQuest(p, lp, Quest__.Navigation, false);
+                }
+            } else {
+                tryCompleteQuest(p, lp, Quest__.DiscoverAllArea);
+            }
+        }*/
+        
+    }
+
+    public static void sound(final Player p) {
+        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
+        Ostrov.async(()-> {
+            if (p.isOnline()) {
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1,  0.5f);
+            }
+        }, 5);
+    }
     
     
     
@@ -332,7 +431,7 @@ System.out.println("ArmorEquipEvent");
     public void onDismount(final EntityDismountEvent e) {
 //e.getEntity().sendMessage("§7log: onDismount getEntityType="+e.getEntityType()+" getDismountedType="+e.getDismounted().getType()+" getEntityType"+e.getEntity().getType());
         if (e.getEntityType()==EntityType.PLAYER && e.getDismounted().getType()==EntityType.BLAZE) {
-            if (e.getDismounted().isCustomNameVisible() && e.getDismounted().getCustomName().equals(JinGoal.ginName)) {
+            if (e.getDismounted().isCustomNameVisible() && JinGoal.ginName.equals(TCUtils.toString(e.getDismounted().customName()))) {
                 e.setCancelled(true);
                 if (!Timer.has(e.getEntity().getEntityId())) {
                     e.getEntity().sendMessage("§6Погодите, уже скоро будем на месте!");
@@ -396,30 +495,32 @@ System.out.println("ArmorEquipEvent");
                 }
                 break;
                 
-                
             case BEDROCK:
                 Main.loadCfgs();
                 e.getPlayer().sendMessage("§eПерезагружено!");
                 break;
                 
-                
             case DEAD_BRAIN_CORAL:
                 loc = b.getLocation();
-            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.SPAWN);
+            	SpotManager.addSpot(new XYZ(loc), SpotType.SPAWN);
                 break;
             case DEAD_TUBE_CORAL:
                 loc = b.getLocation();
-            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.WALK);
+            	SpotManager.addSpot(new XYZ(loc), SpotType.WALK);
                 break;
             case DEAD_FIRE_CORAL:
                 loc = b.getLocation();
-            	BotManager.addSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()), SpotType.END);
+            	SpotManager.addSpot(new XYZ(loc), SpotType.END);
                 break;
             case DEAD_BUBBLE_CORAL:
-            	final Spot sp = BotManager.getRndSpawnSpot();
-            	if (sp != null) {
-            		//new Bot(sp, BotType.REGULAR);
-            	}
+                final Spot sp = SpotManager.getRndSpot(SpotType.SPAWN);
+                if (sp != null) {
+                	final int pls = Bukkit.getOnlinePlayers().size();
+                	if (pls != 0) {
+                		final String nm = ApiOstrov.rndElmt(SpotManager.names);
+                		BotManager.createBot(nm, LobbyBot.class, () -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+                	}
+                }
                 break;
 			default:
 				break;
@@ -471,7 +572,7 @@ System.out.println("ArmorEquipEvent");
             }
 			break;
 		case DEAD_HORN_CORAL:
-			BotManager.deleteSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+			SpotManager.deleteSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
 			break;
         case DEAD_BUBBLE_CORAL:
         	BotManager.clearBots();
@@ -500,24 +601,32 @@ System.out.println("ArmorEquipEvent");
         } 
     }
     
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onPlayerItemFrameChangeEvent(final PlayerItemFrameChangeEvent e) {
+        e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer()));
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onPlayerInteractAtEntityEvent(final PlayerInteractAtEntityEvent e) {
         if (!e.getPlayer().getWorld().getName().equals("world")) return;
         final Player p = e.getPlayer();
-        if( e.getRightClicked().getType() ==EntityType.ARMOR_STAND && !ApiOstrov.isLocalBuilder(p) ) {
-            e.setCancelled(true);
-        }
-        if (e.getRightClicked().getType()==EntityType.PLAYER) {
-            final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        switch (e.getRightClicked().getType()) {
+		case ARMOR_STAND, ITEM_FRAME, GLOW_ITEM_FRAME:
+            e.setCancelled(!ApiOstrov.isLocalBuilder(p));
+			break;
+		case PLAYER:
+            final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
             if (lp==null) return;
-            final LobbyPlayer clickedLp = Main.getLobbyPlayer(e.getRightClicked().getName());
+            final LobbyPlayer olp = PM.getOplayer(e.getRightClicked().getName(), LobbyPlayer.class);
 //p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
-            if (clickedLp!=null && !clickedLp.hasFlag(LobbyFlag.NewBieDone)) {
-                QuestManager.tryCompleteQuest(p, lp, Quest.GreetNewBie);
+            if (olp!=null && (olp.isGuest || QuestManager.isComplete(olp, Quests.discover))) {
+            	QuestManager.complete(p, lp, Quests.greet);
             }
-        }
+			break;
+		default:
+			break;
+		}
     }
-
 
    
 
@@ -539,24 +648,19 @@ System.out.println("ArmorEquipEvent");
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void ProjectileHitEvent(final ProjectileHitEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
-    }    
+    }
 
-
-
-
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityDamage(final EntityDamageEvent e) { 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onEntityDamage(final EntityDamageEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) return;
         
-       
         if (e.getEntityType()==EntityType.PLAYER && PM.exist(e.getEntity().getName()) ) {
-            final LivingEntity le = (LivingEntity) e.getEntity();
+            final Player p = (Player) e.getEntity();
+            final EntityDamageEvent de;
             switch (e.getCause()) {
                 case VOID:
-                    e.setDamage(0);
-                    final Player p = (Player) e.getEntity();
-                    final LobbyPlayer lp = Main.getLobbyPlayer(p);
+                    e.setDamage(0d);
+                    final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
                     if (lp==null || lp.hasFlag(LobbyFlag.NewBieDone)) { //старичков кидаем на спавн
                     	final Location loc = p.getLocation();
                     	final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
@@ -564,20 +668,39 @@ System.out.println("ArmorEquipEvent");
                     } else { //новичков - если прыгнул за борт - на точку прибытия
                         Main.arriveNewBie(p);
                     }
-                    final EntityDamageEvent de = le.getLastDamageCause();
+                    
+                    de = p.getLastDamageCause();
                     if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
                     	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
-                        final LobbyPlayer lp2 = Main.getLobbyPlayer(dp);
-                        if (lp2!=null) {
-                            QuestManager.tryCompleteQuest(dp, lp2, Quest.SumoVoid);
+                        final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
+                        if (olp!=null) {
+                        	final Integer wns = sumo.getAmt(olp.nik);
+                        	olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
+                        	sumo.tryAdd(olp.nik, olp.sumoWins);
+                        	p.setLastDamageCause(new EntityDamageEvent(p, DamageCause.CUSTOM, 0d));
+                        	QuestManager.complete(dp, olp, Quests.sumo);
                             for (final Player pl : dp.getWorld().getPlayers()) {
-                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 в пустоту!");
+                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
                             }
                         }
                     }
                     return;
-                    
                 case FALL:
+                    de = p.getLastDamageCause();
+                    if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
+                    	final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
+                        final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
+                        if (olp!=null) {
+                        	final Integer wns = sumo.getAmt(olp.nik);
+                        	olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
+                        	sumo.tryAdd(olp.nik, olp.sumoWins);
+                        	p.setLastDamageCause(new EntityDamageEvent(p, DamageCause.CUSTOM, 0d));
+                        	QuestManager.complete(dp, olp, Quests.sumo);
+                            for (final Player pl : dp.getWorld().getPlayers()) {
+                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
+                            }
+                        }
+                    }
                 case THORNS:        //чары шипы на оружие-ранит нападающего
                 case LIGHTNING:     //молния
                 case DRAGON_BREATH: //дыхание дракона
@@ -588,13 +711,13 @@ System.out.println("ArmorEquipEvent");
                 case CRAMMING:      //EntityVex
                 case DROWNING:      //утопление
                 case STARVATION:    //голод
-                case LAVA:	    //лава
+                case LAVA:	    	//лава
                     e.setCancelled(true);
                     return;
                     //break;
                 case SUFFOCATION:   //зажатие в стене
-                	le.teleport(Main.getLocation(LocType.Spawn));
-                	le.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
+                	p.teleport(Main.getLocation(LocType.Spawn));
+                	p.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
                 	e.setCancelled(false);
                     return;
 
@@ -603,10 +726,11 @@ System.out.println("ArmorEquipEvent");
                         final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
                         if (ee.getDamager().getType() == EntityType.PLAYER) {
                             final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
-                            if (vCub != null && vCub.getName().equals("sumo")) {
+                            if (vCub != null && vCub.getInfo() == CuboidInfo.SUMO) {
                                 final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
-                                if (dCub != null && dCub.getName().equals("sumo")) {
-                                    Ostrov.sync(() -> le.setHealth(le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), 2);
+                                if (dCub != null && dCub.getInfo() == CuboidInfo.SUMO) {
+//                                    Ostrov.sync(() -> p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), 2);
+                                	e.setDamage(0d);
                                     return;//сумо
                                 }
                             }
@@ -623,7 +747,7 @@ System.out.println("ArmorEquipEvent");
                 if (e instanceof EntityDamageByEntityEvent) {
                     final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
-                    	final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
+                    	final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
                     	if (bt != null) {
                     		e.setDamage(0d);
                     		//bt.remove(true);
@@ -631,9 +755,9 @@ System.out.println("ArmorEquipEvent");
                     	}
                         final Player dp = (Player) ee.getDamager();
                         e.setDamage(100d);
-                        final LobbyPlayer lp2 = Main.getLobbyPlayer(dp);
-                        if (lp2!=null) {
-                            QuestManager.tryCompleteQuest(dp, lp2, Quest.KillMobs);
+                        final LobbyPlayer lp = PM.getOplayer(dp, LobbyPlayer.class);
+                        if (lp!=null) {
+                        	QuestManager.addProgress(dp, lp, Quests.warrior);
                             dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
                                     40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
                         }
@@ -642,10 +766,10 @@ System.out.println("ArmorEquipEvent");
 					//Bukkit.broadcast(Component.text("c=" + e.getCause().toString()));
                 	switch (e.getCause()) {
                 	case VOID, CRAMMING, CUSTOM, SUFFOCATION:
-                    	final Bot bt = BotManager.npcs.get(e.getEntity().getEntityId());
+                    	final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
                     	if (bt != null) {
                     		e.setDamage(0d);
-                    		//bt.remove(true);
+                    		bt.remove();
                     		return;
                     	}
 					default:
@@ -678,16 +802,19 @@ System.out.println("ArmorEquipEvent");
 
     }
 
-
-
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onScore(final ScoreWorldRecordEvent e) {
+    	if (e.getScoreBoard().equals(race)) {
+    		ApiOstrov.moneyChange(e.getName(), 20, "Состязание");
+    	}
+    }
+    
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityLoad(final EntitiesUnloadEvent e) {
     	for (final Entity en : e.getEntities()) {
 			//Bukkit.broadcast(Component.text("u=" + en.getType().toString()));
-        	final Bot bt = BotManager.npcs.get(en.getEntityId());
-        	if (bt != null) {
-        		bt.remove(false, true);
-        	}
+        	final LobbyBot bt = BotManager.getBot(en.getEntityId(), LobbyBot.class);
+        	if (bt != null) bt.remove();
     	}
     }
 
@@ -771,7 +898,7 @@ System.out.println("ArmorEquipEvent");
     @EventHandler (ignoreCancelled = true)
     public void onWeatherChange(final WeatherChangeEvent e) {
         if (!e.getWorld().getName().equals("world")) return;
-        if (e.toWeatherState()) e.setCancelled(true);
+        if (e.toWeatherState()) e.setCancelled(false);
     }
 
 
@@ -821,10 +948,44 @@ System.out.println("ArmorEquipEvent");
         final Projectile prj = e.getEntity();
         if (prj.getShooter() instanceof Player && prj.getType() == EntityType.FIREWORK) {
             Ostrov.sync(()-> ((HumanEntity) prj.getShooter()).getInventory().setItem(2, Main.fw), 8);
+//            prj.remove();
         }
     }
-
     
+    /*@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onLaunch(final PlayerElytraBoostEvent e) { //PlayerElytraBoostEvent !!!
+    	final Player p = e.getPlayer();
+    	final World w = p.getWorld();
+    	final ItemStack fi = e.getItemStack();
+    	final int ln;
+    	if (fi.getItemMeta() instanceof final FireworkMeta fm) {
+    		ln = (fm.getPower() << 2) + 16;
+    	} else ln = 16;
+		w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1f, 1f);
+    	new BukkitRunnable() {
+    		int i = 0;
+			@Override
+			public void run() {
+				if (p == null || !p.isValid()) {
+					cancel();
+					return;
+				}
+				
+				if (i++ == ln || !p.isGliding()) {
+					p.setGliding(true);
+					final Firework fw = p.launchProjectile(Firework.class);
+					fw.setItem(fi);
+					fw.detonate();
+					cancel();
+					return;
+				}
+				
+				final Location eye = p.getEyeLocation();
+				w.spawnParticle(Particle.FIREWORKS_SPARK, eye, 2, 0d, 0d, 0d, 0d);
+				p.setVelocity(p.getVelocity().add(eye.getDirection().multiply(0.14d)));
+			}
+		}.runTaskTimer(Ostrov.instance, 0, 2);
+    }*/
     
     
 

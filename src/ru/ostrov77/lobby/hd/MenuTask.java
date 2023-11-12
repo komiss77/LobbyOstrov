@@ -1,23 +1,7 @@
 package ru.ostrov77.lobby.hd;
 
-import java.util.EnumMap;
-import me.filoghost.holographicdisplays.api.Position;
-import me.filoghost.holographicdisplays.api.hologram.Hologram;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.util.Vector;
-import ru.komiss77.ApiOstrov;
-import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.CuboidInfo;
-import ru.ostrov77.lobby.area.LCuboid;
-
-
-class MenuTask implements Runnable {
+class MenuTask {//implements Runnable {
+	/*
 
     protected BukkitTask task;
     protected int tick;
@@ -145,41 +129,6 @@ class MenuTask implements Runnable {
 
 
 
-        /*
-        x = - sin(yaw)
-        z = cos(yaw)
-        You'll also need to convert the yaw in degrees to radians (Math#toRadians(double))
-        */
-      /*   final double angle = Math.toRadians(p.getLocation().getYaw()); //угол влево-вправо
-        final Location loc = p.getEyeLocation();
-        loc.setY(loc.getY() + 0.25d);
-        
-        
-       if (tick==1) {
-            Hologram h;
-            for (CuboidInfo ci : holo.keySet()) {
-                h = holo.get(ci);
-                
-                if (ci.canTp) {
-                    final Location pos = loc.clone();
-                    pos.setPitch(ci.relPitch);
-                    pos.setYaw(p.getLocation().getYaw() + ci.relYaw);
-                    h.setPosition(pos.add(pos.getDirection().multiply(2.8f)));
-            	}
-                
-                //final Vector direction = h.getPosition().toVector().subtract(p.getEyeLocation().toVector()).normalize();
-                //double vx = direction.getX();
-                //double vz = direction.getZ();
-                
-                //double cos = Math.cos(angle);
-                //double sin = Math.sin(angle);
-//p.sendMessage("§8log: angle="+angle+" sin="+sin+" cos="+cos);
-                //holo.get(ci).setPosition(center.add( (ci.h * cos) + (ci.h * sin), ci.v, -(ci.h * sin) + (ci.h * cos) ));
-                //holo.get(ci).setPosition(center.add( ci.h * sin, ci.v, ci.h * -cos ));
-                //holo.get(ci).setPosition(center.add( ci.h * -cos, ci.v, ci.h * sin ));
-            }
-        }*/
-
         
         
         tick++;
@@ -226,4 +175,4 @@ class MenuTask implements Runnable {
     
     
     
-}
+*/}

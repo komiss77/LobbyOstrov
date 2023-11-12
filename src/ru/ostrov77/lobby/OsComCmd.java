@@ -1,12 +1,12 @@
 package ru.ostrov77.lobby;
 
 
-import ru.ostrov77.lobby.hd.HD;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -20,16 +20,20 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
+import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.quests.QuestViewMenu;
+import ru.komiss77.utils.TCUtils;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
-import ru.ostrov77.lobby.quest.QuestViewMenu;
+import ru.ostrov77.lobby.hd.HD;
+import ru.ostrov77.lobby.quest.Quests;
 
 
 
@@ -51,14 +55,12 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                 for (final String s : subCommands) {
                     if (s.startsWith(args[0])) sugg.add(s);
                 }
-
+                
                 break;
-
-
         }
         
        return sugg;
-    }    
+    }
     
     @Override
     public boolean onCommand(CommandSender cs, Command cmd, String string, String[] arg) {
@@ -68,10 +70,10 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
             return true;
         }
         final Player p = (Player) cs;
+        final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
         if (lp==null) {
-            cs.sendMessage("§cВы ГОСТЬ, либо нед данных с прокси!");
+            cs.sendMessage("§cВы ГОСТЬ, либо нет данных с прокси!");
             return true;
         }
         //final LCuboid lc = AreaManager.getCuboid(p.getLocation());
@@ -99,7 +101,8 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
                         p.getInventory().clear();
                         p.closeInventory();
-                        Main.advance.resetProgress(p);
+                        lp.mysqlData.clear();
+                        QuestManager.resetProgress(p, PM.getOplayer(p));
                         ApiOstrov.sendToServer(p, "arcaim", "");
                         Ostrov.async(()-> {
                             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';");
@@ -110,25 +113,19 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
 
                     
                case "quest":
-                    if (HD.isOpen(p)) return true; //с компасом в руке ждём клики по голограммам
-                    SmartInventory.builder()
-                        .type(InventoryType.CHEST)
-                        .id("quest"+p.getName()) 
-                        .provider(new QuestViewMenu())
-                        .title("Задания")
-                        .size (5,9)
-                        .build()
-                        .open(p);
-                        //}
-                    return true;
+                   SmartInventory.builder()
+                   .type(InventoryType.CHEST)
+                   .id("quest"+p.getName()) 
+                   .provider(new QuestViewMenu())
+                   .title("Задания")
+                   .size (5,9)
+                   .build()
+                   .open(p);
+                   return true;
                     
                case "area":
                     if (Main.holo) {
-                        if (HD.isOpen(p)) return true; //с компасом в руке ждём клики по голограммам
-                        //if (!Timer.has(p, "menu")) {
-                            HD.openAreaMenu(p, lp);
-                            //Timer.add(p, "menu", 1);
-                        //}
+                        HD.openAreaMenu(p, lp);
                     } else {
                         SmartInventory.builder()
                             .type(InventoryType.CHEST)
@@ -153,6 +150,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         //p.sendMessage("§cМогут только новички!");
                         return true;
                     }
+                    
                     if (p.getVehicle()!=null) {
                         p.sendMessage("§cНадо спешиться!");
                         return true;
@@ -169,7 +167,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     ginOwner.add(p.getName());
                     p.sendMessage("§6Кажется, сработало!");
                     Main.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone(), false);
-                    QuestManager.tryCompleteQuest(p, lp, Quest.SpawnGin);
+                    QuestManager.complete(p, PM.getOplayer(p), Quests.lamp);
                     //if (lp.questAccept.contains(Quest.SpawnGin)) {
                     //    lp.questDone(p, Quest.SpawnGin, false);
                      //   QuestManager.completeAdv(p, Quest.SpawnGin);
@@ -207,9 +205,9 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }, 40);
 
                     
-                    for (final LobbyPlayer lp_ : Main.getLobbyPlayers()) {
-                        if (!lp_.name.equals(lp.name) && lp_.questAccept.contains(Quest.GreetNewBie)) {
-                            lp_.getPlayer().sendMessage("§6Ожидается прибытие новичка через 15 секунд!");
+                    for (final Player pl : Bukkit.getOnlinePlayers()) {
+                        if (!pl.getName().equals(lp.nik) && QuestManager.isComplete(PM.getOplayer(pl), Quests.greet)) {
+                            pl.sendMessage("§6Ожидается прибытие новичка через 15 секунд!");
                         }
                     }
                     
@@ -243,7 +241,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         gin.setGlowing(true);
         gin.setGravity(false);
         gin.setInvulnerable(true);
-        gin.setCustomName(JinGoal.ginName);
+        gin.customName(TCUtils.format(JinGoal.ginName));
         gin.setCustomNameVisible(true);
         Bukkit.getMobGoals().removeAllGoals(gin);
         return gin;

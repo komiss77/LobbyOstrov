@@ -1,22 +1,19 @@
 package ru.ostrov77.lobby.hd;
 
-import java.util.EnumMap;
-import java.util.concurrent.ConcurrentHashMap;
-import me.filoghost.holographicdisplays.api.HolographicDisplaysAPI;
-import me.filoghost.holographicdisplays.api.Position;
-import me.filoghost.holographicdisplays.api.hologram.VisibilitySettings;
-import me.filoghost.holographicdisplays.api.hologram.line.ItemHologramLine;
-import me.filoghost.holographicdisplays.api.hologram.Hologram;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
-import ru.komiss77.ApiOstrov;
+
+import ru.komiss77.modules.displays.DisplayManager;
+import ru.komiss77.modules.displays.FakeItemDis;
+import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.version.VM;
 import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -24,117 +21,58 @@ import ru.ostrov77.lobby.area.LCuboid;
 
 public class HD {
 	
-    protected static final ConcurrentHashMap<String,MenuTask> TASKS = new ConcurrentHashMap<>();
+//    protected static final ConcurrentHashMap<String,MenuTask> TASKS = new ConcurrentHashMap<>();
     private static final ItemStack arrow = new ItemBuilder(Material.ARROW).addEnchant(Enchantment.ARROW_INFINITE, 1).build();
     private static final ItemStack empty = new ItemStack(Material.GRAY_DYE);
 
-    public static void openAreaMenu(Player p, LobbyPlayer lp) {
-        
-         
-        
-        //if (tasks.containsKey(p.getName())) { //если меню открыто - повторный клик закроет
-        //    tasks.get(p.getName()).cancel();
-            //return;
-       // }
+    public static void openAreaMenu(final Player p, final LobbyPlayer lp) {
+
+		DisplayManager.rmvDis(p);
         final Location eye = p.getEyeLocation();
-        eye.setPitch(0); //чтобы не зависило от вверх - вниз
-        final Vector direction = eye.getDirection();
-        eye.add(direction.multiply(2));
-        eye.setY(eye.getY()+1);
-        //final Location holoCenter = p.getEyeLocation().add(direction.multiply(2));
-        final Position center = Position.of(eye);
-        
-        final EnumMap<CuboidInfo,Hologram> holo = new EnumMap(CuboidInfo.class);
+        p.playSound(eye, Sound.BLOCK_BEEHIVE_ENTER, 2f, 1.2f);
+        eye.add(eye.getDirection());
+        eye.setPitch(0f); //чтобы не зависило от вверх - вниз
         
         for (final LCuboid lc : AreaManager.getCuboids()) {
             final CuboidInfo ci = lc.getInfo();
             
             if (ci==CuboidInfo.DEFAULT || !ci.canTp) continue;
-
-            final Hologram h = HolographicDisplaysAPI.get(Main.instance).createHologram(center);
-            final VisibilitySettings visiblity = h.getVisibilitySettings();
-            visiblity.setIndividualVisibility(p, VisibilitySettings.Visibility.VISIBLE);
-            visiblity.setGlobalVisibility(VisibilitySettings.Visibility.HIDDEN);
-            
+            final Location nlc = eye.clone().add(ci.relX, ci.relY, ci.relZ);
+            p.spawnParticle(Particle.GLOW_SQUID_INK, nlc, 2, 0d, 0d, 0d, 0d);
+            if (VM.getNmsServer().getFastMat(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
             if (lp.isAreaDiscovered(lc.id)) {
-
-                final ItemHologramLine i = h.getLines().appendItem(new ItemStack(ci.icon));
-                i.setClickListener((cl) -> {
-//p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
-                        if (ci.canTp) {
-                            TASKS.get(p.getName()).cancel();
-                            ApiOstrov.teleportSave(p, lc.spawnPoint, false);
-                        }
-                    }
-                );
-                
-              /*  final  TextHologramLine t = h.getLines().appendText(lc.displayName);
-                t.setClickListener( (cl) -> {
-//p.sendMessage("§8log: "+lc.getName()+" canTp?"+ci.canTp);
-                        if (ci.canTp) {
-                            tasks.get(p.getName()).cancel();
-                            ApiOstrov.teleportSave(p, lc.spawnPoint, false);
-                        }
-                    }
-                );*/
-                
-                
+            	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
+            	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick(pl -> {
+            		if (ci.canTp) {
+//            			ApiOstrov.teleportSave(pl, lc.spawnPoint, false);
+            			lp.transport(pl, new XYZ(lc.spawnPoint), true);
+            			DisplayManager.rmvDis(pl);
+            		}
+            	}).create();
             } else {
-
-                final ItemHologramLine i = h.getLines().appendItem(lp.compasstarget == lc.getInfo() ? arrow : empty);
-                i.setClickListener( (cl) -> {
-                        if (lp.compasstarget != lc.getInfo()) {
-//p.sendMessage(lc.getName()+" setCompassTarget");
-                            setCompassTarget(p, lp, lc);
-                            i.setItemStack(arrow);
-                        } else {
-//p.sendMessage(lc.getName()+" resetCompassTarget");
-                            AreaManager.resetCompassTarget(p, lp);
-                            i.setItemStack(new ItemStack(empty));
-                        }                    
+            	final FakeItemDis fid = DisplayManager.fakeItemAnimate(p, nlc).setItem(lp.target == lc.getInfo() ? arrow : empty)
+            	.setName("§7*???*").setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000);
+            	fid.setOnClick(pl -> {
+                    if (lp.target == lc.getInfo()) {
+                        AreaManager.resetCompassTarget(p, lp);
+                        fid.setItem(empty);
+                    } else {
+                        AreaManager.setCompassTarget(p, lp, lc);
+                        fid.setItem(arrow);
                     }
-                );
-                
-               /* final  TextHologramLine t = h.getLines().appendText(lc.displayName);
-                t.setClickListener( (cl) -> {
-                        if (lp.compasstarget != lc.getInfo()) {
-//p.sendMessage(lc.getName()+" setCompassTarget");
-                            setCompassTarget(p, lp, lc);
-                            i.setItemStack(new ItemStack(Material.ARROW));
-                        } else {
-//p.sendMessage(lc.getName()+" resetCompassTarget");
-                            AreaManager.resetCompassTarget(p, lp);
-                            i.setItemStack(new ItemStack(Material.GRAY_DYE));
-                        }                    
-                    }
-                );*/
-                
+            	}).create();
             }
-            
-            holo.put(ci, h);
         }
         
         
         
-        final MenuTask a = new MenuTask(p, center, holo);
-        TASKS.put(p.getName(), a);
-        
-       /* Hologram h = HolographicDisplaysAPI.get(Main.instance).createHologram(p.getEyeLocation());
-        final VisibilitySettings visiblity = h.getVisibilitySettings();
-        visiblity.setIndividualVisibility(p, VisibilitySettings.Visibility.VISIBLE);
-        visiblity.setGlobalVisibility(VisibilitySettings.Visibility.HIDDEN);
-        ItemHologramLine l = h.getLines().appendItem(new ItemStack(Material.NAUTILUS_SHELL));
-        l.setClickListener( (cl) -> {
-            p.sendMessage("click ");
-            //h.delete();
-                });*/
-    
-    
+//        final MenuTask a = new MenuTask(p, center, holo);
+//        TASKS.put(p.getName(), a);
     }
 
-    public static boolean isOpen( final Player p) {
-        return TASKS.containsKey(p.getName()) && TASKS.get(p.getName())!=null && !TASKS.get(p.getName()).isCanceled() ;
-    }
+//    public static boolean isOpen( final Player p) {
+//        return TASKS.containsKey(p.getName()) && TASKS.get(p.getName())!=null && !TASKS.get(p.getName()).isCanceled() ;
+//    }
    /* protected static Location getHoloCentr(final Player p) {
         //final Location l = p.getEyeLocation();
         final Vector direction = p.getLocation().getDirection();
@@ -143,17 +81,16 @@ public class HD {
         return holoLoc;
     }*/
 
-    private static void setCompassTarget(final Player p, final LobbyPlayer lp, final LCuboid newTarget) {
+    /*private static void setCompassTarget(final Player p, final LobbyPlayer lp, final LCuboid newTarget) {
         if (isOpen(p) && TASKS.get(p.getName()).holo.containsKey(lp.compasstarget)) { //в карте есть пункт с предыдущей целью компаса
             final Hologram h = TASKS.get(p.getName()).holo.get(lp.compasstarget); //вытаскиваем голограмму с предыдущей целью компаса
             if (h.getLines().size()!=0 && (h.getLines().get(0) instanceof ItemHologramLine)) { //первай строка - предмет
                 final ItemHologramLine i = (ItemHologramLine) h.getLines().get(0); //вытаскиваем строку-предмет
                 i.setItemStack(empty); //меняем её тип (цель не могла быть ранее открыта, так что только серый шарик
             }
-        }  
-        AreaManager.setCompassTarget(p, lp, newTarget); //
+        }   //
     
-    }
+    }*/
     
     
 }

@@ -40,8 +40,8 @@ public class DebugMenu implements InventoryProvider {
         final Pagination pagination = contents.pagination();
         
         final ArrayList<ClickableItem> menuEntry = new ArrayList<>();
-        
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+
+        final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         
         
         

@@ -1,14 +1,17 @@
 package ru.ostrov77.lobby.area;
 
 import java.util.Iterator;
+
 import org.bukkit.Location;
-import ru.komiss77.builder.SetupMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
 import ru.komiss77.ApiOstrov;
+import ru.komiss77.builder.SetupMode;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InputButton;
@@ -76,7 +79,8 @@ public class AreaEditor implements InventoryProvider{
         if (selected) {
             
             Location loc;
-            Iterator<Location> it = sm.getCuboid().borderIterator(p.getWorld());
+            @SuppressWarnings("deprecation")
+			Iterator<Location> it = sm.getCuboid().borderIterator(p.getWorld());
             while (it.hasNext()) {
                 loc = it.next();
                 if ( AreaManager.getCuboid(loc)!=null && !AreaManager.getCuboid(loc).getName().equals(sm.schemName)) {
@@ -162,7 +166,7 @@ public class AreaEditor implements InventoryProvider{
                 .addLore("§7ПКМ-установить")
                 .build(), e -> {
                     if (e.isLeftClick()) {
-                        p.teleport(sm.spawnPoint);
+                        p.teleport(sm.min);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 5);
                     } else if (e.isRightClick()) {
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
@@ -317,26 +321,13 @@ public class AreaEditor implements InventoryProvider{
                 .name("§2Сохранить")
                 .build(), e -> {
                     
-                    
-                    
                     AreaManager.deleteCuboid(id); //вычистить старые ChunkContent, если были
-                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.spawnPoint, sm.min, sm.max);
+                    final LCuboid lc = new LCuboid(id, sm.schemName, sm.extra1, sm.spawnPoint, new XYZ(sm.min), new XYZ(sm.max));
                     AreaManager.addCuboid(lc, true);
                     
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
                     p.closeInventory();
-                    sm.lastEdit = SetupMode.LastEdit.Main.name();
-                   // p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 5);
-                   /* ConfirmationGUI.open( p, "§4Стереть ?", result -> {
-                        if (result) {
-                            sm.reset();
-                            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1, 5);
-                        } else {
-                            reopen(p, contents);
-                            p.playSound(p.getLocation(), Sound.ENTITY_LEASH_KNOT_PLACE, 0.5f, 0.85f);
-                        }
-                    });*/
-                    //reopen(p, contents);
+                    sm.lastEdit = "Main";
                 }));
             
             

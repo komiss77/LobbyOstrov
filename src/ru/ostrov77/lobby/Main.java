@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -26,29 +27,28 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import net.kyori.adventure.text.Component;
+
 import net.minecraft.server.dedicated.DedicatedServer;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
+import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.OstrovConfigManager;
+import ru.komiss77.utils.TCUtils;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.bots.BotManager;
+import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
-import ru.ostrov77.lobby.listeners.ListenerWorld;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.AdvanceCrazy;
-import ru.ostrov77.lobby.quest.QuestManager;
-import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.listeners.FigureListener;
 import ru.ostrov77.lobby.listeners.InteractListener;
-import ru.ostrov77.lobby.quest.IAdvance;
-import ru.ostrov77.lobby.quest.AdvanceVanila;
+import ru.ostrov77.lobby.listeners.ListenerWorld;
+import ru.ostrov77.lobby.quest.Quests;
 
     
     
@@ -72,18 +72,17 @@ public class Main extends JavaPlugin {
     public static Main instance;
 
     public static RealTime timeManager;
-    public static BotManager botManager;
+    public static SpotManager botManager;
     public static AreaManager areaManager;
-    public static QuestManager questManager;
     public static OstrovConfigManager configManager;
     
     public static Random rnd = new Random();
     
     public static boolean langUtils = false;
-    public static IAdvance advance;
+//    public static IAdvance advance;
     public static boolean holo = false;
     
-    public static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
+//    public static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
     private static final EnumMap<LocType,Location>locations = new EnumMap<LocType, Location>(LocType.class);
     
     private static OstrovConfig serverPortalsConfig;
@@ -102,6 +101,17 @@ public class Main extends JavaPlugin {
         instance = this;
         configManager = new OstrovConfigManager(this);
         
+        //OSTROV
+        TCUtils.N = "§7"; TCUtils.P = "§с"; TCUtils.A = "§3";
+        PM.setOplayerFun(he -> new LobbyPlayer(he), true);
+        QuestManager.setOnCloseTab(p -> {
+            final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
+            if (lp==null) return;
+            if(Bukkit.isPrimaryThread()) QuestManager.complete(p, lp, Quests.qmenu);
+            else Ostrov.sync(()->QuestManager.complete(p, lp, Quests.qmenu), 0);
+        });
+        //--
+        
         final World world = Bukkit.getWorld("world");
         if (world==null) {
             Ostrov.log_err("LobbyOstrov - world недоступен! офф..");
@@ -110,6 +120,7 @@ public class Main extends JavaPlugin {
         }
 
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
+        loadLocaions(world);
         
         try {
             ds = (DedicatedServer) getServer().getClass().getMethod("getServer").invoke(getServer());
@@ -117,11 +128,15 @@ public class Main extends JavaPlugin {
             e.printStackTrace();
         }
         
+        new Quests();
         timeManager = new RealTime();
-        botManager = new BotManager();
+        botManager = new SpotManager();
         areaManager = new AreaManager();
-        questManager = new QuestManager();
         
+        world.setStorm(rnd.nextBoolean());
+        if (world.hasStorm()) 
+        world.setThundering(rnd.nextBoolean());
+        world.setWeatherDuration(10000000);
         new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -129,25 +144,16 @@ public class Main extends JavaPlugin {
                 }
         }.runTaskTimer(instance, 40, 500);
         
-        
         getServer().getPluginManager().registerEvents(new ListenerWorld(), instance);
-        getServer().getPluginManager().registerEvents(new QuestManager(), instance);
         getServer().getPluginManager().registerEvents(new FigureListener(), instance);
         getServer().getPluginManager().registerEvents(new InteractListener(), instance);
         
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
-            //cosmetics = true;
-        }
-        //подгрузка ачивок. После AreaManager!!
-        if (Bukkit.getPluginManager().getPlugin("CrazyAdvancementsAPI")!=null) {
-            advance =  new AdvanceCrazy();
-        } else {
-            advance =  new AdvanceVanila();
         }
         
         langUtils = Bukkit.getPluginManager().getPlugin("LangUtils")!=null;
-        holo = Bukkit.getPluginManager().getPlugin("HolographicDisplays")!=null;
+        holo = true;//Bukkit.getPluginManager().getPlugin("HolographicDisplays")!=null;
        
         createMenuItems();
 
@@ -156,7 +162,6 @@ public class Main extends JavaPlugin {
         
         
         loadCfgs();
-        loadLocaions(world);
 		
         Ostrov.log_ok("Lobby загружен");
 
@@ -164,26 +169,20 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onDisable() {
-		for (final Player pl : getServer().getOnlinePlayers()) {
-			BotManager.removePlayer(pl);
-		}
-    	BotManager.clearBots();
+    	
     }
     
     
     public static void arriveNewBie(final Player p) {
         
-        
         if (p.getVehicle()!=null) {
             final Entity gin = p.getVehicle();
-            gin.customName(Component.text("§cРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
+            gin.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
             p.getVehicle().eject();
-            ((LivingEntity)gin).setAI(false);
-//p.sendMessage("loc="+gin.getLocation()); 13.8 102.72 24.8
-            gin.teleport(getLocation(LocType.ginFinal));
-            showGinHopper(getLocation(LocType.ginLampArrive).clone(), true); //партиклами воронка, уходящая в лампу
-            //gin.setVelocity(new Vector(0, -0.5, 0)); //всасывание джина в лампу 
-            //gin.setGravity(true);
+            ((LivingEntity) gin).setAI(false);
+            final Location fgl = getLocation(LocType.ginLampArrive);
+            showGinHopper(fgl.clone(), true); //партиклами воронка, уходящая в лампу
+            gin.teleport(fgl);
             
             p.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
 
@@ -193,12 +192,9 @@ public class Main extends JavaPlugin {
                     gin.remove();
                 }
             }, 100);
-//p.sendMessage("§8log: прибыли на джине ginTicks="+gin.getTicksLived());
 
         } else {
             p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-//p.sendMessage("§8log: прибыли своим ходом");
-            
         }
         //эффект, музыка 
         //DonatEffect.spawnRandomFirework(p.getLocation());
@@ -219,7 +215,7 @@ public class Main extends JavaPlugin {
                     double x = radius * Math.cos(Math.pow(y, 2)*10);
                     double z = radius * Math.sin(Math.pow(y, 2)*10);
                     loc.add(x,y,z);
-                    loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 1, 0, 0, 0);
+                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 1, 0d, 0d, 0d, 0d);
                     loc.subtract(x,y,z);
                 }
                 if ( (in && y<=0) || y>=4) {
@@ -267,43 +263,12 @@ public class Main extends JavaPlugin {
             }
         }
     }
-    
-    
-    
-    
-    
-    
-    //public static void addLobbyPlayer(final LobbyPlayer lp) {
-        //final LobbyPlayer lp = new LobbyPlayer(p.getName());
-        //lobbyPlayers.put(lp.name, lp);
-        //return lp;
-    //}
-    
-    public static LobbyPlayer getLobbyPlayer(final Player p) {
-        return lobbyPlayers.get(p.getName());
-    }  
-    
-    public static LobbyPlayer getLobbyPlayer(final String name) {
-        return lobbyPlayers.get(name);
-    }
-    
-    //public static LobbyPlayer destroyLobbyPlayer(final String name) {
-    //    return lobbyPlayers.remove(name);
-    //}
-    
-    public static Iterable<LobbyPlayer> getLobbyPlayers() {
-        return lobbyPlayers.values();
-    }
-
-    
-    
-    
 
     public static void giveItems(final Player p) {
         p.getInventory().clear();
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         if (lp==null) return;
-        if (lp.hasFlag(LobbyFlag.Elytra)) {
+        if (QuestManager.isComplete(lp, Quests.doctor)) {
             p.getInventory().setItem(2, fw); //2
             elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
@@ -314,10 +279,11 @@ public class Main extends JavaPlugin {
         }
         //ProCosmeticsAPI.giveCosmeticMenu(p);
         oscom.giveForce(p);
-        if (lp.questDone.contains(Quest.PandoraLuck)) {
+        final Oplayer op = PM.getOplayer(p);
+        if (QuestManager.isComplete(op, Quests.pandora)) {
             cosmeticMenu.giveForce(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         }
-        if (lp.questDone.contains(Quest.DiscoverAllArea)) {
+        if (QuestManager.isComplete(op, Quests.discover)) {
             pipboy.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         }
         p.updateInventory();
@@ -464,7 +430,7 @@ public class Main extends JavaPlugin {
             .canMove(false)
             .duplicate(false)
             .rightClickCmd("cosmetics")
-            .leftClickCmd("oscom unequipCosmetics")
+//            .leftClickCmd("oscom unequipCosmetics")
             .create();
         
         final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
@@ -515,12 +481,13 @@ public class Main extends JavaPlugin {
 	}*/
 
     private static void loadLocaions(final World world) {
-        locations.put(LocType.Spawn,  new Location(world, 0.5, 100.5, 0.5, 0, 0));
-        locations.put(LocType.newBieSpawn,  new Location(world, 38.5, 160.5, -79.5, -90, 0));
+        locations.put(LocType.Spawn,  new Location(world, 0.5, 100.5, 0.5, -90, 0));
+        locations.put(LocType.newBieSpawn,  new Location(world, 60.5, 160.5, -79.5, 90, 0));
         locations.put(LocType.newBieArrive,  new Location(world, 16.5, 100.5, 25.5, 150, 0));
-        locations.put(LocType.ginFinal,  new Location(world, 13.5, 102, 26.5));
-        locations.put(LocType.ginLampShip,  new Location(world, 32.5, 162.5, -79.5));
+        locations.put(LocType.ginLampShip,  new Location(world, 52.5, 162.5, -79.5));
         locations.put(LocType.ginLampArrive,  new Location(world, 13.5, 100, 26.5));
+        locations.put(LocType.raceLoc,  new Location(world, -9.5, 94.5, -66.5));
+        locations.put(LocType.sumoLoc,  new Location(world, 61.5, 91.5, 54.5));
     }
     
     public static Location getLocation(final LocType type) {
@@ -528,7 +495,7 @@ public class Main extends JavaPlugin {
     }
         
     public enum LocType {
-        Spawn, newBieSpawn, newBieArrive, ginFinal, ginLampShip, ginLampArrive;
+        Spawn, newBieSpawn, newBieArrive, ginLampShip, ginLampArrive, raceLoc, sumoLoc;
     }
 
 }

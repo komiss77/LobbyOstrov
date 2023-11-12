@@ -1,24 +1,27 @@
 package ru.ostrov77.lobby.listeners;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import org.bukkit.Material;
+
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import ru.komiss77.Ostrov;
+
 import ru.komiss77.events.FigureClickEvent;
 import ru.komiss77.events.MissionEvent;
 import ru.komiss77.events.PandoraUseEvent;
+import ru.komiss77.modules.displays.DisplayManager;
+import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.objects.FigureAnswer;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.CuboidInfo;
+import ru.ostrov77.lobby.quest.Quests;
 
 
 
@@ -26,87 +29,151 @@ import ru.ostrov77.lobby.quest.QuestManager;
 
 public class FigureListener implements Listener {
     
+	private static final String tp = "       §e[§fЛКМ§e] - посетить§f       ";
     
     @EventHandler
     public void onFigureClick(final FigureClickEvent e) {
         final Player p = e.getPlayer();
 //p.sendMessage("§8log: tag="+e.getFigure().getTag()+" left?"+e.isLeftClick());
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+        final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         if (lp==null) return;
         if (e.getFigure().getTag().equals("info")) {
-            final FigureAnswer fa = new FigureAnswer().vibration(true).beforeEyes(true);
+            final FigureAnswer fa = new FigureAnswer().vibration(true).beforeEyes(false);
             
             switch (e.getFigure().getEntityType()) {
-                
+            
     		case ENDERMAN:
-                    fa.set(Arrays.asList("Добро пожаловать на §9Аркаим§f,", "На этом режиме вы сможете", "проявить свою полную фантазию", "благодаря халявному §9креативу§f!", "§eУдачного строительства!"))
-                        .time(10).sound(Sound.ENTITY_ENDERMAN_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkAR);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Добро пожаловать на §9Аркаим§f. На этом режиме ты сможещь проявить свою полную §9фантазию§f благодаря халявному §9креативу§f!"))
+                        .sound(Sound.ENTITY_ENDERMAN_AMBIENT);
+                    QuestManager.addProgress(p, lp, Quests.agent, "AR");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.ARCAIM).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
                     
     		case PIGLIN_BRUTE:
-                    fa.set(Arrays.asList("Здравствуй, товарищ, и добро", "пожаловать в §cСове§f... точнее", "на §cМидгард§f - режим кланов и", "воинств, где тебе и твоим друзьям", "предстоит построить §cимперию§f с нуля!", "§eУдачных завоеваний!"))
-                        .time(10).sound(Sound.ENTITY_PIGLIN_BRUTE_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkMI);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Здравствуй, товарищ, и добро пожаловать в §cСове§f... точнее на §cМидгард§f - современный §cРП-режим§f, где тебе и твоим друзьям предстоит построить §cимперию§f с нуля! §к(В Разработке)"))
+                    	.sound(Sound.ENTITY_PIGLIN_BRUTE_AMBIENT);
+                    QuestManager.addProgress(p, lp, Quests.agent, "MI");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.MIDGARD).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
                     
     		case ZOMBIE_VILLAGER:
-                    fa.set(Arrays.asList("Приветствую тебя, игрок, на", "режиме §aДаарии§f - ванильном", "выживании, с поддержкой всех", "последних обновлений §aМайнкрафта§f!", "§eСчастливых похождений!"))
-                        .time(10).sound(Sound.ENTITY_ZOMBIE_VILLAGER_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkDA);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Приветствую тебя, игрок, на режиме §aДаарии§f - ванильном выживании, с поддержкой всех последних обновлений §aМайнкрафта§f!"))
+	                    .sound(Sound.ENTITY_ZOMBIE_VILLAGER_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "DA");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.DAARIA).getSpawnLocation(p.getWorld())), false);
+				}
+                break;
                     
     		case VILLAGER:
-                    if (lp.hasFlag(LobbyFlag.NewBieDone)) {
-    			fa.set(Arrays.asList("§fРад видеть тебя снова!")).time(5).beforeEyes(false).sound(Sound.ENTITY_VILLAGER_AMBIENT);
-                    } else {
-    			fa.set(new ArrayList<String>(Arrays.asList("Мы наконец-то прибыли!", "Открой §e'Достижения' [Д]§f чтобы", "увидеть следующие задания!", "Кликни на лампу, и §6Джин§f мигом", "отвезет тебя на §6Спавн§f"))).add(Material.SOUL_LANTERN).add("Либо просто прыгни за борт!")
-                            .time(10).sound(Sound.ENTITY_VILLAGER_AMBIENT);
-    			QuestManager.tryCompleteQuest(p, lp, Quest.SpeakWithNPC);
-                    }
-                    break;
+                if (lp.hasFlag(LobbyFlag.NewBieDone)) {
+    				if (e.isRightClick()) {
+    					fa.set(Arrays.asList(tp + "§fРад видеть тебя снова!")).sound(Sound.ENTITY_VILLAGER_AMBIENT);
+                        QuestManager.complete(p, lp, Quests.locman);
+    				} else {
+    					DisplayManager.rmvDis(p);
+    					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.SPAWN).getSpawnLocation(p.getWorld())), false);
+    					return;
+    				}
+                } else {
+                	fa.set(Arrays.asList("Мы наконец-то прибыли! Открой §e'Достижения' [Д]§f чтобы увидеть следующие задания. Кликни на лампу, и §6Джин§f мигом отвезет тебя на §6Спавн§f, либо просто прыгни за борт!"))
+                        .sound(Sound.ENTITY_VILLAGER_AMBIENT);
+                    QuestManager.complete(p, lp, Quests.locman);
+                }
+                break;
                     
     		case ZOMBIE:
-                    fa.set(Arrays.asList("§3СкайБлок§f если что дальше §3-->", "А здесь режим §3ВанБлок§f, на", "котором тебе предстоит построить", "островок буквально начиная", "только с §31§f блоком!", "§eУдачи в развитии!"))
-                        .time(10).sound(Sound.ENTITY_ZOMBIE_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkOB);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Здесь режим §3Ван-Блок§f, на котором тебе предстоит построить §3островок§f буквально начиная только с §31 блоком§f! §3Скай-Блок§f, если что, дальше §3-->"))
+	                    .sound(Sound.ENTITY_ZOMBIE_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "OB");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.SKYWORLD).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
                     
     		case WITCH:
-                    fa.set(Arrays.asList("Приветствую, странник, приглашаю", "тебя на §3СкайБлок§f - режим,", "заключенный в §3развити§f и", "§3прокачке§f острова, так", "сказать, из грязи в князи!", "§eУдачи в развитии!"))
-                        .time(10).sound(Sound.ENTITY_WITCH_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkSW);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Приветствую, странник, приглашаю тебя на §3Скай-Блок§f - режим, заключенный в §3развити§f и §3прокачке§f острова, так сказать, из грязи в князи!"))
+	                    .sound(Sound.ENTITY_WITCH_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "SW");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.SKYWORLD).getSpawnLocation(p.getWorld())).add(0, -1, -20), false);
+					return;
+				}
+                break;
                     
     		case WANDERING_TRADER:
-                    fa.set(Arrays.asList("Привет, друг! Здесь, ты можешь", "развлечься в ассортименте разных", "мини-игр, таких как §eБилд Баттл§f,", "§eКонтра§f, §eПрятки§f, и т.д., как и", "сам, так и со своими друзьями!", "§eХорошего отдыха!"))
-                        .time(10).sound(Sound.ENTITY_WANDERING_TRADER_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkPVE);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Привет, друг! Здесь, ты можешь §eразвлечься§f в ассортименте разных мини-игр, таких как §eКонтра§f, §eБилд Баттл§f, §eПрятки§f, и т.д., как и сам, так и со своими друзьями!"))
+	                    .sound(Sound.ENTITY_WANDERING_TRADER_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "NM");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.NOPVP).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
                     
     		case SNOWMAN:
-                    fa.set(Arrays.asList("Бурлит §bадреналин§f в крови? Тогда", "выпришли по адресу, ведь здесь,", " на §bПаркурах§f, у вас есть выбор", "среди 60+ карт, все из них с", "интересными темами и прыжками!", "§eПриятных прыганий!"))
-                        .time(10).sound(Sound.BLOCK_SNOW_BREAK);
-                    onSpeak(p, lp, LobbyFlag.TalkPK);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Бурлит §bадреналин§f в крови? Тогда ты по адресу, ведь на §bПаркурах§f, у тебя есть выбор среди §b60+ карт§f, все из них с интересными темами и прыжками!"))
+	                    .sound(Sound.BLOCK_SNOW_BREAK);
+	                QuestManager.addProgress(p, lp, Quests.agent, "PA");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.PARKUR).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
                     
     		case WITHER_SKELETON:
-                    fa.set(Arrays.asList("Готовы показать свой скилл на", "поле боя? Выберите §6PVP§f мини-игру", " на ваш вкус (§6Бед Варс§f, §6Скай", "§6Варс§f, §6Зомби§f, и т.д.) и", "отжигайте местную фауну с друзьями!", "§eДостойных побед!"))
-                        .time(10).sound(Sound.ENTITY_WITHER_SKELETON_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkPVP);
-                    break;
-                    
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Сможешь ли ты показать свой скилл на поле боя? Выбери §6PVP§f мини-игру на свой вкус (§6Кит-ПВП§f, §6Скай Варс§f, §6Зомби§f, и т.д.) и отжигай местную фауну с друзьями!"))
+	                    .sound(Sound.ENTITY_WITHER_SKELETON_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "PM");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.PVP).getSpawnLocation(p.getWorld())), false);
+					return;
+				}
+                break;
+                
     		case ZOMBIFIED_PIGLIN:
-                    fa.set(Arrays.asList("Здравствуй, §4скиталец§f. Думаешь что", "обычные мобы тебе больше не помеха?", "Тогда залетай на §4Хардкор-РПГ §fмиры", "Седны, выбирай класс, и покажи насколько", "ты годен в гуще §4кровавого §fзамеса.!", "§eЭпические битвы ждут!"))
-                        .time(10).sound(Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT);
-                    onSpeak(p, lp, LobbyFlag.TalkSN);
-                    break;
+				if (e.isRightClick()) {
+                    fa.set(Arrays.asList(tp + "Здравствуй, §4скиталец§f. Думаешь что обычные мобы тебе больше не помеха? Тогда залетай на §4Хардкор-РПГ §fмиры Седны, выбирай класс, и покажи насколько ты годен в гуще §4кровавого §fзамеса!"))
+	                    .sound(Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT);
+	                QuestManager.addProgress(p, lp, Quests.agent, "SE");
+				} else {
+					DisplayManager.rmvDis(p);
+					lp.transport(p, new XYZ(AreaManager.getCuboid(CuboidInfo.SEDNA).getSpawnLocation(p.getWorld())), false);
+//					p.teleport(AreaManager.getCuboid(CuboidInfo.SEDNA).getSpawnLocation(p.getWorld())), false;
+					return;
+				}
+                break;
                     
     		case CREEPER:
-                    fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро", "пожаловать на §3Архипелаг§f - лобби,", "где на каждом острове ты найдешь", "интересные и уникальные §6Большие Режимы§f,", "или §eМини-Игры§f для вас и ваших друзей!", "§eИсследуйте весь остров!"))
-                        .time(10).sound(Sound.ENTITY_CREEPER_HURT);
-                    onSpeak(p, lp, LobbyFlag.TalkSP);
-                    break;
+                fa.set(Arrays.asList("Приветствую, §eпутник§f, и добро пожаловать на §3Архипелаг§f - лобби, где на каждом острове ты найдешь интересные и уникальные §6Большие Режимы§f, или §eМини-Игры§f для тебя и твоих друзей! §eИсследуй весь остров!"))
+                    .sound(Sound.ENTITY_CREEPER_HURT);
+                QuestManager.addProgress(p, lp, Quests.agent, "LB");
+                break;
+			default:
+				break;
                     
             }
             
@@ -118,55 +185,39 @@ public class FigureListener implements Listener {
             
             
         } else if (e.getFigure().getTag().equals("mid") && e.getFigure().getEntityType() == EntityType.PIGLIN) {
+            final FigureAnswer fa = new FigureAnswer().vibration(true)
+            	.beforeEyes(false).sound(Sound.ENTITY_PIGLIN_AMBIENT);
             
             p.playSound(e.getFigure().getEntity().getLocation(), Sound.ENTITY_PIGLIN_AMBIENT, 1f, 1f);
             switch (e.getFigure().getName().charAt(4)) {
             case 'K':
-                if (lp.hasFlag(LobbyFlag.MI1)) {
-                        p.sendMessage("[§cКузнец§f] Я за сегодня 3 топора выковал!");
+                if (QuestManager.addProgress(p, lp, Quests.gold, "К")) {
+                	fa.set(Arrays.asList("Приветствую! Налог §65§f золотых говорите? ну забирайте..."));
+                    p.sendMessage("[§cКузнец§f] §6+5⛃");
                 } else {
-                        p.sendMessage("[§cКузнец§f] Приветствую! Налог 5 золотых говорите? ну забирайте... §6+5⛃");
-                        //look
-                        lp.setFlag(LobbyFlag.MI1, true);
+                	fa.set(Arrays.asList("Я за сегодня 3 топора выковал!"));
                 }
                 break;
             case 'М':
-                if (lp.hasFlag(LobbyFlag.MI2)) {
-                        p.sendMessage("[§cМясник§f] Главное чтоб мясо не протухло!");
+                if (QuestManager.addProgress(p, lp, Quests.gold, "М")) {
+                	fa.set(Arrays.asList("Ну что, опять налоги собираете? Только сегодня последние §62§f собрал... держите..."));
+                    p.sendMessage("[§cМясник§f] §6+5⛃");
                 } else {
-                        p.sendMessage("[§cМясник§f] Ну что, опять налоги собираете?\nТолько сегодня последние 2 собрал... держите... §6+5⛃");
-                        //look
-                        lp.setFlag(LobbyFlag.MI2, true);
+                	fa.set(Arrays.asList("Главное чтоб мясо не протухло!"));
                 }
                 break;
             case 'Ф':
-                if (lp.hasFlag(LobbyFlag.MI3)) {
-                        p.sendMessage("[§cФермер§f] Сегодня впервые за месяц спеку хлеб!");
+                if (QuestManager.addProgress(p, lp, Quests.gold, "Ф")) {
+                	fa.set(Arrays.asList("Здрасть, товарищ! §65§f? У меня столько нету... Вот §63§f, по факту все что есть..."));
+                    p.sendMessage("[§cФермер§f] §6+3⛃");
                 } else {
-                        p.sendMessage("[§cФермер§f] Здрасть, товарищ! 5? У меня столько нету...\nВот 3, по факту все что есть... §6+3⛃");
-                        //look
-                        lp.setFlag(LobbyFlag.MI3, true);
+                	fa.set(Arrays.asList("Сегодня впервые за месяц спеку хлеб!"));
                 }
                 break;
             }
-            
-            Ostrov.sync(() -> QuestManager.tryCompleteQuest(p, lp, Quest.CollectTax), 20);
+            e.setAnswer(fa);
         }
-        
     }
-    
-    
-    private void onSpeak(Player p, LobbyPlayer lp, LobbyFlag flag) {
-//p.sendMessage("§8log: onSpeak hasQuest?"+lp.hasQuest(Quest.TalkAllNpc)+" hasFlag?"+lp.hasFlag(flag));
-       if (lp.hasQuest(Quest.TalkAllNpc) && !lp.hasFlag(flag)) {
-            lp.setFlag(flag, true);
-            QuestManager.updateProgress(p, lp, Quest.TalkAllNpc, true);
-            if (QuestManager.tryCompleteQuest(p, lp, Quest.TalkAllNpc)) {
-                //final Oplayer op = PM.getOplayer(p);
-                //op.setData(Data.RIL, op.getDataInt(Data.RIL)+10);
-            }
-       }
-    }    
     
     
     
@@ -174,24 +225,12 @@ public class FigureListener implements Listener {
     @EventHandler (priority = EventPriority.MONITOR)
     public void onMission(final MissionEvent e) {
         if (e.action!=MissionEvent.MissionAction.Accept) return;
-        //final Oplayer op = PM.getOplayer(e.getPlayer());
-        //if (op.hasFlag(StatFlag.FirstMissionDone)) {
-        //    return;
-        //}
-//e.getPlayer().sendMessage("§8log: PandoraUseEvent");
-        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
-        if (lp==null) return;
-        QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.FirstMission);
-        //}
+        QuestManager.complete(e.getPlayer(), PM.getOplayer(e.getPlayer()), Quests.mission);
     }
 
     @EventHandler (priority = EventPriority.MONITOR)
     public void onPandoraUse(final PandoraUseEvent e) {
-//e.getPlayer().sendMessage("§8log: PandoraUseEvent");
-        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
-        if (lp==null) return;
-            QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.PandoraLuck);
-        //}
+        QuestManager.complete(e.getPlayer(), PM.getOplayer(e.getPlayer()), Quests.pandora);
     }
 
 

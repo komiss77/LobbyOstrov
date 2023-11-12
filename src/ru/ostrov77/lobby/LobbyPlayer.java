@@ -1,51 +1,51 @@
 package ru.ostrov77.lobby;
 
-import java.util.EnumMap;
 import java.util.EnumSet;
+
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
-import ru.komiss77.enums.Data;
 import ru.komiss77.modules.player.Oplayer;
-import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.world.XYZ;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.game.Parkur;
-import ru.ostrov77.lobby.quest.Quest;
+import ru.ostrov77.lobby.quest.Quests;
 
 
-public class LobbyPlayer {
-    
-    public final String name;
-    private int flags; //флаги
-    private int openedArea; //открытые локации
-    public final EnumSet<Quest> questDone = EnumSet.noneOf(Quest.class); //завершенные задания
-    public final EnumSet<Quest> questAccept = EnumSet.noneOf(Quest.class); //текущие задания
-    private final EnumMap<Quest,Integer> progressCache = new EnumMap(Quest.class);
+public class LobbyPlayer extends Oplayer {
+
+	private int flags; //флаги
+    public int openedArea; //открытые локации
     
     //служебные
     public int lastCuboidId; //для playerMoveTask
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime = -1; //таймер гонки
-    private EnumSet<Material> foundBlocks; //блоки для 50 блок. задания
+    public int sumoWins = 0; //сумо киллы
+    public final EnumSet<Material> foundBlocks = EnumSet.noneOf(Material.class); //блоки для 50 блок. задания
     public Parkur pkrist;
-    public CuboidInfo compasstarget = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
+    public CuboidInfo target = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
     
-    public boolean toSave = false;
-    public boolean updAdv = false;
-    public final boolean isGuest;
+//    public boolean toSave = false;
+//    public boolean updAdv = false;
     
-    
-    public LobbyPlayer(final String name) {
-        this.name = name;
-        isGuest = name.startsWith("guest_");
-    }
-    
-    
-    
+    public LobbyPlayer(final HumanEntity p) {
+		super(p);
+	}
     
     
     public boolean isAreaDiscovered(final int areaId) {
@@ -54,7 +54,7 @@ public class LobbyPlayer {
     
     public void setAreaDiscovered(final int areaId) {
         openedArea =(openedArea | (1 << areaId));
-        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+name+"';");
+//        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `openedArea` = '"+openedArea+"' WHERE `name` = '"+nik+"';");
     }
     
     public int getOpenAreaCount () {
@@ -70,8 +70,7 @@ public class LobbyPlayer {
         x = (x >>> 8 & 0x00FF00FF) + (x & 0x00FF00FF);
         // Collapse 2x16 bit counts to 1x32 bit count
         return (x >>> 16) + (x & 0x0000FFFF);
-    }     
-    
+    }
     
     public boolean hasFlag(final LobbyFlag flag) {
         return (flags & (1 << flag.tag)) == (1 << flag.tag);//return LobbyFlag.hasFlag(flags, flag);
@@ -79,65 +78,7 @@ public class LobbyPlayer {
     
     public void setFlag(final LobbyFlag flag, final boolean state) {
         flags = state ? (flags | (1 << flag.tag)) : flags & ~(1 << flag.tag);
-        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `flags` = '"+flags+"' WHERE `name` = '"+name+"';");
-    }
-
-    
-    
-    //отдельным методом, т.к. могут добавлять и НПС
-    public boolean addQuest(final Quest quest) {
-        if (!questDone.contains(quest) && questAccept.add(quest)) { //это задание ранее не выполнено и уже не было получено ранее
-            if (!AreaManager.hasCuboid(quest.name())) Main.advance.sendToast(getPlayer(), this, quest); //для заданий открыть кубоид без помпезностей
-            toSave = true;
-            if (quest==Quest.FindBlock) {
-                foundBlocks = EnumSet.noneOf(Material.class);
-            }
-            return true;
-        }
-        return false;
-    }
-    
-    
-    //только сохранение! все обработчики - в QuestManager
-    public boolean questDone(final Quest quest) {
-        //boolean change = questAccept.remove(quest); //сохранять только если что-то реально изменилось!
-        if (questAccept.remove(quest) && questDone.add(quest)) {
-            final Oplayer op = PM.getOplayer(name);
-            if (quest.pay>0) {
-                op.setData(Data.RIL, op.getDataInt(Data.RIL)+quest.pay);
-            }
-            progressCache.remove(quest);
-            toSave = true;
-            if (quest==Quest.FindBlock) {
-                foundBlocks = null;
-            }
-            return true;
-        }
-        return false;
-        //if (change) {
-        //    saveQuest();
-        //}
-    }
-    
-    
-    public void saveQuest() {
-        if (toSave) {
-            toSave = false;
-            updAdv = true;
-            final StringBuilder sbDone = new StringBuilder();
-            for (Quest q:questDone) {
-                sbDone.append(q.code);
-            }
-            final StringBuilder sbAccept = new StringBuilder();
-            for (Quest q:questAccept) {
-                sbAccept.append(q.code);
-            }
-            LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `questDone` = '"+sbDone.toString()+"', `questAccept` = '"+sbAccept.toString()+"' WHERE `name` = '"+name+"';");
-        }
-        if (updAdv) {
-            updAdv = false;
-            Main.advance.updVisib(getPlayer());
-        }
+        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `flags` = '"+flags+"' WHERE `name` = '"+nik+"';");
     }
 
     
@@ -163,46 +104,87 @@ public class LobbyPlayer {
         this.openedArea = openedArea;
     }
 
-    public Player getPlayer() {
-        return Bukkit.getPlayerExact(name);
-    }
-
     public LCuboid getCuboid() {
         return AreaManager.getCuboid(lastCuboidId);
     }
-
     
-    public int getProgress(final Quest q) {
-        return progressCache.containsKey(q) ? progressCache.get(q) : 0;
+    
+    
+    @Override
+    public void onLeave(final Player p) {
+//    	mysqlData.put("logoutLoc", LocationUtil.toDirString(p.getLocation()));
+    	mysqlData.put("area", String.valueOf(openedArea));
+    	mysqlData.put("flags", String.valueOf(flags));
+    	
+    	super.onLeave(p);
+        
+        final LCuboid exitCuboid = AreaManager.getCuboid(p.getLocation());
+        if (exitCuboid!=null) {
+            if (exitCuboid.playerNames.remove(p.getName())) {
+                Bukkit.getPluginManager().callEvent(new CuboidEvent(p, this, exitCuboid, null, cuboidEntryTime));
+            }
+        }
+        p.removeMetadata("tp", Main.instance);
     }
-
-    public void setProgress(Quest q, int progress) {
-        if (progress>0) {
-            progressCache.put(q, progress);
-        } else {
-            progressCache.remove(q);
+    
+    public void transport(final Player p, final XYZ to, final boolean inst) {
+        final Location loc = p.getLocation();
+        final XYZ fin = new XYZ("", to.x, to.y + ((to.y - loc.getBlockY()) >> 31) + 1, to.z);
+        loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+        loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
+        
+        if (inst) {
+        	p.teleport(to.getCenterLoc(p.getWorld()));
+            final Location nlc = p.getLocation();
+            nlc.getWorld().spawnParticle(Particle.SOUL, nlc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+            nlc.getWorld().playSound(nlc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 1.4f);
+            return;
         }
         
-    }
-
-    public boolean hasQuest(final Quest quest) {
-        return questAccept.contains(quest) && !questDone.contains(quest);
-    }
-
-    public boolean foundBlockAdd(final Material type) {
-        if (foundBlocks==null) foundBlocks = EnumSet.noneOf(Material.class);
+        final GameMode gm = p.getGameMode();
+        p.setGameMode(GameMode.SPECTATOR);
+        loc.getWorld().playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.8f);
+        p.setVelocity(new Vector(fin.x + 0.5d, fin.y + 0.5d, fin.z + 0.5d).subtract(loc.toVector()).multiply(0.1f));
+        final LobbyPlayer lp = this;
         
-        if (foundBlocks.add(type)) {
-            progressCache.put(Quest.FindBlock, foundBlocks.size());
-            return true;
-        }
-        return false;
+        new BukkitRunnable() {
+            int count;
+            int previosDistance = Integer.MAX_VALUE;
+            int currDist;
+            
+            @Override
+            public void run() {
+                
+                if (p==null || !p.isOnline()) {
+                    this.cancel();
+                    return;
+                }
+                
+                
+                
+                final Location crl = p.getLocation();
+                currDist = fin.distSq(crl);//
+//p.sendMessage("§8log: count="+count+" curr="+currDist+" previos="+previosDistance);
+                //if (Math.abs(loc.getBlockX() - second.x) < 2 && loc.getBlockY() == second.y && Math.abs(loc.getBlockZ() - second.z) < 2) {
+                if (count>=100 || previosDistance<=currDist) { //предыдущая дистанция меньше или равна - значит пролетел и начал удаляться
+                    this.cancel();
+                    crl.getWorld().spawnParticle(Particle.SOUL, crl, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
+                    crl.getWorld().playSound(crl, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
+                    p.setGameMode(gm);
+                    p.setFlying(false);
+                    p.setVelocity(new Vector(0, 0, 0));
+                    QuestManager.complete(p, lp, Quests.plate);
+                } else {
+                    previosDistance = currDist;  //запоминаем текущее расстояние для сравнения на в след.раз
+                    p.setVelocity(new Vector(fin.x + 0.5d, fin.y + 0.5d, fin.z + 0.5d).subtract(crl.toVector()).multiply(0.1f));
+                    crl.getWorld().spawnParticle(Particle.NAUTILUS, crl, 40, 0.2d, 0.2d, 0.2d);
+                    
+                }
+                count++;
+            }
+
+        }.runTaskTimer(Main.instance, 10, 3);
+        return;
     }
-
-
-    
-    
-    
-
     
 }

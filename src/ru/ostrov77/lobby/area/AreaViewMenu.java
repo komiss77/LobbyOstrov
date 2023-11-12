@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
@@ -12,7 +13,6 @@ import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
 import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
 
 
 
@@ -76,8 +76,8 @@ public class AreaViewMenu implements InventoryProvider {
     public void init(final Player p, final InventoryContent content) {
         p.playSound(p.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 5, 5);
         content.getInventory().setContents(bIts);
-        
-        final LobbyPlayer lp = Main.getLobbyPlayer(p);
+
+        final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
 
         
         //final Pagination pagination = content.pagination();
@@ -109,28 +109,28 @@ public class AreaViewMenu implements InventoryProvider {
                         
         } else {
 
-            final ItemStack is = new ItemBuilder(lp.compasstarget == lc.getInfo() ? Material.CLAY_BALL :  Material.GRAY_DYE)
+            final ItemStack is = new ItemBuilder(lp.target == lc.getInfo() ? Material.CLAY_BALL :  Material.GRAY_DYE)
                     .name(lc.displayName)
                     .addLore("§7Не изучена")
-                    .addLore(lp.compasstarget == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
-                    .addLore(lp.compasstarget == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
+                    .addLore(lp.target == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
+                    .addLore(lp.target == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
                     .build();
 
             content.set(ci.slot, ClickableItem.of(is, e-> {
 
-                    if (e.isLeftClick()  && lp.compasstarget != lc.getInfo()) {
+                    if (e.isLeftClick()  && lp.target != lc.getInfo()) {
 
                         p.setCompassTarget(lc.spawnPoint);
-                        lp.compasstarget = lc.getInfo();
+                        lp.target = lc.getInfo();
                         AreaManager.setCompassTarget(p, lp, lc);
                         p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_LAUNCH, 1, 1);
                         reopen(p, content);
                         return;
 
-                    } else if (e.isRightClick() && lp.compasstarget == lc.getInfo()) {
+                    } else if (e.isRightClick() && lp.target == lc.getInfo()) {
 
                         p.setCompassTarget(p.getLocation());
-                        lp.compasstarget = CuboidInfo.DEFAULT;
+                        lp.target = CuboidInfo.DEFAULT;
                         AreaManager.resetCompassTarget(p, lp);
                         p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_LAUNCH, 1, 1);
                         reopen(p, content);

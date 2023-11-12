@@ -8,11 +8,12 @@ import org.bukkit.entity.Player;
 
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.AreaManager;
+import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.quest.Quests;
 
 public class Parkur {
 
@@ -70,16 +71,17 @@ public class Parkur {
 		}
 		bNext = new XYZ(n.getLocation());
 		
-            if (bNext.y > 250) {
-                p.sendMessage("§7[§bМини-Паркур§7] >> Вы... прошли до конца??! Пропрыгано блоков: §b" + jumps);
-                QuestManager.tryCompleteQuest(p, Main.getLobbyPlayer(p), Quest.MiniPark);
-                p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z).setType(Material.AIR, false);
-                p.getWorld().getBlockAt(bNext.x, bNext.y, bNext.z).setType(Material.AIR, false);
-                p.teleport(AreaManager.getCuboid("parkur").spawnPoint);
-                p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1, 1.2f);
-                //Main.miniParks.remove(this);
-                Main.getLobbyPlayer(p).pkrist = null;
-            }
+        if (bNext.y > 250) {
+            p.sendMessage("§7[§bМини-Паркур§7] >> Вы... прошли до конца??! Пропрыгано блоков: §b" + jumps);
+            final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
+        	QuestManager.complete(p, lp, Quests.parkur);
+            p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z).setType(Material.AIR, false);
+            p.getWorld().getBlockAt(bNext.x, bNext.y, bNext.z).setType(Material.AIR, false);
+            p.teleport(AreaManager.getCuboid("parkur").spawnPoint);
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1, 1.2f);
+            //Main.miniParks.remove(this);
+            lp.pkrist = null;
+        }
 	}
 
 	/*public static PKrist getPK(final String name) {

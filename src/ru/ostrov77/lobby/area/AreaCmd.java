@@ -3,14 +3,15 @@ package ru.ostrov77.lobby.area;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.entity.Player;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
+
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.builder.SetupMode;
-import ru.komiss77.builder.SetupMode.LastEdit;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.inventory.SmartInventory;
@@ -132,7 +133,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
        // }
 
       //  p.sendMessage( "§cArea параметр?");
-        if (op.setup.lastEdit==LastEdit.SchemEdit.name()) {
+        if (op.setup.lastEdit.equals("SchemEdit")) {
             openAreaEditMenu(p, op.setup.schemName);
         } else {
             openAreaMainMenu(p);
@@ -145,7 +146,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
 
     public static void openAreaMainMenu(final Player p) {
         final Oplayer op = PM.getOplayer(p);
-        op.setup.lastEdit = LastEdit.SchemMain.name();
+        op.setup.lastEdit = "SchemMain";
         SmartInventory
             .builder()
             .id("area"+p.getName())
@@ -164,7 +165,7 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
             openAreaMainMenu(p);
             return;
         }
-        op.setup.lastEdit = LastEdit.SchemEdit.name();
+        op.setup.lastEdit = "SchemMain";
         op.setup.schemName = schemName;
         SmartInventory.builder()
             .id("area"+schemName+p.getName())

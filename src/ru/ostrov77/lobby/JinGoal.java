@@ -16,7 +16,7 @@ import ru.komiss77.modules.world.XYZ;
 
 public class JinGoal implements Goal<Blaze> {
     
-    public static final String ginName = "§6Исполняю желание хозяина";
+    public static final String ginName = "§6Исполняю желания!";
     
     private static final XYZ[] points = {
         new XYZ("world",-8,150,-72),
@@ -98,7 +98,7 @@ public class JinGoal implements Goal<Blaze> {
             
             nextPoint = points[currPointIndex];
 
-            int currDist = nextPoint.getDistance(mob.getLocation());//getDist();
+            int currDist = nextPoint.distSq(mob.getLocation());//getDist();
 //log("currDist="+currDist+" previos="+previosDistance);            
             if (previosDistance<=currDist) { //предыдущая дистанция меньше или равна - значит пролетел и начал удаляться
                 currPointIndex++;

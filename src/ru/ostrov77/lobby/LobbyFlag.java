@@ -7,7 +7,7 @@ public enum LobbyFlag {
     
         //Pandora(1,"Шкатулка пандоры сегодня"),
         NewBieDone(2,"Посвящение новичка пройдено"),
-        Elytra(3,"Элитры получены"),
+        /*Elytra(3,"Элитры получены"),
         
         //при изменении Talk... менять onSpeak в FigureListener
         TalkMI(4,"Диалог с НПС Мидгарда"), 
@@ -23,7 +23,7 @@ public enum LobbyFlag {
         
         MI1(14,"Монеты Ромы"),
         MI2(15,"Монеты Валеры"),
-        MI3(16,"Монеты Олега"), 
+        MI3(16,"Монеты Олега"), */
         ;
     
         public final int tag;

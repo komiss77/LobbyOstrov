@@ -3,15 +3,16 @@ package ru.ostrov77.lobby.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+
+import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.quests.QuestManager;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
-import ru.ostrov77.lobby.quest.Quest;
-import ru.ostrov77.lobby.quest.QuestManager;
+import ru.ostrov77.lobby.quest.Quests;
 import se.file14.procosmetics.ProCosmetics;
 import se.file14.procosmetics.api.ProCosmeticsProvider;
 import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
@@ -28,11 +29,8 @@ public class CosmeticListener implements Listener {
     
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTreassure (final PlayerOpenTreasureEvent e) {
-        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
-//e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
-        if (lp!=null) {
-            QuestManager.tryCompleteQuest(e.getPlayer(), lp, Quest.OpenTreassureChest);
-        }
+        final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
+        QuestManager.complete(e.getPlayer(), lp, Quests.treasure);
     }
 
     
@@ -41,7 +39,7 @@ public class CosmeticListener implements Listener {
         final ProCosmetics api = ProCosmeticsProvider.get();
         final User us = api.getUserManager().getUser(e.getPlayer());
         
-        if (e.getPrevois()!=null && e.getPrevois().getInfo().unequpCosmetic) {
+        if (e.getLast()!=null && e.getLast().getInfo().unequpCosmetic) {
             if (us != null) {
                 us.equipLastCosmetics(true);
             }
@@ -72,13 +70,13 @@ public class CosmeticListener implements Listener {
     
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPreEquip (final PlayerPreEquipCosmeticEvent e) {
-        final LobbyPlayer lp = Main.getLobbyPlayer(e.getPlayer());
+        final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
 //e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (lp==null || !lp.hasFlag(LobbyFlag.NewBieDone)) {
             e.setCancelled(true);
             return;
         }
-        if (lp.questDone.contains(Quest.DiscoverAllArea)) {
+        if (QuestManager.isComplete(lp, Quests.discover)) {
             final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
             if (lc!=null && lc.getInfo() != CuboidInfo.SUMO) {
                 return;

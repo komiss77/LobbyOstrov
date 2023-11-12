@@ -35,7 +35,7 @@ public class CuboidEvent extends Event {
         return lp;
     }
     
-    public LCuboid getPrevois() {
+    public LCuboid getLast() {
         return previos;
     }
     

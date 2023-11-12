@@ -1,10 +1,8 @@
 package ru.ostrov77.lobby;
 
 
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.utils.inventory.ClickableItem;
+
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
 

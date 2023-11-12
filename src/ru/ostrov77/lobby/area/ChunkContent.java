@@ -87,7 +87,7 @@ public class ChunkContent {
     }
 
     public Set<Integer> getCuboidsIds() {
-        return cuboids==null ? Collections.EMPTY_SET : cuboids;
+        return cuboids==null ? Collections.emptySet() : cuboids;
     }
 
     public boolean deleteCuboidID(final int cuboidId) {

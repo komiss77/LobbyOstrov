@@ -1,7 +1,6 @@
 package ru.ostrov77.lobby;
 
 import java.util.EnumSet;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -10,10 +9,11 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-
 import ru.komiss77.LocalDB;
+import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.quests.QuestManager;
@@ -28,7 +28,7 @@ import ru.ostrov77.lobby.quest.Quests;
 
 public class LobbyPlayer extends Oplayer {
 
-	private int flags; //флаги
+    private int flags; //флаги
     public int openedArea; //открытые локации
     
     //служебные
@@ -44,8 +44,8 @@ public class LobbyPlayer extends Oplayer {
 //    public boolean updAdv = false;
     
     public LobbyPlayer(final HumanEntity p) {
-		super(p);
-	}
+        super(p);
+    }
     
     
     public boolean isAreaDiscovered(final int areaId) {
@@ -132,9 +132,10 @@ public class LobbyPlayer extends Oplayer {
         final XYZ fin = new XYZ("", to.x, to.y + ((to.y - loc.getBlockY()) >> 31) + 1, to.z);
         loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
         loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-        
+        Timer.add(p, "tp", 1); //от срабатывания предмета в руке при клике по иконке;
         if (inst) {
-        	p.teleport(to.getCenterLoc(p.getWorld()));
+            p.teleport(to.getCenterLoc(p.getWorld()), PlayerTeleportEvent.TeleportCause.COMMAND);
+//Ostrov.log(" getCenterLoc="+to.getCenterLoc(p.getWorld()));
             final Location nlc = p.getLocation();
             nlc.getWorld().spawnParticle(Particle.SOUL, nlc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
             nlc.getWorld().playSound(nlc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 1.4f);
@@ -184,7 +185,7 @@ public class LobbyPlayer extends Oplayer {
             }
 
         }.runTaskTimer(Main.instance, 10, 3);
-        return;
+        //return;
     }
     
 }

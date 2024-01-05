@@ -1,6 +1,5 @@
 package ru.ostrov77.lobby;
 
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -8,31 +7,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
 import net.minecraft.server.dedicated.DedicatedServer;
 import ru.komiss77.Ostrov;
+import ru.komiss77.enums.Settings;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
-import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
@@ -43,55 +35,33 @@ import ru.komiss77.utils.TCUtils;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.listeners.FigureListener;
 import ru.ostrov77.lobby.listeners.InteractListener;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.Quests;
 
-    
-    
-    /*
-    CREATE TABLE `lobbyData` (
-  `name` varchar(16) NOT NULL,
-  `openedArea` int(11) NOT NULL DEFAULT '0',
-  `questDone` varchar(128) NOT NULL DEFAULT '',
-  `questAccept` varchar(128) NOT NULL DEFAULT '',
-  `flags` int(11) NOT NULL DEFAULT '0',
-  `logoutLoc` varchar(64) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    
-ALTER TABLE `lobbyData`
-  ADD PRIMARY KEY (`name`);
-COMMIT;
-    */
 
 public class Main extends JavaPlugin {
     
     public static Main instance;
-
-    public static RealTime timeManager;
-    public static SpotManager botManager;
+    private static OstrovConfig serverPortalsConfig;
+    //public static RealTime timeManager;
+    //public static SpotManager botManager;
     public static AreaManager areaManager;
     public static OstrovConfigManager configManager;
-    
     public static Random rnd = new Random();
-    
-    public static boolean langUtils = false;
-//    public static IAdvance advance;
-    public static boolean holo = false;
-    
-//    public static final Map<String,LobbyPlayer>lobbyPlayers = new HashMap<>();
-    private static final EnumMap<LocType,Location>locations = new EnumMap<LocType, Location>(LocType.class);
-    
-    private static OstrovConfig serverPortalsConfig;
+    //public static boolean holo = false;
+    private static final EnumMap<LocType,Location>locations;
+    public static final HashMap<XYZ, String> serverPortals;//порталы по типу точка портала : сервер
     public static DedicatedServer ds;
     
-    public static final HashMap<XYZ, String> serverPortals = new HashMap<>();//порталы по типу точка портала : сервер
 
     
-    
+    static {
+        locations = new EnumMap<>(LocType.class);
+        serverPortals = new HashMap<>();
+    }
 
 
     
@@ -106,9 +76,10 @@ public class Main extends JavaPlugin {
         PM.setOplayerFun(he -> new LobbyPlayer(he), true);
         QuestManager.setOnCloseTab(p -> {
             final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
-            if (lp==null) return;
-            if(Bukkit.isPrimaryThread()) QuestManager.complete(p, lp, Quests.qmenu);
-            else Ostrov.sync(()->QuestManager.complete(p, lp, Quests.qmenu), 0);
+            //if (lp==null) return; оплееры только что пересозданы в  PM.setOplayerFun!
+            //if(Bukkit.isPrimaryThread()) onEnable не может быть async!
+                QuestManager.complete(p, lp, Quests.qmenu);
+            //else Ostrov.sync(()->QuestManager.complete(p, lp, Quests.qmenu), 0);
         });
         //--
         
@@ -128,19 +99,19 @@ public class Main extends JavaPlugin {
             e.printStackTrace();
         }
         
-        new Quests();
-        timeManager = new RealTime();
-        botManager = new SpotManager();
+        //new Quests(); 
+        //timeManager = new RealTime();
+        //botManager = new SpotManager();
         areaManager = new AreaManager();
         
         world.setStorm(rnd.nextBoolean());
-        if (world.hasStorm()) 
-        world.setThundering(rnd.nextBoolean());
+        if (world.hasStorm()) world.setThundering(rnd.nextBoolean());
         world.setWeatherDuration(10000000);
+        
         new BukkitRunnable() {
                 @Override
                 public void run() {
-                    world.setTime(timeManager.getMCTime());
+                    world.setTime(RealTime.getMCTime());
                 }
         }.runTaskTimer(instance, 40, 500);
         
@@ -151,88 +122,23 @@ public class Main extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("ProCosmetics")!=null) {
             getServer().getPluginManager().registerEvents(new CosmeticListener(), instance);
         }
-        
-        langUtils = Bukkit.getPluginManager().getPlugin("LangUtils")!=null;
-        holo = true;//Bukkit.getPluginManager().getPlugin("HolographicDisplays")!=null;
        
         createMenuItems();
 
         instance.getCommand("oscom").setExecutor(new OsComCmd());
         instance.getCommand("area").setExecutor(new AreaCmd());
         
-        
-        loadCfgs();
+        loadPortals();
 		
         Ostrov.log_ok("Lobby загружен");
-
     }
+    
     
     @Override
     public void onDisable() {
     	
     }
-    
-    
-    public static void arriveNewBie(final Player p) {
-        
-        if (p.getVehicle()!=null) {
-            final Entity gin = p.getVehicle();
-            gin.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
-            p.getVehicle().eject();
-            ((LivingEntity) gin).setAI(false);
-            final Location fgl = getLocation(LocType.ginLampArrive);
-            showGinHopper(fgl.clone(), true); //партиклами воронка, уходящая в лампу
-            gin.teleport(fgl);
-            
-            p.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
-
-            Ostrov.sync( ()-> {
-                if (!gin.isDead()) {
-                    gin.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
-                    gin.remove();
-                }
-            }, 100);
-
-        } else {
-            p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-        }
-        //эффект, музыка 
-        //DonatEffect.spawnRandomFirework(p.getLocation());
-    }
-
-    
-    
-    protected static void showGinHopper(final Location loc, final boolean in) {
-        new BukkitRunnable() {
-            double radius = in ? 2.043476540885901 : 0.1; //нисходящая спираль
-            double y = in ? 4 : 0; //нисходящая спираль
-            @Override
-            public void run() {
-
-                for (int t= 0; t <= 40; t++) {
-                    y= in ? y-0.002 : y+0.002;
-                    radius= in ? radius/1.0015 : radius*1.0015;
-                    double x = radius * Math.cos(Math.pow(y, 2)*10);
-                    double z = radius * Math.sin(Math.pow(y, 2)*10);
-                    loc.add(x,y,z);
-                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 1, 0d, 0d, 0d, 0d);
-                    loc.subtract(x,y,z);
-                }
-                if ( (in && y<=0) || y>=4) {
-                    this.cancel();
-                }           
-            }
-        }.runTaskTimerAsynchronously(Ostrov.instance, 0, 1);
-    }
-
-
-
-
-
-    
-    
-    
-    
+  
     
     
     
@@ -244,14 +150,13 @@ public class Main extends JavaPlugin {
         final List<String>list = new ArrayList<>();
         for ( Map.Entry<XYZ, String> entry : Main.serverPortals.entrySet()) {
             list.add(entry.getKey().toString()+","+entry.getValue());
-
         }
         Main.serverPortalsConfig.set("portalData", list);
         Main.serverPortalsConfig.saveConfig();   
     }  
     
     
-    public static void loadCfgs() {
+    public static void loadPortals() {
         serverPortals.clear();
         if (serverPortalsConfig.getStringList("portalData")!=null) {
             for (final String portalData : serverPortalsConfig.getStringList("portalData")) {
@@ -267,8 +172,11 @@ public class Main extends JavaPlugin {
     public static void giveItems(final Player p) {
         p.getInventory().clear();
         final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
-        if (lp==null) return;
-        if (QuestManager.isComplete(lp, Quests.doctor)) {
+        //if (lp==null) return;
+        final boolean justGame = lp.hasSettings(Settings.JustGame);
+        
+        if (justGame || QuestManager.isComplete(lp, Quests.doctor)) {
+            //rocket.giveForce(p);
             p.getInventory().setItem(2, fw); //2
             elytra.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "elytra"); //38
         }
@@ -277,27 +185,28 @@ public class Main extends JavaPlugin {
         if (lc != null && lc.getName().equals("daaria") && lc.getName().equals("skyworld")) {
             pickaxe.giveForce(p);
         }
-        //ProCosmeticsAPI.giveCosmeticMenu(p);
-        oscom.giveForce(p);
-        final Oplayer op = PM.getOplayer(p);
-        if (QuestManager.isComplete(op, Quests.pandora)) {
+        if (!justGame) {
+            oscom.giveForce(p);
+        }
+        //final Oplayer op = PM.getOplayer(p);
+        if (justGame || QuestManager.isComplete(lp, Quests.pandora)) {
             cosmeticMenu.giveForce(p);// ApiOstrov.getMenuItemManager().giveItem(p, "cosmetic"); //4
         }
-        if (QuestManager.isComplete(op, Quests.discover)) {
+        //ProCosmeticsAPI.giveCosmeticMenu(p);
+        if (justGame || QuestManager.isComplete(lp, Quests.discover)) {
             pipboy.giveForce(p);//ApiOstrov.getMenuItemManager().giveItem(p, "pipboy"); //8
         }
         p.updateInventory();
         PM.getOplayer(p).showScore();
     }
     
-    public static final ItemStack air = new ItemStack(Material.AIR);
     
-    public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
+   /* public static final ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
         .name("§7Топливо для §bКрыльев")
         .addLore("§7Осторожно,")
         .addLore("§7иногда взрывается!")
         .build()
-    );
+    );*/
 
     private static ItemStack mkFwrk(final ItemStack fw) {
         final FireworkMeta fm = (FireworkMeta) fw.getItemMeta();
@@ -308,39 +217,7 @@ public class Main extends JavaPlugin {
         return fw;
     }
     
-    
-    
-    
-    /*public static boolean chckAKTsk(final Player p) {
-		final LobbyPlayer lp = Main.getLobbyPlayer(p);
-		if (lp != null && lp.questAccept.contains(Quest.FindBlock)) {
-			final HashSet<Material> ms = mts.get(p.getName());
-			if (ms == null) {
-				p.sendMessage("§9[§eНПС§9] §fЗдравствуй, будующий §eстроитель§f!");
-				Ostrov.sync(new Runnable() {
-					@Override
-					public void run() {
-						p.sendMessage("§fПодо мной находиться портал на §e§lАркаим§f,\n§fкреатив-сервер, ограниченный лишь твоей фантазией!");
-					}
-				}, 20);
-				Ostrov.sync(new Runnable() {
-					@Override
-					public void run() {
-						p.sendMessage("§fОднако, перед разблокировкой §dмгновенного перемещения §fтуда, тебе нужно изучить блоки в этом лобби!\n§6[§fНайди §e50 §fразных §eблоков §fв этом лобби§6]");
-						//bossbar???
-						//mts.put(p.getName(), new HashSet<Material>());
-					}
-				}, 80);
-			} else if (lp.findBlocks.size() > 50) {
-				p.sendMessage("§9[§eНПС§9] §fМолодец, тебе удалось найти различные §eблоки §fв этом лобби! Теперь ты можешь §dмгновенно §fперемещатся на §e§lАркаим§f!");
-				lp.questDone(LobbyFlag.Arcaim, true);
-				mts.remove(p.getName());
-			} else {
-				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - lp.findBlocks.size()) + " §fблок(ов)!");
-			}
-		}
-		return false;
-	}*/
+
 
     public static MenuItem oscom;
     public static MenuItem pipboy;
@@ -348,8 +225,30 @@ public class Main extends JavaPlugin {
     public static MenuItem elytra;
     public static MenuItem pickaxe;
     public static MenuItem stick;
-    
+    //public static MenuItem rocket;
+        public final static ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
+            .name("§7Топливо для §bКрыльев")
+            .addFlags(ItemFlag.HIDE_ATTRIBUTES)
+            .addLore("§7Осторожно,")
+            .addLore("§7иногда взрывается!")
+            .build()
+        );    
+        
     private void createMenuItems() {
+        
+
+       /* rocket = new MenuItemBuilder("elytra", fw)
+            .slot(2) //Chestplate
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .anycase(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .canInteract(true)
+            .create();*/
+        
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
             .name("§bКрылья Островитянина")
             .setUnbreakable(true)
@@ -374,7 +273,7 @@ public class Main extends JavaPlugin {
             .unsafeEnchantment(Enchantment.LUCK, 1)
             .build();
         pipboy = new MenuItemBuilder("pipboy", pip)
-            .slot(8)
+            .slot(4)
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
@@ -383,12 +282,12 @@ public class Main extends JavaPlugin {
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
+            .leftClickCmd("profile")
             .rightClickCmd("serv")
-            .leftClickCmd("menu")
             .create();
         
-        
-        final ItemStack newbie=new ItemBuilder(Material.COMPASS)
+        //COMPASS лучше не ставить, FAWE тэпэшит при клике, сбивает с толку!
+        final ItemStack newbie=new ItemBuilder(Material.RECOVERY_COMPASS)
             .name("§3ОСКом")
             .addLore("§6ЛКМ§e - задачи")
             .addLore("§2ПКМ§a - локации")
@@ -420,7 +319,7 @@ public class Main extends JavaPlugin {
             .addLore("§7Для Игроманов - всё и сразу!")
             .build();
         cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
-            .slot(4)
+            .slot(8)
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
@@ -467,18 +366,7 @@ public class Main extends JavaPlugin {
             .duplicate(false)
             .create();
     }
-    //делает "String Text" из "STRING_TEXT"
-	/*public static String nrmlzStr(final String s) {
-		final char[] ss = s.toLowerCase().toCharArray();
-		ss[0] = (char) (ss[0] & 0x5f);
-		for (byte i = (byte) (ss.length - 1); i > 0; i--) {
-			if (ss[i] == '_') {
-				ss[i] = ' ';
-				ss[i + 1] = (char) (ss[i + 1] & 0x5f);
-			}
-		}
-		return String.valueOf(ss);
-	}*/
+
 
     private static void loadLocaions(final World world) {
         locations.put(LocType.Spawn,  new Location(world, 0.5, 100.5, 0.5, -90, 0));
@@ -525,6 +413,88 @@ public class Main extends JavaPlugin {
 
 
 
+    //делает "String Text" из "STRING_TEXT"
+	/*public static String nrmlzStr(final String s) {
+		final char[] ss = s.toLowerCase().toCharArray();
+		ss[0] = (char) (ss[0] & 0x5f);
+		for (byte i = (byte) (ss.length - 1); i > 0; i--) {
+			if (ss[i] == '_') {
+				ss[i] = ' ';
+				ss[i + 1] = (char) (ss[i + 1] & 0x5f);
+			}
+		}
+		return String.valueOf(ss);
+	}*/
+    
+    
+    
+    /*
+    public static void arriveNewBie(final Player p) { //либо на прилетел на джине, либо прыгнул за борт
+        
+        if (p.getVehicle()!=null) { //прилетел на джине - джина всосать
+            final Entity gin = p.getVehicle();
+            gin.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
+            p.getVehicle().eject();
+            ((LivingEntity) gin).setAI(false);
+            final Location fgl = getLocation(LocType.ginLampArrive);
+            showGinHopper(fgl.clone(), true); //партиклами воронка, уходящая в лампу
+            gin.teleport(fgl);
+            
+            p.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+
+            Ostrov.sync( ()-> {
+                if (!gin.isDead()) {
+                    gin.getWorld().playSound(getLocation(LocType.ginLampArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
+                    gin.remove();
+                }
+            }, 100);
+
+        } else { //не на джине 
+            p.teleport (getLocation(LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
+        }
+        //эффект, музыка 
+        //DonatEffect.spawnRandomFirework(p.getLocation());
+    }
+*/
+    
+    
 
 
+
+
+
+    
+    
+    
+      
+    /*public static boolean chckAKTsk(final Player p) {
+		final LobbyPlayer lp = Main.getLobbyPlayer(p);
+		if (lp != null && lp.questAccept.contains(Quest.FindBlock)) {
+			final HashSet<Material> ms = mts.get(p.getName());
+			if (ms == null) {
+				p.sendMessage("§9[§eНПС§9] §fЗдравствуй, будующий §eстроитель§f!");
+				Ostrov.sync(new Runnable() {
+					@Override
+					public void run() {
+						p.sendMessage("§fПодо мной находиться портал на §e§lАркаим§f,\n§fкреатив-сервер, ограниченный лишь твоей фантазией!");
+					}
+				}, 20);
+				Ostrov.sync(new Runnable() {
+					@Override
+					public void run() {
+						p.sendMessage("§fОднако, перед разблокировкой §dмгновенного перемещения §fтуда, тебе нужно изучить блоки в этом лобби!\n§6[§fНайди §e50 §fразных §eблоков §fв этом лобби§6]");
+						//bossbar???
+						//mts.put(p.getName(), new HashSet<Material>());
+					}
+				}, 80);
+			} else if (lp.findBlocks.size() > 50) {
+				p.sendMessage("§9[§eНПС§9] §fМолодец, тебе удалось найти различные §eблоки §fв этом лобби! Теперь ты можешь §dмгновенно §fперемещатся на §e§lАркаим§f!");
+				lp.questDone(LobbyFlag.Arcaim, true);
+				mts.remove(p.getName());
+			} else {
+				p.sendMessage("§9[§eНПС§9] §fОсталось найти всего §e" + (50 - lp.findBlocks.size()) + " §fблок(ов)!");
+			}
+		}
+		return false;
+	}*/
 

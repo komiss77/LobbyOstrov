@@ -17,7 +17,7 @@ import ru.ostrov77.lobby.Main;
 
 public class LCuboid extends Cuboid {
 	
-    public final Set<String> playerNames = new HashSet<>();
+    //public final Set<String> playerNames = new HashSet<>();
     private final CuboidInfo info;
     
     //сохранении нового в редакторе
@@ -48,7 +48,11 @@ public class LCuboid extends Cuboid {
     
     
     public List<Player> getCuboidPlayers() {
-        return playerNames.stream().map(palyerName -> Bukkit.getPlayerExact(palyerName)).filter(p -> p!=null).collect(Collectors.toList());
+        return playerNames
+                .stream()
+                .map(palyerName -> Bukkit.getPlayerExact(palyerName))
+                .filter(p -> p!=null)
+                .collect(Collectors.toList());
     }
     
     public boolean hasPlayer(final Player p) {

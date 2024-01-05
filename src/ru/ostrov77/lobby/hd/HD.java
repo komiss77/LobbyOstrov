@@ -7,7 +7,6 @@ import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
 import ru.komiss77.modules.displays.DisplayManager;
 import ru.komiss77.modules.displays.FakeItemDis;
 import ru.komiss77.modules.world.XYZ;
@@ -27,7 +26,7 @@ public class HD {
 
     public static void openAreaMenu(final Player p, final LobbyPlayer lp) {
 
-		DisplayManager.rmvDis(p);
+        DisplayManager.rmvDis(p);
         final Location eye = p.getEyeLocation();
         p.playSound(eye, Sound.BLOCK_BEEHIVE_ENTER, 2f, 1.2f);
         eye.add(eye.getDirection());
@@ -44,6 +43,7 @@ public class HD {
             	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
             	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick(pl -> {
             		if (ci.canTp) {
+//Ostrov.log(" lc.spawnPoint="+lc.spawnPoint);
 //            			ApiOstrov.teleportSave(pl, lc.spawnPoint, false);
             			lp.transport(pl, new XYZ(lc.spawnPoint), true);
             			DisplayManager.rmvDis(pl);

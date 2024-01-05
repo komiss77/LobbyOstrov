@@ -1,11 +1,11 @@
 package ru.ostrov77.lobby;
 
-
 import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.utils.ItemUtils;
@@ -15,22 +15,14 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 import ru.komiss77.utils.inventory.Pagination;
 import ru.komiss77.utils.inventory.SlotIterator;
 import ru.komiss77.utils.inventory.SlotPos;
-
-
-
+import ru.komiss77.utils.inventory.SmartInventory;
+import ru.ostrov77.lobby.area.AreaViewMenu;
 
 
 public class DebugMenu implements InventoryProvider {
     
 
-    
-
-    
-    public DebugMenu() {
-
-    }
-
-    
+ 
     
     
     @Override
@@ -84,7 +76,23 @@ public class DebugMenu implements InventoryProvider {
         }
             
             
-        
+        contents.set( 2, 1,  ClickableItem.of(new ItemBuilder( Material.COMPASS)
+            .name("§fМеню локаций")
+            .build(), e -> {
+//System.out.println("ClaimFlags "+e.getClick()+" isSet="+isSet);
+            if (e.getClick()==ClickType.SHIFT_RIGHT) {
+                SmartInventory.builder()
+                    .type(InventoryType.CHEST)
+                    .id("area"+p.getName()) 
+                    .provider(new AreaViewMenu())
+                    .title("Локации")
+                    .size (6,9)
+                    .build()
+                    .open(p);
+                return;
+            } 
+            PM.soundDeny(p);
+        }));
         
         
         contents.set( 2, 4,  ClickableItem.of(new ItemBuilder( Material.REDSTONE)

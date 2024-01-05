@@ -6,12 +6,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.Waterlogged;
-
 import net.kyori.adventure.text.Component;
+import org.bukkit.scheduler.BukkitTask;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.world.WXYZ;
@@ -24,68 +23,22 @@ import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.bots.spots.WalkSpot;
 
-/*
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.data.Waterlogged;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import net.kyori.adventure.text.Component;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayInUseEntity;
-import net.minecraft.network.protocol.game.PacketPlayInUseEntity.b;
-import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
-import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam.a;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
-import net.minecraft.server.ScoreboardServer;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.entity.EntityLiving;
-import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.scores.ScoreboardTeam;
-import net.minecraft.world.scores.ScoreboardTeamBase.EnumNameTagVisibility;
-import ru.komiss77.modules.world.XYZ;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.bots.spots.EndSpot;
-import ru.ostrov77.lobby.bots.spots.SpawnSpot;
-import ru.ostrov77.lobby.bots.spots.Spot;
-import ru.ostrov77.lobby.bots.spots.SpotType;
-import ru.ostrov77.lobby.bots.spots.WalkSpot;
-*/
 public class SpotManager {
 	
-    private static final List<Spot> spots = new ArrayList<>();
+    private static final List<Spot> spots;
+    public static final String[] names;
+    private static BukkitTask task;
     
-    public static final String[] names = readNames();
+    static {
+        spots = new ArrayList<>();
+        names = readNames();
+        startTask();
+    }
 
-    public SpotManager() {
-        Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
+    public static void startTask () {
+        if (task!=null) task.cancel();
+        task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
             final Spot sp = getRndSpot(SpotType.SPAWN);
             if (sp != null) {
             	final int pls = Bukkit.getOnlinePlayers().size();

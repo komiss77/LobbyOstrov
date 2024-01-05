@@ -1,7 +1,6 @@
 package ru.ostrov77.lobby.quest;
 
 import org.bukkit.Material;
-
 import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.quests.Quest.QuestFrame;
 import ru.komiss77.modules.quests.Quest.QuestVis;

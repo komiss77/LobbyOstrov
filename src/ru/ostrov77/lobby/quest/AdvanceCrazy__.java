@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.quest;
-
+/*
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import eu.endercentral.crazy_advancements.NameKey;
@@ -46,7 +46,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
     TASK-прямоугольная иконка, зелёные тосты 
     GOAL-иконка со скруглениями, зелёные тосты
     CHALLENGE-иконка в форме угольника, фиолетовые тосты
-    */    
+    *
     public AdvanceCrazy () {
 
         root = createCuboidAdv("spawn", "§3§lАрхипелаг          ", "Доберись до центра лобби", 	c0, Material.HEART_OF_THE_SEA, 0, 0, "textures/block/azalea_leaves.png", null, AdvancementFrame.CHALLENGE, AdvancementVisibility.ALWAYS);
@@ -195,7 +195,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
                 }
             }
         }
-    }*/
+    }*
 
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -218,7 +218,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
     public void onAdvChange(final AdvancementTabChangeEvent e) {
         final Player p = e.getPlayer();
 //p.sendMessage("§8log: QuestAdvance AdvancementTabChangeEvent");        
-    }*/
+    }*
 
 
 
@@ -352,7 +352,7 @@ public class AdvanceCrazy implements IAdvance, Listener {
             mgr.setCriteriaProgress(p, ad, progress);
             /*if (ad.getCriteria().getRequiredNumber() == progress) {
                 ad.displayToast(p);
-            }*/
+            }*
             //mgr.updateVisibility(p);
             //Ostrov.async(() -> mgr.updateVisibility(p), 10);
         }
@@ -376,3 +376,4 @@ public class AdvanceCrazy implements IAdvance, Listener {
     
     
 
+*/

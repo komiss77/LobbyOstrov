@@ -6,7 +6,7 @@ public enum LobbyFlag {
     
     
         //Pandora(1,"Шкатулка пандоры сегодня"),
-        NewBieDone(2,"Посвящение новичка пройдено"),
+        GinTravelDone(2,"прибыл на джине"),
         /*Elytra(3,"Элитры получены"),
         
         //при изменении Talk... менять onSpeak в FigureListener

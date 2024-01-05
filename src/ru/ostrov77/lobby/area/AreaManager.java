@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -22,7 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-
 import net.kyori.adventure.text.Component;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
@@ -46,88 +44,14 @@ import ru.ostrov77.lobby.quest.Quests;
 
 public class AreaManager {
     
-    //public static final Map<String,Integer>racePlayers = new HashMap<>();
-    
     private static OstrovConfig areaConfig;
     private static BukkitTask playerMoveTask;
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
     private static Map<String,Integer>cuboidNames;
-
     private static final List<String>compasslore = Arrays.asList("§6ЛКМ§e - задачи ","§2ПКМ§a - локации");
     
-    
-    
-    public static void deleteCuboid(final int cuboidId) {
-        if (cuboids.containsKey(cuboidId)) {
-            final String name = cuboids.remove(cuboidId).getName();
-            cuboidNames.remove(name);
-            //убрать ид кубоида из чанков
-            ChunkContent cc;
-            final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
-            for (int ccId : ids) {
-                cc=chunkContetnt.get(ccId);
-                if (cc.hasCuboids() && cc.deleteCuboidID(cuboidId)) {
-                    if (cc.isEmpty()) { //убрать чанк, если нет там никакой инфы
-                        chunkContetnt.remove(ccId);
-                    }
-                }
-            }
-            areaConfig.set("areas."+cuboidId, null);
-            areaConfig.saveConfig();
-        }
-    }
-    
-    //добавление только после всех проверок в команде!
-    @SuppressWarnings("deprecation")
-    protected static void addCuboid(final LCuboid lc, final boolean save) {
-        cuboids.put(lc.id, lc);
-        cuboidNames.put(lc.getName(), lc.id);
-        final Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
-		final Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
-        while (it.hasNext()) {
-            cLocs.add(getcLoc(it.next()));
-        }
-        for (int cLoc : cLocs) { //добавляем ид кубоида в чанки
-            //if (!chunkContetnt.containsKey(cLoc)) {
-            //    chunkContetnt.put(cLoc, new ChunkContent());
-            //}
-            getChunkContent(cLoc, true).addCuboidID(lc.id);
-        }
-        if (save) {
-            saveCuboid(lc);
-        }
-    }
-    
-    protected static void saveCuboid(final LCuboid lc) {
-        areaConfig.set("areas."+lc.id+".name", lc.getName());
-        areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
-        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.toString(lc.spawnPoint));
-        areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
-        areaConfig.saveConfig();
-    }
 
-    public static void savePlate(final XYZ firstPlateXYZ, final XYZ secondPlateXYZ) {
-        if (secondPlateXYZ==null) { //удаление
-            areaConfig.set("plate."+firstPlateXYZ.toString(), null);
-        } else {
-            areaConfig.set("plate."+firstPlateXYZ.toString()+".second", secondPlateXYZ.toString());
-        }
-        areaConfig.saveConfig();
-    }
-
-    public static void saveSpot(final XYZ loc, final SpotType st) {
-        if (st==null) { //удаление
-            areaConfig.set("spot." + loc.toString(), null);
-        	Bukkit.broadcast(TCUtils.format("removing-" + loc.toString()));
-        } else {
-            areaConfig.set("spot." + loc.toString(), st.toString());
-        	Bukkit.broadcast(TCUtils.format("created-" + loc.toString()));
-        }
-        
-        areaConfig.saveConfig();
-    }
-    
     public AreaManager () {
 
         chunkContetnt = new HashMap<>();
@@ -188,7 +112,7 @@ public class AreaManager {
             @Override
             public void run() {
                 
-                for (final Oplayer op : PM.getOplayers()) { //if (lp==null) return; чекать не надо, перебор только созданныхлоббиплееров
+                for (final Oplayer op : PM.getOplayers()) { //if (lp==null) return; чекать не надо, перебор только созданных лоббиплееров
                 	if (op instanceof final LobbyPlayer lp) {
                         final Player p = lp.getPlayer();
                         if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
@@ -290,6 +214,76 @@ public class AreaManager {
     
     
     
+    public static void deleteCuboid(final int cuboidId) {
+        if (cuboids.containsKey(cuboidId)) {
+            final String name = cuboids.remove(cuboidId).getName();
+            cuboidNames.remove(name);
+            //убрать ид кубоида из чанков
+            ChunkContent cc;
+            final List<Integer>ids = new ArrayList<>(chunkContetnt.keySet());
+            for (int ccId : ids) {
+                cc=chunkContetnt.get(ccId);
+                if (cc.hasCuboids() && cc.deleteCuboidID(cuboidId)) {
+                    if (cc.isEmpty()) { //убрать чанк, если нет там никакой инфы
+                        chunkContetnt.remove(ccId);
+                    }
+                }
+            }
+            areaConfig.set("areas."+cuboidId, null);
+            areaConfig.saveConfig();
+        }
+    }
+    
+    //добавление только после всех проверок в команде!
+    @SuppressWarnings("deprecation")
+    protected static void addCuboid(final LCuboid lc, final boolean save) {
+        cuboids.put(lc.id, lc);
+        cuboidNames.put(lc.getName(), lc.id);
+        final Set<Integer>cLocs = new HashSet<>(); //собираем cLoки кубоида для добавления в чанки
+		final Iterator<Location> it = lc.borderIterator(Bukkit.getWorld("world"));
+        while (it.hasNext()) {
+            cLocs.add(getcLoc(it.next()));
+        }
+        for (int cLoc : cLocs) { //добавляем ид кубоида в чанки
+            //if (!chunkContetnt.containsKey(cLoc)) {
+            //    chunkContetnt.put(cLoc, new ChunkContent());
+            //}
+            getChunkContent(cLoc, true).addCuboidID(lc.id);
+        }
+        if (save) {
+            saveCuboid(lc);
+        }
+    }
+    
+    protected static void saveCuboid(final LCuboid lc) {
+        areaConfig.set("areas."+lc.id+".name", lc.getName());
+        areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
+        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.toString(lc.spawnPoint));
+        areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
+        areaConfig.saveConfig();
+    }
+
+    public static void savePlate(final XYZ firstPlateXYZ, final XYZ secondPlateXYZ) {
+        if (secondPlateXYZ==null) { //удаление
+            areaConfig.set("plate."+firstPlateXYZ.toString(), null);
+        } else {
+            areaConfig.set("plate."+firstPlateXYZ.toString()+".second", secondPlateXYZ.toString());
+        }
+        areaConfig.saveConfig();
+    }
+
+    public static void saveSpot(final XYZ loc, final SpotType st) {
+        if (st==null) { //удаление
+            areaConfig.set("spot." + loc.toString(), null);
+        	Bukkit.broadcast(TCUtils.format("removing-" + loc.toString()));
+        } else {
+            areaConfig.set("spot." + loc.toString(), st.toString());
+        	Bukkit.broadcast(TCUtils.format("created-" + loc.toString()));
+        }
+        
+        areaConfig.saveConfig();
+    }
+        
     
     public static ChunkContent getChunkContent(final Location loc) {
         int cLoc = getcLoc(loc);
@@ -435,7 +429,7 @@ public class AreaManager {
             }
         }
         p.playSound(p.getLocation(), Sound.BLOCK_DISPENSER_LAUNCH, 1, 1);
-        if (lp.hasFlag(LobbyFlag.NewBieDone)) QuestManager.complete(p, lp, Quests.navig);
+        if (lp.hasFlag(LobbyFlag.GinTravelDone)) QuestManager.complete(p, lp, Quests.navig);
     }
 
     public static void resetCompassTarget(final Player p, final LobbyPlayer lp) {

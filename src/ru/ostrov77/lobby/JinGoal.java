@@ -6,17 +6,24 @@ import org.bukkit.entity.Mob;
 import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import ru.komiss77.Ostrov;
 import ru.komiss77.modules.world.XYZ;
+import ru.komiss77.utils.TCUtils;
+import ru.ostrov77.lobby.Main.LocType;
 
 
 
 public class JinGoal implements Goal<Blaze> {
     
-    public static final String ginName = "§6Исполняю желания!";
+    public static final String GIN_NAME = "§6Исполняю желания!";
     
     private static final XYZ[] points = {
         new XYZ("world",-8,150,-72),
@@ -148,10 +155,49 @@ public class JinGoal implements Goal<Blaze> {
         if (mob.getPassengers().get(0).getType()==EntityType.PLAYER) {
             arrive = true;
             final Player p = (Player) mob.getPassengers().get(0);
-            Main.arriveNewBie(p);
+            //Main.arriveNewBie(p);
+            //final Entity gin = p.getVehicle();
+            mob.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
+            p.getVehicle().eject();
+            mob.setAI(false);
+            final Location fgl = Main.getLocation(LocType.ginLampArrive);
+            showGinHopper(fgl.clone(), true); //партиклами воронка, уходящая в лампу
+            mob.teleport(fgl);
+            
+            p.getWorld().playSound(Main.getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+
+            Ostrov.sync( ()-> {
+                if (!mob.isDead()) {
+                    mob.getWorld().playSound(Main.getLocation(LocType.ginLampArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
+                    mob.remove();
+                }
+            }, 100);
+
         }
     }    
     
+    protected static void showGinHopper(final Location loc, final boolean in) {
+        new BukkitRunnable() {
+            double radius = in ? 2.043476540885901 : 0.1; //нисходящая спираль
+            double y = in ? 4 : 0; //нисходящая спираль
+            @Override
+            public void run() {
+
+                for (int t= 0; t <= 40; t++) {
+                    y= in ? y-0.002 : y+0.002;
+                    radius= in ? radius/1.0015 : radius*1.0015;
+                    double x = radius * Math.cos(Math.pow(y, 2)*10);
+                    double z = radius * Math.sin(Math.pow(y, 2)*10);
+                    loc.add(x,y,z);
+                    loc.getWorld().spawnParticle(Particle.SOUL, loc, 1, 0d, 0d, 0d, 0d);
+                    loc.subtract(x,y,z);
+                }
+                if ( (in && y<=0) || y>=4) {
+                    this.cancel();
+                }           
+            }
+        }.runTaskTimerAsynchronously(Ostrov.instance, 0, 1);
+    }
     
     
     @Override

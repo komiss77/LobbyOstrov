@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.quest;
-
+/*
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
@@ -223,3 +223,4 @@ public class QuestViewMenu implements InventoryProvider {
     
     
 }
+*/

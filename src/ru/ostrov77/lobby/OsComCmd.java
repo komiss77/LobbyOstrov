@@ -1,12 +1,10 @@
 package ru.ostrov77.lobby;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -20,22 +18,19 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Ostrov;
+import ru.komiss77.Timer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.quests.QuestViewMenu;
 import ru.komiss77.utils.TCUtils;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.area.AreaViewMenu;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.hd.HD;
 import ru.ostrov77.lobby.quest.Quests;
-
-
 
 
 public class OsComCmd implements CommandExecutor, TabCompleter {
@@ -50,13 +45,12 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         final List <String> sugg = new ArrayList<>();
         switch (args.length) {
             
-            case 1:
+            case 1 -> {
                 //0- пустой (то,что уже введено)
                 for (final String s : subCommands) {
                     if (s.startsWith(args[0])) sugg.add(s);
                 }
-                
-                break;
+            }
         }
         
        return sugg;
@@ -72,13 +66,13 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         final Player p = (Player) cs;
         final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         
-        if (lp==null) {
-            cs.sendMessage("§cВы ГОСТЬ, либо нет данных с прокси!");
-            return true;
-        }
+        //if (lp==null) { оплеер в острове есть всегда!
+        //    cs.sendMessage("§cВы ГОСТЬ, либо нет данных с прокси!");
+        //    return true;
+        //}
         //final LCuboid lc = AreaManager.getCuboid(p.getLocation());
         
-        
+        if (Timer.has(p, "tp")) return true; //от срабатывания предмета в руке при клике по иконке;
         
         if (arg.length==1) {
             
@@ -124,9 +118,9 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                    return true;
                     
                case "area":
-                    if (Main.holo) {
+                    //if (Main.holo) {
                         HD.openAreaMenu(p, lp);
-                    } else {
+                    /*} else {
                         SmartInventory.builder()
                             .type(InventoryType.CHEST)
                             .id("area"+p.getName()) 
@@ -135,13 +129,13 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                             .size (6,9)
                             .build()
                             .open(p);
-                    }
+                    }*/
                     return true;
                     
                     
                     
                 case "gin":
-                    if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.NewBieDone)) {
+                    if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.GinTravelDone)) {
                         if (ApiOstrov.canBeBuilder(p)) {
                             p.sendMessage("§cвключи гм1!");
                         } else {
@@ -166,7 +160,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
                     ginOwner.add(p.getName());
                     p.sendMessage("§6Кажется, сработало!");
-                    Main.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone(), false);
+                    JinGoal.showGinHopper(Main.getLocation(Main.LocType.ginLampShip).clone(), false);
                     QuestManager.complete(p, PM.getOplayer(p), Quests.lamp);
                     //if (lp.questAccept.contains(Quest.SpawnGin)) {
                     //    lp.questDone(p, Quest.SpawnGin, false);
@@ -241,7 +235,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         gin.setGlowing(true);
         gin.setGravity(false);
         gin.setInvulnerable(true);
-        gin.customName(TCUtils.format(JinGoal.ginName));
+        gin.customName(TCUtils.format(JinGoal.GIN_NAME));
         gin.setCustomNameVisible(true);
         Bukkit.getMobGoals().removeAllGoals(gin);
         return gin;

@@ -32,13 +32,13 @@ import ru.komiss77.objects.CaseInsensitiveMap;
 import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.utils.OstrovConfig;
 import ru.komiss77.utils.TCUtils;
-import ru.ostrov77.lobby.LobbyFlag;
-import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.game.Parkur;
+import ru.ostrov77.lobby.LobbyFlag;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.quest.Quests;
 
 
@@ -199,7 +199,7 @@ public class AreaManager {
                     }
                     
                     if (ship!=null && !ship.playerNames.isEmpty()) {
-                        final Location shipLamp = Main.getLocation(Main.LocType.ginLampShip);
+                        final Location shipLamp = Main.getLocation(Main.LocType.ginLamp);
     //Bukkit.broadcastMessage("ship.playerNames="+ship.playerNames);
                         shipLamp.getWorld().spawnParticle(Particle.SPELL_WITCH, shipLamp, 2,  0.2, 0.1, 0.2, 0.01);
                     }

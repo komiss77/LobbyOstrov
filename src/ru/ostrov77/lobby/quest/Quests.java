@@ -104,7 +104,7 @@ public class Quests {
 	   public static final Quest doctor = new Quest('E', Material.WRITTEN_BOOK, 0, null, greet, 
 		"Доктор Географ. Наук", "Выполни все задания в Лобби", "", QuestVis.HIDDEN, QuestFrame.CHALLENGE, 0);
 	
-	static {QuestManager.loadQuests();}
+	public static void load() {QuestManager.loadQuests();}
     
 
     

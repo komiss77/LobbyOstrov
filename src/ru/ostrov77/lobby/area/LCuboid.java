@@ -1,8 +1,6 @@
 package ru.ostrov77.lobby.area;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -26,7 +24,7 @@ public class LCuboid extends Cuboid {
         this.id = id;
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
-        setSpawn(spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)) : spawnPoint, false);
+        setSpawn(spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.spawn)) : spawnPoint, false);
         info = CuboidInfo.find(name);
         if (info==CuboidInfo.DEFAULT) {
             Ostrov.log_warn("Не найден CuboidInfo для "+name);
@@ -39,7 +37,7 @@ public class LCuboid extends Cuboid {
         this.id = id;
         this.name = name;
         this.displayName = displayName.isEmpty() ? name : displayName;
-        setSpawn(spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.Spawn)) : spawnPoint, false);
+        setSpawn(spawnPoint==null ? this.getCenter(Main.getLocation(Main.LocType.spawn)) : spawnPoint, false);
         info = CuboidInfo.find(name);
         if (info==CuboidInfo.DEFAULT) {
             Ostrov.log_warn("Не найден CuboidInfo для "+name);

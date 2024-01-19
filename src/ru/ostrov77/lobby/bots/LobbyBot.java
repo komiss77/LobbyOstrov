@@ -61,8 +61,8 @@ import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.ScoreboardTeam;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.version.VM;
-import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.bots.spots.Spot;
+import ru.ru.ostrov77.lobby.Main;
+import ru.ru.ostrov77.lobby.bots.spots.Spot;
 */
 
 public class LobbyBot extends BotEntity {
@@ -82,8 +82,8 @@ public class LobbyBot extends BotEntity {
 	@Override
 	public void onDamage(final EntityDamageEvent e) {
 		if (e instanceof final EntityDamageByEntityEvent ee) {
-			if (ee.getDamager() instanceof final Player p) {
-				QuestManager.complete(p, PM.getOplayer(p, LobbyPlayer.class), Quests.greet);
+			if (ee.getDamager() instanceof final Player pl) {
+				QuestManager.complete(pl, PM.getOplayer(pl, LobbyPlayer.class), Quests.greet);
 			}
 		}
 		super.onDamage(e);

@@ -13,8 +13,8 @@ https://github.com/filoghost/HolographicDisplays/wiki/Individual-holograms
 
  Task #7268 for Ostrov v2.0 generated an exception
 java.lang.NullPointerException: Cannot invoke "ru.komiss77.modules.player.Oplayer.showScore()" because the return value of "ru.komiss77.modules.player.PM.getOplayer(org.bukkit.entity.Player)" is null
-	at ru.ostrov77.lobby.Main.giveItems(Main.java:304) ~[LobbyOstrov.jar:?]
-	at ru.ostrov77.lobby.listeners.ListenerWorld.lambda$onDataLoad$1(ListenerWorld.java:191) ~[LobbyOstrov.jar:?]
+	at ru.ru.ostrov77.lobby.Main.giveItems(Main.java:304) ~[LobbyOstrov.jar:?]
+	at listeners.ru.ru.ostrov77.ListenerWorld.lambda$onDataLoad$1(ListenerWorld.java:191) ~[LobbyOstrov.jar:?]
 	at ru.komiss77.Ostrov$1.run(Ostrov.java:433) ~[Ostrov.jar:?]
 
 лобби тп в воздух?

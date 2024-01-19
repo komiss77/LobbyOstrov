@@ -3,7 +3,6 @@ package ru.ostrov77.lobby.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import ru.komiss77.enums.Settings;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.ostrov77.lobby.LobbyFlag;
@@ -68,11 +67,11 @@ public class CosmeticListener implements Listener {
 		}
 	}*/
     
-    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onPreEquip (final PlayerPreEquipCosmeticEvent e) {
         final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
 //e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
-        if (!lp.hasFlag(LobbyFlag.GinTravelDone) && !lp.hasSettings(Settings.JustGame)) {
+        if (!lp.hasFlag(LobbyFlag.GinTravelDone)) {
             e.setCancelled(true);
             return;
         }

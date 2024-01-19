@@ -77,7 +77,7 @@ public class InteractListener implements Listener {
                 Timer.add(p.getEntityId(), 3);
                 final LCuboid lc = AreaManager.getCuboid(p.getLocation());
                 if (lc!=null && lc.getInfo() == CuboidInfo.NEWBIE) {
-                    if (b.getX()==Main.getLocation(Main.LocType.ginLampShip).getBlockX() && b.getZ()==Main.getLocation(Main.LocType.ginLampShip).getBlockZ()) {
+                    if (b.getX()==Main.getLocation(Main.LocType.ginLamp).getBlockX() && b.getZ()==Main.getLocation(Main.LocType.ginLamp).getBlockZ()) {
                         p.performCommand("oscom gin");
                     } else {
                         p.sendMessage("§3Должно быть, другая лампа!");

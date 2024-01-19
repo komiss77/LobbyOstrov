@@ -19,10 +19,9 @@ import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.world.AStarPath;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.utils.LocationUtil;
-import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
-
+import ru.ostrov77.lobby.Main;
 
 
 public class LobbyGoal implements Goal<Mob> {

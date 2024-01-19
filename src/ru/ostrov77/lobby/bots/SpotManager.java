@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.block.data.Waterlogged;
 import net.kyori.adventure.text.Component;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Nullable;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.world.WXYZ;
@@ -36,7 +37,7 @@ public class SpotManager {
         startTask();
     }
 
-    public static void startTask () {
+    public static void startTask() {
         if (task!=null) task.cancel();
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
             final Spot sp = getRndSpot(SpotType.SPAWN);
@@ -51,19 +52,11 @@ public class SpotManager {
     }
 
     public static void addSpot(final XYZ loc, final SpotType st) {
-        final Spot sp;
-        switch (st) {
-            case END:
-                sp = new EndSpot(loc);
-                break;
-            case SPAWN:
-                sp = new SpawnSpot(loc);
-                break;
-            case WALK:
-            default:
-                sp = new WalkSpot(loc);
-                break;
-        }
+        final Spot sp = switch (st) {
+            case END -> new EndSpot(loc);
+            case SPAWN -> new SpawnSpot(loc);
+            case WALK -> new WalkSpot(loc);
+        };
         AreaManager.saveSpot(loc, st);
         spots.add(sp);
     }
@@ -76,31 +69,24 @@ public class SpotManager {
         }
         Bukkit.broadcast(Component.text("-=-=-=-=-=-=-=-=-"));
         for (final Spot sp : spots) {
-            final Material mt;
-            switch (sp.getType()) {
-                case END:
-                    mt = Material.FIRE_CORAL;
-                    break;
-                case SPAWN:
-                    mt = Material.BRAIN_CORAL;
-                    break;
-                case WALK:
-                default:
-                    mt = Material.TUBE_CORAL;
-                    break;
-            }
+            final Material mt = switch (sp.getType()) {
+                case END -> Material.FIRE_CORAL;
+                case SPAWN -> Material.BRAIN_CORAL;
+                case WALK -> Material.TUBE_CORAL;
+            };
             final Waterlogged wl = (Waterlogged) mt.createBlockData();
             wl.setWaterlogged(false);
             sp.getLoc().getCenterLoc().getBlock().setBlockData(wl, false);
         }
     }
     
-    public static Spot getRndSpot(final SpotType tp) {
+    public static @Nullable Spot getRndSpot(final SpotType tp) {
     	final ArrayList<Spot> spa = new ArrayList<>();
     	for (final Spot sp : spots) {
     		if (sp.getType() == tp) spa.add(sp);
     	}
-		return spa.get(Main.rnd.nextInt(spa.size()));
+		return spa.isEmpty() ? null :
+            spa.get(Main.rnd.nextInt(spa.size()));
     }
 
     public static String[] readNames() {

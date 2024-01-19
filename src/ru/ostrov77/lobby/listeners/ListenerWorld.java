@@ -3,39 +3,25 @@ package ru.ostrov77.lobby.listeners;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.TextComponent;
-import org.bukkit.Axis;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Orientable;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFadeEvent;
-import org.bukkit.event.block.BlockGrowEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.BlockSpreadEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.entity.EntityPortalEnterEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.EntitiesUnloadEvent;
@@ -45,13 +31,10 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.spigotmc.event.entity.EntityDismountEvent;
-import org.bukkit.entity.Projectile;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.enums.Data;
-import ru.komiss77.enums.Settings;
 import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.LocalDataLoadEvent;
 import ru.komiss77.events.QuestCompleteEvent;
@@ -69,7 +52,6 @@ import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
-import ru.ostrov77.lobby.Main.LocType;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.area.CuboidInfo;
@@ -86,15 +68,14 @@ import ru.ostrov77.lobby.quest.Quests;
 public class ListenerWorld implements Listener {
 
     private static final BlockFace[] NEAREST = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
-    private static final RaceBoard race = new RaceBoard("§б§nСостязание", new WXYZ(Main.getLocation(LocType.raceLoc)));
-    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", new WXYZ(Main.getLocation(LocType.sumoLoc)));
+    private static final RaceBoard race = new RaceBoard("§б§nСостязание", new WXYZ(Main.getLocation(Main.LocType.raceLoc)));
+    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", new WXYZ(Main.getLocation(Main.LocType.sumoLoc)));
 
 
      @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLaunch(final ProjectileLaunchEvent e) { //PlayerElytraBoostEvent !!!
         final Projectile prj = e.getEntity();
-        if (prj.getShooter() instanceof Player && prj.getType() == EntityType.FIREWORK) {
-            final Player p = (Player) prj.getShooter();
+        if (prj.getShooter() instanceof final Player p && prj.getType() == EntityType.FIREWORK) {
             Ostrov.sync( ()-> p.getInventory().setItem(2, Main.fw), 8);
             //Ostrov.sync( ()-> Main.rocket.giveForce(p), 8);
 //            prj.remove();
@@ -107,33 +88,20 @@ public class ListenerWorld implements Listener {
         if (e.getOplayer() instanceof final LobbyPlayer lp) { //создается в острове
             final Player p = e.getPlayer();
 
-            /*if (lp.isGuest) { //данные не грузим, просто даём часики и на спавн
-                Main.pipboy.giveForce(p);
-                //Main.oscom.giveForce(p);
-                p.teleport(Main.getLocation(Main.LocType.Spawn));
-                if (lp.getStat(Stat.PLAY_TIME)<300) {
-                    ApiOstrov.sendTitle(p, "","§eЧасики откроют меню", 20, 100, 40);
-                }
-                return;
-            }*/
-            //пока офф, возможно потом добавим отдельным квестом прохождение интро
-            // if (!lp.hasFlag(StatFlag.NewBieDone) && lp.getStat(Stat.PLAY_TIME)<100) {
             lp.setFlag(StatFlag.NewBieDone, true);
-            //    ApiOstrov.sendToServer(p, "nb0", "");
-            //return; - вдруг сервер дохлый - иснтрукции
-            // }
 
             final String flags = lp.mysqlData.get("flags");
             lp.setFlags(flags == null || flags.isEmpty() ? 0 : Integer.parseInt(flags));
             final String areas = lp.mysqlData.get("area");
             lp.setOpenedArea(areas == null || areas.isEmpty() ? 0 : Integer.parseInt(areas));
 
-            //c флагом JustGame можно придти сразу, а можно получить после прыжка за борт
-            if (lp.isGuest || lp.hasSettings(Settings.JustGame)) {
+            //c флагом JustGame можно придти сразу, а можно получить после прыжка за борт | ??? зачем
+            if (lp.isGuest) {
 
                 Main.giveItems(p); //там justGame получат всё
-                p.teleport(Main.getLocation(Main.LocType.Spawn));
-                if (lp.isGuest) lp.tag ("§8(", "§8)§f"+lp.getDataString(Data.FAMILY));
+                p.teleport(Main.getLocation(Main.LocType.spawn));
+                lp.tag ("§8(","§8", "§8) §7"+lp.getDataString(Data.FAMILY));
+                p.performCommand("menu");
                 
             } else if (QuestManager.isComplete(lp, Quests.ostrov)) {
 
@@ -141,10 +109,10 @@ public class ListenerWorld implements Listener {
 
             } else {
 
-                p.teleport(Main.getLocation(LocType.newBieSpawn));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 64, 5));
+                p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 32, 2));
                 p.setCollidable(false);
-                Main.oscom.giveForce(p); //ApiOstrov.getMenuItemManager().giveItem(p, "newbie");
+                Main.oscom.giveForce(p);
                 lp.hideScore();
                 ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS);
 
@@ -232,15 +200,15 @@ public class ListenerWorld implements Listener {
                     }
                     e.getPlayer().getInventory().setItem(2, QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor) ? Main.fw : ItemUtils.air);
                 }
-                case "newbie" -> {
+                /*case "newbie" -> {//??????? почему именно при прыжке в пустоту????
 //Ostrov.log("------ leave newbie getVehicle="+p.getVehicle());
                     if (!e.getLobbyPlayer().isAreaDiscovered(1) && p.getVehicle()==null) { //не был в  §6§lЗона Сбора - ливнул зв борт!
 //Ostrov.log("set JustGame");
-                        e.getLobbyPlayer().setSettings(Settings.JustGame, true);
-                        p.teleport(Main.getLocation(LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
+//                        e.getLobbyPlayer().setSettings(Settings.JustGame, true);
+                        p.teleport(Main.getLocation(Main.LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
                         Main.giveItems(p); //там justGame получат всё
                     }
-                }
+                }*/
             }
         }
 
@@ -295,13 +263,9 @@ public class ListenerWorld implements Listener {
                     }
                 }
 
-                case "daaria", "skyworld" -> {
-                    Main.pickaxe.giveForce(p);
-                }
+                case "daaria", "skyworld" -> Main.pickaxe.giveForce(p);
 
-                case "sumo" -> {
-                    Main.stick.giveForce(p);
-                }
+                case "sumo" -> Main.stick.giveForce(p);
 
             }
 
@@ -325,48 +289,18 @@ public class ListenerWorld implements Listener {
 
         if (QuestManager.isComplete(lp, Quests.discover)) {
             QuestManager.complete(p, lp, Quests.navig);
-            Main.pipboy.giveForce(p);//ApiOstrov.giveMenuItem(p);
+            Main.pipboy.giveForce(p);
         }
 
-        ApiOstrov.sendBossbar(p, "Открыта Локация: " + cuboid.displayName, 7, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
         if (lp.target == cuboid.getInfo()) {
             AreaManager.resetCompassTarget(p, lp);
         }
 
-        sound(p);
-
-        /*final EnumSet<Quest__> childrenQuest = Quest__.getChidren(cuboid.getName());
-        if (!childrenQuest.isEmpty()) { //найти зависимые от его выполнения квесты
-            for (Quest__ childQuest : childrenQuest) {
-                if (lp.addQuest(childQuest)) {
-//p.sendMessage("§8log: +новое задание с открытием зоны "+cuboid.getName()+" -> "+childQuest.displayName);
-                    if (childQuest.ammount>0) {
-                        Main.advance.sendProgress(p, childQuest,lp.getProgress(childQuest));//sendProgress(p, lp, childQuest, QuestManager.getProgress(p, lp, childQuest, true)); //чтобы отобразило
-                    }
-                }
-            }
+        if (!ci.hidePlayers) {
+            ApiOstrov.sendBossbar(p, "Открыта Локация: " + cuboid.displayName,
+                7, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+            sound(p);
         }
-      
-        if (cuboid.getInfo().canTp) {  //значимый кубоид для счётчика в DiscoverAllArea
-            //Софтлок (нельзя пройти) задания Навигатор, если все локации открыты -
-            //при открытии последней новой зоны сначала автовыполнение навигатора
-            //lp.getProgress(Quest.DiscoverAllArea) выдаст 0, т.к. квест DiscoverAllArea не начат!
-            //нужно вручную посчитать уже открытые зоны
-            if (!lp.hasQuest(Quest__.DiscoverAllArea)) { //изучаем зону, когда квест DiscoverAllArea еще на получен. (получен будет после хэвифут)
-                int opened = 0;
-                for (LCuboid lc : AreaManager.getCuboids()) {
-                    if (lc.getInfo().canTp && lp.isAreaDiscovered(lc.id)) {
-                        opened++;
-                   }
-                }
-    //Ostrov.log("DiscoverAllArea "+opened+" tryCompleteQuest complete Navigation ? "+(opened==Quest.DiscoverAllArea.ammount));
-                if (opened==Quest__.DiscoverAllArea.ammount) {
-                    tryCompleteQuest(p, lp, Quest__.Navigation, false);
-                }
-            } else {
-                tryCompleteQuest(p, lp, Quest__.DiscoverAllArea);
-            }
-        }*/
     }
 
     public static void sound(final Player p) {
@@ -380,7 +314,6 @@ public class ListenerWorld implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDismount(final EntityDismountEvent e) {
-//e.getEntity().sendMessage("§7log: onDismount getEntityType="+e.getEntityType()+" getDismountedType="+e.getDismounted().getType()+" getEntityType"+e.getEntity().getType());
         if (e.getEntityType() == EntityType.PLAYER && e.getDismounted().getType() == EntityType.BLAZE) {
             if (e.getDismounted().isCustomNameVisible() && JinGoal.GIN_NAME.equals(TCUtils.toString(e.getDismounted().customName()))) {
                 e.setCancelled(true);
@@ -499,15 +432,12 @@ public class ListenerWorld implements Listener {
                         Main.serverPortals.remove(find);
                         Main.savePortals();
                     }
-                    return;
                 }
             }
             case LIGHT_WEIGHTED_PRESSURE_PLATE -> {
                 final ChunkContent cc = AreaManager.getChunkContent(loc);
-//System.out.println("§8log: cc="+cc+" has?"+(cc!=null && cc.hasPlate()));
                 if (cc != null && cc.hasPlate()) {
                     final XYZ second = cc.getPlate(loc);
-//System.out.println("§8log: second="+second);
                     if (second != null) { //пункт назначения назначен - значит плата есть
                         cc.delPlate(loc);
                         AreaManager.savePlate(new XYZ(loc), null);
@@ -530,8 +460,8 @@ public class ListenerWorld implements Listener {
         if (!e.getEntity().getWorld().getName().equals("world")) {
             return;
         }
-        if (e.getRemover() != null && e.getRemover().getType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
-            if (!ApiOstrov.isLocalBuilder((Player) e.getRemover())) {
+        if (e.getRemover().getType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
+            if (!ApiOstrov.isLocalBuilder(e.getRemover())) {
                 e.setCancelled(true);
             }
         }
@@ -544,10 +474,21 @@ public class ListenerWorld implements Listener {
             return;
         }
         if (e.getEntity().getType() == EntityType.PLAYER) {
-            if (!ApiOstrov.isLocalBuilder((Player) e.getEntity())) {
+            if (!ApiOstrov.isLocalBuilder(e.getEntity())) {
                 e.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void onInteract(final PlayerInteractEvent e) {
+         if (e.getClickedBlock() != null) {
+             if (e.getClickedBlock().getBlockData() instanceof Openable) {
+                 e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer(), false));
+             } else if (Tag.FLOWER_POTS.isTagged(e.getClickedBlock().getType())) {
+                 e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer(), false));
+             }
+         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
@@ -607,9 +548,10 @@ public class ListenerWorld implements Listener {
                     if (lp.hasFlag(LobbyFlag.GinTravelDone)) { //старичков кидаем на спавн
                         final Location loc = p.getLocation();
                         final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
-                        p.teleport(lc == null ? Main.getLocation(LocType.Spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                        p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                     } else {
-                        p.teleport(Main.getLocation(LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
+                        p.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
+                        p.performCommand("menu");
                         Main.giveItems(p);
                     }
 
@@ -660,14 +602,13 @@ public class ListenerWorld implements Listener {
                     return;
                 //break;
                 case SUFFOCATION:   //зажатие в стене
-                    p.teleport(Main.getLocation(LocType.Spawn));
+                    p.teleport(Main.getLocation(Main.LocType.spawn));
                     p.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
                     e.setCancelled(false);
                     return;
 
                 case ENTITY_ATTACK: //ентити ударяет
-                    if (e instanceof EntityDamageByEntityEvent) {
-                        final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
+                    if (e instanceof final EntityDamageByEntityEvent ee) {
                         if (ee.getDamager().getType() == EntityType.PLAYER) {
                             final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
                             if (vCub != null && vCub.getInfo() == CuboidInfo.SUMO) {
@@ -688,8 +629,7 @@ public class ListenerWorld implements Listener {
 
         } else {
             if (e.getEntityType() == EntityType.HUSK) {
-                if (e instanceof EntityDamageByEntityEvent) {
-                    final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
+                if (e instanceof final EntityDamageByEntityEvent ee) {
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
                         final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
                         if (bt != null) {
@@ -723,26 +663,7 @@ public class ListenerWorld implements Listener {
             } else {
                 e.setCancelled(true);
             }
-            /* switch (e.getEntityType()) {
-                case HUSK:
-                    if (e instanceof EntityDamageByEntityEvent) {
-                        final EntityDamageByEntityEvent ee = (EntityDamageByEntityEvent) e;
-                        if (ee.getDamager().getType() == EntityType.PLAYER) {
-                            final Player dp = (Player) ee.getDamager();
-                            e.setDamage(100d);
-                            QuestManager.tryCompleteQuest(dp, Main.getLobbyPlayer(dp), Quest.KillMobs);
-                            dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
-                                    40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
-                        }
-                    }
-                    break;
-                default:
-                    e.setCancelled(true);
-                    break;
-            }*/
-
         }
-
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -770,7 +691,7 @@ public class ListenerWorld implements Listener {
             return;
         }
         e.setCancelled(true);
-        ((Player) e.getEntity()).setFoodLevel(20);
+        e.getEntity().setFoodLevel(20);
     }
 
 
@@ -958,120 +879,4 @@ public class ListenerWorld implements Listener {
         }
         return amt <= 0;
     }
-
 }
-
-
-
-
-
-
-    /*  @EventHandler (ignoreCancelled = true)
-    public void onPlayerChat(final AsyncChatEvent e) { //только когда новичёк пишет в чат
-        if (!e.getPlayer().getWorld().getName().equals("world")) return;
-        final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
-        if (lc!=null && lc.getName().equals("newbie")) {
-            //e.
-//e.getPlayer().sendMessage("§8log: чат новичка "+e.viewers());            
-            //e.setCancelled(true);
-            //e.viewers().clear();
-        }
-    }    */
-
-    //@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)    
-    // public void onPlayerRespawn(final PlayerRespawnEvent e) {
-    //      if (!e.getPlayer().getWorld().getName().equals("world")) return;
-    // }
-    // @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    // public void ProjectileHitEvent(final ProjectileHitEvent e) {
-    //     if (!e.getEntity().getWorld().getName().equals("world")) return;
-    //}
-
-    //@EventHandler(ignoreCancelled = true)
-  //  public void onPlayerPickUpItem(final EntityPickupItemEvent e) {
-  //      if (!e.getEntity().getWorld().getName().equals("world")) {
-   //         return;
-   ////     }
-   // }
-
-    // @EventHandler(ignoreCancelled = true)
-    // public void onPlayerSwapoffHand(PlayerSwapHandItemsEvent e) {
-    //     if (!e.getPlayer().getWorld().getName().equals("world")) return;
-    //     e.setCancelled(true);
-    //  }
-
-
-    //@EventHandler (priority = EventPriority.NORMAL, ignoreCancelled = true)
-    // public void onMerge(final ItemMergeEvent e) {
-    //    if (!e.getEntity().getWorld().getName().equals("world")) return;
-    //    e.setCancelled(true);
-    // }
-    //  @EventHandler (priority = EventPriority.NORMAL, ignoreCancelled = true)
-    // public void onDespawn(final ItemDespawnEvent e) {
-//log("onDespawn nb?"+e.getEntity().getWorld().getName().startsWith("newbie"));
-    //if (!e.getEntity().getWorld().getName().equals("world")) return;
-    //if (e.getEntity().getItemStack().getType()==Material.NETHER_STAR) {
-    //    e.setCancelled(true);
-    //}
-    // }
-    //------------- ЭЛИТРЫ ------------------
-    /*@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onLaunch(final PlayerElytraBoostEvent e) { //PlayerElytraBoostEvent !!!
-    	final Player p = e.getPlayer();
-    	final World w = p.getWorld();
-    	final ItemStack fi = e.getItemStack();
-    	final int ln;
-    	if (fi.getItemMeta() instanceof final FireworkMeta fm) {
-    		ln = (fm.getPower() << 2) + 16;
-    	} else ln = 16;
-		w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1f, 1f);
-    	new BukkitRunnable() {
-    		int i = 0;
-			@Override
-			public void run() {
-				if (p == null || !p.isValid()) {
-					cancel();
-					return;
-				}
-				
-				if (i++ == ln || !p.isGliding()) {
-					p.setGliding(true);
-					final Firework fw = p.launchProjectile(Firework.class);
-					fw.setItem(fi);
-					fw.detonate();
-					cancel();
-					return;
-				}
-				
-				final Location eye = p.getEyeLocation();
-				w.spawnParticle(Particle.FIREWORKS_SPARK, eye, 2, 0d, 0d, 0d, 0d);
-				p.setVelocity(p.getVelocity().add(eye.getDirection().multiply(0.14d)));
-			}
-		}.runTaskTimer(Ostrov.instance, 0, 2);
-    }*/
-    // ---------------------------------------- 
-
-    // ******** эвенты по новичку
-    /*
-    @EventHandler (priority = EventPriority.MONITOR)
-    public static void onCuboidEvent(final CuboidEvent e) {
-        
-        if (e.getLast()!=null && e.getLast().getInfo().hidePlayers ) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
-            final Player p = e.getPlayer();
-            for (final Player cp : e.getLast().getCuboidPlayers()) {
-                if (!cp.getName().equals(p.getName())) {
-                    cp.showPlayer(Main.instance, p);
-                    p.showPlayer(Main.instance, cp);      
-                }
-            }
-        }
-        if (e.getCurrent()!=null && e.getCurrent().getInfo().hidePlayers) {//вход в со скрытием //if (e.getCurrent()!=null && e.getCurrent().getName().equals("newbie")) { 
-            final Player p = e.getPlayer();
-            for (final Player cp : e.getCurrent().getCuboidPlayers()) {
-                if (!cp.getName().equals(p.getName())) {
-                    cp.hidePlayer(Main.instance, p);
-                    p.hidePlayer(Main.instance, cp);
-                }
-            }
-        }
-    }*/

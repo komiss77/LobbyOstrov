@@ -12,10 +12,10 @@ import ru.komiss77.modules.displays.FakeItemDis;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
 import ru.komiss77.version.VM;
-import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.area.AreaManager;
 
 
 public class HD {
@@ -41,18 +41,14 @@ public class HD {
             if (VM.getNmsServer().getFastMat(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
             if (lp.isAreaDiscovered(lc.id)) {
             	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
-            	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick(pl -> {
-            		if (ci.canTp) {
-//Ostrov.log(" lc.spawnPoint="+lc.spawnPoint);
-//            			ApiOstrov.teleportSave(pl, lc.spawnPoint, false);
-            			lp.transport(pl, new XYZ(lc.spawnPoint), true);
-            			DisplayManager.rmvDis(pl);
-            		}
-            	}).create();
+            	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick((pl, dis) -> {
+                    lp.transport(pl, new XYZ(lc.spawnPoint), true);
+                    DisplayManager.rmvDis(pl);
+                }).create();
             } else {
             	final FakeItemDis fid = DisplayManager.fakeItemAnimate(p, nlc).setItem(lp.target == lc.getInfo() ? arrow : empty)
             	.setName("§7*???*").setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000);
-            	fid.setOnClick(pl -> {
+            	fid.setOnClick((pl, dis) -> {
                     if (lp.target == lc.getInfo()) {
                         AreaManager.resetCompassTarget(p, lp);
                         fid.setItem(empty);

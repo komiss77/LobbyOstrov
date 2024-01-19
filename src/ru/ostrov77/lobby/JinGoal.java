@@ -17,8 +17,6 @@ import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.TCUtils;
-import ru.ostrov77.lobby.Main.LocType;
-
 
 
 public class JinGoal implements Goal<Blaze> {
@@ -40,8 +38,7 @@ public class JinGoal implements Goal<Blaze> {
     
     private int currPointIndex = 0;
     private Vector moveVector;
-    
-    private XYZ nextPoint;
+
     private int previosDistance = Integer.MAX_VALUE;
     private boolean arrive;
     
@@ -102,8 +99,8 @@ public class JinGoal implements Goal<Blaze> {
                 arrive();
                 return;
             }
-            
-            nextPoint = points[currPointIndex];
+
+            final XYZ nextPoint = points[currPointIndex];
 
             int currDist = nextPoint.distSq(mob.getLocation());//getDist();
 //log("currDist="+currDist+" previos="+previosDistance);            
@@ -160,15 +157,17 @@ public class JinGoal implements Goal<Blaze> {
             mob.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
             p.getVehicle().eject();
             mob.setAI(false);
-            final Location fgl = Main.getLocation(LocType.ginLampArrive);
+            final Location fgl = Main.getLocation(Main.LocType.ginArrive);
             showGinHopper(fgl.clone(), true); //партиклами воронка, уходящая в лампу
             mob.teleport(fgl);
             
-            p.getWorld().playSound(Main.getLocation(LocType.ginLampArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+            p.getWorld().playSound(Main.getLocation(Main.LocType.ginArrive), Sound.BLOCK_CONDUIT_DEACTIVATE, 5, .3f);
+            p.teleport(Main.getLocation(Main.LocType.newBieArrive));
+            p.performCommand("menu");
 
             Ostrov.sync( ()-> {
                 if (!mob.isDead()) {
-                    mob.getWorld().playSound(Main.getLocation(LocType.ginLampArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
+                    mob.getWorld().playSound(Main.getLocation(Main.LocType.ginArrive), Sound.BLOCK_BEEHIVE_EXIT, 5, .5f);
                     mob.remove();
                 }
             }, 100);

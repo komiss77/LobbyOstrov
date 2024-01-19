@@ -12,7 +12,7 @@ import ru.ostrov77.lobby.area.LCuboid;
 
 public class CuboidEvent extends Event {
 
-    private static HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
     private final Player p;
     private final LobbyPlayer lp;
     private final LCuboid previos;

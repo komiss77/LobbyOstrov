@@ -526,6 +526,7 @@ public class ListenerWorld implements Listener {
         if (!e.getPlayer().getWorld().getName().equals("world")) {
             return;
         }
+
         if (!ApiOstrov.isLocalBuilder(e.getPlayer())) {
             e.setCancelled(true);
         }

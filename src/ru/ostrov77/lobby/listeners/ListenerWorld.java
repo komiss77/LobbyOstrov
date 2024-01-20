@@ -6,7 +6,6 @@ import net.kyori.adventure.text.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -21,7 +20,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.EntitiesUnloadEvent;
@@ -478,17 +476,6 @@ public class ListenerWorld implements Listener {
                 e.setCancelled(true);
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
-    public void onInteract(final PlayerInteractEvent e) {
-         if (e.getClickedBlock() != null) {
-             if (e.getClickedBlock().getBlockData() instanceof Openable) {
-                 e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer(), false));
-             } else if (Tag.FLOWER_POTS.isTagged(e.getClickedBlock().getType())) {
-                 e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer(), false));
-             }
-         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)

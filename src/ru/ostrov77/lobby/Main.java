@@ -233,7 +233,7 @@ public class Main extends JavaPlugin {
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
-            .leftClickCmd("profile")
+            .leftClickCmd("oscom area")
             .rightClickCmd("menu")
             .create();
         

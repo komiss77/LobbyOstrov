@@ -124,7 +124,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     return true;*/
 
                 case "gin":
-                    if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.GinTravelDone)) {
+                    /*if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.GinTravelDone)) {
                         if (ApiOstrov.canBeBuilder(p)) {
                             p.sendMessage("§cвключи гм1!");
                         } else {
@@ -132,29 +132,25 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         }
                         //p.sendMessage("§cМогут только новички!");
                         return true;
-                    }
+                    }*///а задания как выполнять? раком?
 
                     if (p.getVehicle()!=null) {
                         p.sendMessage("§cНадо спешиться!");
-                        return true;
+                        return false;
                     }
                     final LCuboid lc = AreaManager.getCuboid(p.getLocation());
                     if (lc==null || !lc.getName().equals("newbie")) {
                         p.sendMessage("§cНадо быть на кораблике!");
-                        return true;
+                        return false;
                     }
                     if (ginOwner.contains(p.getName())) {
                         p.sendMessage("§6Джин уже выходит!");
-                        return true;
+                        return false;
                     }
                     ginOwner.add(p.getName());
                     p.sendMessage("§6Кажется, сработало!");
                     JinGoal.showGinHopper(Main.getLocation(Main.LocType.ginLamp).clone(), false);
                     QuestManager.complete(p, PM.getOplayer(p), Quests.lamp);
-                    //if (lp.questAccept.contains(Quest.SpawnGin)) {
-                    //    lp.questDone(p, Quest.SpawnGin, false);
-                    //   QuestManager.completeAdv(p, Quest.SpawnGin);
-                    //}
                     p.playSound(Main.getLocation(Main.LocType.ginLamp), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 5, 1);
 
 
@@ -194,16 +190,6 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
 
                     return true;
-
-
-                //case "openCosmetics":
-                //ProCosmeticsAPI.openMainMenu(p);
-                //ProCosmeticsAPI.getUser(p).getAbstract3DMenu().run();
-                // return true;
-
-                // case "unequipCosmetics":
-                //ProCosmeticsAPI.getUser(p).fullyUnequipCosmetics(true);
-                //  return true;
 
                 case "t":
                     return true;

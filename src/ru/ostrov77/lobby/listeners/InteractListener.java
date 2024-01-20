@@ -1,11 +1,9 @@
 package ru.ostrov77.lobby.listeners;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Openable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -13,15 +11,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
-import ru.komiss77.modules.translate.EnumLang;
-import ru.komiss77.modules.translate.Translate;
+import ru.komiss77.modules.translate.Lang;
 import ru.komiss77.modules.world.XYZ;
+import ru.komiss77.utils.TCUtils;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -67,22 +64,30 @@ public class InteractListener implements Listener {
             
             
             if (QuestManager.isComplete(lp, Quests.arcaim) && lp.foundBlocks.add(b.getType()) && QuestManager.addProgress(p, lp, Quests.find)) {
-                ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + Translate.getMaterialName(b.getType(), EnumLang.RU_RU) + 
+                ApiOstrov.sendActionBarDirect(p, "§7Найден блок §e" + TCUtils.toString(Lang.t(b.getType(), p.locale())) +
                 	"§7, осталось: §e" + (Quests.find.amount - QuestManager.getProgress(lp, Quests.find)));
             }
             
             //спавн джина для новичка
-            if (e.getAction()==Action.RIGHT_CLICK_BLOCK && b.getType()==Material.SOUL_LANTERN) {
-                if (Timer.has(p.getEntityId())) return;
-                Timer.add(p.getEntityId(), 3);
-                final LCuboid lc = AreaManager.getCuboid(p.getLocation());
-                if (lc!=null && lc.getInfo() == CuboidInfo.NEWBIE) {
-                    if (b.getX()==Main.getLocation(Main.LocType.ginLamp).getBlockX() && b.getZ()==Main.getLocation(Main.LocType.ginLamp).getBlockZ()) {
-                        p.performCommand("oscom gin");
-                    } else {
-                        p.sendMessage("§3Должно быть, другая лампа!");
+            if (e.getAction()==Action.RIGHT_CLICK_BLOCK) {
+                switch (b.getType()) {
+                case SOUL_LANTERN:
+                    if (Timer.has(p.getEntityId())) return;
+                    Timer.add(p.getEntityId(), 3);
+                    final LCuboid lc = AreaManager.getCuboid(p.getLocation());
+                    if (lc!=null && lc.getInfo() == CuboidInfo.NEWBIE) {
+                        if (b.getX()==Main.getLocation(Main.LocType.ginLamp).getBlockX() && b.getZ()==Main.getLocation(Main.LocType.ginLamp).getBlockZ()) {
+                            p.performCommand("oscom gin");
+                        } else {
+                            p.sendMessage("§3Должно быть, другая лампа!");
+                        }
                     }
-                    
+                    break;
+                default:
+                    if (b.getBlockData() instanceof Openable || Tag.FLOWER_POTS.isTagged(b.getType())) {
+                        e.setCancelled(!ApiOstrov.isLocalBuilder(e.getPlayer(), false));
+                    }
+                    break;
                 }
             }
            

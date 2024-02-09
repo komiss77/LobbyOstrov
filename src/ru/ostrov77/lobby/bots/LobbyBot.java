@@ -5,9 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-
 import com.destroystokyo.paper.entity.ai.Goal;
-
 import ru.komiss77.modules.bots.BotEntity;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
@@ -15,55 +13,6 @@ import ru.komiss77.modules.world.WXYZ;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.quest.Quests;
 
-/*
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Directional;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Husk;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
-
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import com.mojang.datafixers.util.Pair;
-
-import net.minecraft.EnumChatFormat;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.protocol.game.PacketPlayOutEntity;
-import net.minecraft.network.protocol.game.PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityHeadRotation;
-import net.minecraft.network.protocol.game.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo;
-import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
-import net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.phys.Vec3D;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.ScoreboardTeam;
-import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.version.VM;
-import ru.ru.ostrov77.lobby.Main;
-import ru.ru.ostrov77.lobby.bots.spots.Spot;
-*/
 
 public class LobbyBot extends BotEntity {
 

@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import net.kyori.adventure.text.Component;
+import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.Oplayer;
@@ -66,7 +67,7 @@ public class AreaManager {
                     final String name = areaConfig.getString("areas."+areaID+".name");
                     final String displayName = areaConfig.getString("areas."+areaID+".displayName");
                     final String cuboidAsString = areaConfig.getString("areas."+areaID+".cuboidAsString");
-                    final Location spawnPoint = LocationUtil.LocFromString(areaConfig.getString("areas."+areaID+".spawnPoint"));
+                    final Location spawnPoint = ApiOstrov.locFromString(areaConfig.getString("areas."+areaID+".spawnPoint"));
                     final LCuboid lc = new LCuboid(id, name, displayName, spawnPoint, cuboidAsString);
                     addCuboid(lc, false);
                 } catch (Exception ex) {

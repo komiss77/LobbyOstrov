@@ -107,12 +107,12 @@ public class LobbyPlayer extends Oplayer {
     
     
     @Override
-    public void onLeave(final Player p) {
+    public void preDataSave(final Player p, boolean async) {
 //    	mysqlData.put("logoutLoc", LocationUtil.toDirString(p.getLocation()));
     	mysqlData.put("area", String.valueOf(openedArea));
     	mysqlData.put("flags", String.valueOf(flags));
     	
-    	super.onLeave(p);
+    	super.preDataSave(p, async);
         
         final LCuboid exitCuboid = AreaManager.getCuboid(p.getLocation());
         if (exitCuboid!=null) {

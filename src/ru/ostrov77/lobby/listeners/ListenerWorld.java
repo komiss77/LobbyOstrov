@@ -32,7 +32,6 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
-import ru.komiss77.enums.Data;
 import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.LocalDataLoadEvent;
 import ru.komiss77.events.QuestCompleteEvent;
@@ -97,8 +96,9 @@ public class ListenerWorld implements Listener {
             if (lp.isGuest) {
 
                 Main.giveItems(p); //там justGame получат всё
-                p.teleport(Main.getLocation(Main.LocType.spawn));
-                lp.tag ("§8(","§8", "§8) §7"+lp.getDataString(Data.FAMILY));
+                //p.teleport(Main.getLocation(Main.LocType.spawn));
+                e.setLogoutLocation(Main.getLocation(Main.LocType.spawn));
+                //lp.tag ("§8(","§8", "§8) §7"+lp.getDataString(Data.FAMILY));
                 p.performCommand("menu");
                 
             } else if (QuestManager.isComplete(lp, Quests.ostrov)) {
@@ -106,8 +106,8 @@ public class ListenerWorld implements Listener {
                 Main.giveItems(p);
 
             } else {
-
-                p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
+                e.setLogoutLocation(Main.getLocation(Main.LocType.newBieSpawn));
+                //p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 32, 2));
                 p.setCollidable(false);
                 Main.oscom.giveForce(p);
@@ -166,7 +166,7 @@ public class ListenerWorld implements Listener {
     public static void onInvClose(final InventoryCloseEvent e) {
         if (e.getInventory().getType() == InventoryType.CHEST) {
             final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
-            if (lp.getPasportFillPercent() > 20) {
+            if (PM.getPasportFillPercent(lp) > 20) {
                 QuestManager.complete((Player) e.getPlayer(), lp, Quests.pass);
             }
         }
@@ -497,7 +497,7 @@ public class ListenerWorld implements Listener {
                 if (lp == null) {
                     return;
                 }
-                final LobbyPlayer olp = PM.getOplayer(e.getRightClicked().getName(), LobbyPlayer.class);
+                final LobbyPlayer olp = PM.getOplayer(e.getRightClicked().getUniqueId(), LobbyPlayer.class);
 //p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
                 if (olp != null && (olp.isGuest || QuestManager.isComplete(olp, Quests.discover))) {
                     QuestManager.complete(p, lp, Quests.greet);

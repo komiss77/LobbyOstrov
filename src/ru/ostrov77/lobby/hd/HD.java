@@ -11,7 +11,7 @@ import ru.komiss77.modules.displays.DisplayManager;
 import ru.komiss77.modules.displays.FakeItemDis;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.version.VM;
+import ru.komiss77.version.Nms;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.LobbyPlayer;
@@ -38,7 +38,7 @@ public class HD {
             if (ci==CuboidInfo.DEFAULT || !ci.canTp) continue;
             final Location nlc = eye.clone().add(ci.relX, ci.relY, ci.relZ);
             p.spawnParticle(Particle.GLOW_SQUID_INK, nlc, 2, 0d, 0d, 0d, 0d);
-            if (VM.getNmsServer().getFastMat(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
+            if (Nms.getFastMat(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
             if (lp.isAreaDiscovered(lc.id)) {
             	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
             	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick((pl, dis) -> {

@@ -6,6 +6,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import com.destroystokyo.paper.entity.ai.Goal;
+import ru.komiss77.listener.ChatLst;
 import ru.komiss77.modules.bots.BotEntity;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
@@ -19,8 +20,8 @@ public class LobbyBot extends BotEntity {
 	public LobbyBot(final String name, final WXYZ loc) {
 		super(name, loc.w);
 		telespawn(loc.getCenterLoc(), null);
-		//TCUtils.N + "[" + TCUtils.P + "Bot" + TCUtils.N + "] 
-		updateTag("", "", '7');
+		tab("", ChatLst.NIK_COLOR, "");
+                tag("§3А вот и ", ChatLst.NIK_COLOR, " §2заспавнен");
 	}
 	
 	@Override

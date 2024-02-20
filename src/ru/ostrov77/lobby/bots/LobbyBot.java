@@ -21,7 +21,7 @@ public class LobbyBot extends BotEntity {
 		super(name, loc.w);
 		telespawn(loc.getCenterLoc(), null);
 		tab("", ChatLst.NIK_COLOR, "");
-                tag("§3А вот и ", ChatLst.NIK_COLOR, " §2заспавнен");
+                tag("", ChatLst.NIK_COLOR, "");
 	}
 	
 	@Override

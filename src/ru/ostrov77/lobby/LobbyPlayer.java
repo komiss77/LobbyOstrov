@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby;
 
+import java.util.EnumSet;
 import org.bukkit.*;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -18,8 +19,6 @@ import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.game.Parkur;
 import ru.ostrov77.lobby.quest.Quests;
-
-import java.util.EnumSet;
 
 
 public class LobbyPlayer extends Oplayer {

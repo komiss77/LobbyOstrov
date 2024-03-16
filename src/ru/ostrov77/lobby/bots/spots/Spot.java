@@ -6,19 +6,19 @@ import ru.komiss77.modules.world.XYZ;
 
 public interface Spot {
 
-	public XYZ getLoc();
+	XYZ getLoc();
 	
-	public SpotType getType();
+	SpotType getType();
 	
-	public World getWorld();
-	
-	@Override
-	public boolean equals(final Object o);
+	World getWorld();
 	
 	@Override
-	public int hashCode();
+    boolean equals(final Object o);
 	
 	@Override
-	public String toString();
+    int hashCode();
+	
+	@Override
+    String toString();
 	
 }

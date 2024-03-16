@@ -1,25 +1,25 @@
 package ru.ostrov77.lobby.bots;
 
-import java.util.EnumSet;
+import com.destroystokyo.paper.entity.Pathfinder;
+import com.destroystokyo.paper.entity.ai.Goal;
+import com.destroystokyo.paper.entity.ai.GoalKey;
+import com.destroystokyo.paper.entity.ai.GoalType;
+import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
-import com.destroystokyo.paper.entity.Pathfinder;
-import com.destroystokyo.paper.entity.ai.Goal;
-import com.destroystokyo.paper.entity.ai.GoalKey;
-import com.destroystokyo.paper.entity.ai.GoalType;
-import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
-import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.world.AStarPath;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.utils.LocationUtil;
 import ru.komiss77.version.Nms;
+import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
-import ru.ostrov77.lobby.Main;
+
+import java.util.EnumSet;
 
 public class LobbyGoal implements Goal<Mob> {
 
@@ -89,7 +89,7 @@ public class LobbyGoal implements Goal<Mob> {
                 }
             }
 
-            if (arp.isDone()) {
+            if (!arp.hasTgt()) {
                 tgtMb = LocationUtil.getClsChEnt(loc, 4d, Mob.class, e -> e.getType() != rplc.getType());
                 if (tgtMb == null) {
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
@@ -123,12 +123,8 @@ public class LobbyGoal implements Goal<Mob> {
 
 //		attackMelee(ln);
 //		bot.pickupIts(loc);
-        if (rplc.isInWater()) {
-            rplc.setVelocity(rplc.getVelocity().setY(0.1d));
-        } else {
-            if (talk == 0) {
-                arp.tickGo(1.4f);
-            }
+        if (talk == 0) {
+            arp.tickGo(1.4f);
         }
 
         bot.move(loc, vc, true);

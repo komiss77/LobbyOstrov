@@ -54,12 +54,11 @@ public class AreaCmd implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender cs, Command cmd, String string, String[] arg) {
         
-        if ( ! (cs instanceof Player) ) {
+        if ( ! (cs instanceof final Player p) ) {
             cs.sendMessage("§cНе консольная команда!");
             return true;
         }
-        final Player p = (Player) cs;
-        
+
         if (!ApiOstrov.isLocalBuilder(cs, true)) return false;
         
         if (!p.getWorld().getName().equals("world")) {

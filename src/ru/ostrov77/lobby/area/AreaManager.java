@@ -236,7 +236,6 @@ public class AreaManager {
     }
     
     //добавление только после всех проверок в команде!
-    @SuppressWarnings("deprecation")
     protected static void addCuboid(final LCuboid lc, final boolean save) {
         cuboids.put(lc.id, lc);
         cuboidNames.put(lc.getName(), lc.id);

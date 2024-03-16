@@ -112,17 +112,6 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     HD.openAreaMenu(p, lp);
                     return true;
 
-                /*case "menu":
-                    SmartInventory.builder()
-                        .type(InventoryType.CHEST)
-                        .id("menu"+p.getName())
-                        .provider(new OsComMenu())
-                        .title("        Задания")
-                        .size (6,9)
-                        .build()
-                        .open(p);
-                    return true;*/
-
                 case "gin":
                     /*if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.GinTravelDone)) {
                         if (ApiOstrov.canBeBuilder(p)) {

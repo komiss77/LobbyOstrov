@@ -29,7 +29,7 @@ public enum LobbyFlag {
         public final int tag;
         public final String displayName;
 
-        private LobbyFlag (final int tag, final String displayName) {
+        LobbyFlag(final int tag, final String displayName) {
             this.tag = tag;
             this.displayName = displayName;
         }

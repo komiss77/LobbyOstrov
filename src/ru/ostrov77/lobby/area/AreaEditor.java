@@ -29,12 +29,10 @@ import ru.komiss77.utils.inventory.InventoryProvider;
 
 public class AreaEditor implements InventoryProvider{
 
-    public static final ItemStack fillOk = new ItemBuilder(Material.GREEN_STAINED_GLASS_PANE).build();;
-    public static final ItemStack fillErr = new ItemBuilder(Material.RED_STAINED_GLASS_PANE).build();;
-    
-        
-    
-    
+    public static final ItemStack fillOk = new ItemBuilder(Material.GREEN_STAINED_GLASS_PANE).build();
+    public static final ItemStack fillErr = new ItemBuilder(Material.RED_STAINED_GLASS_PANE).build();
+
+
     @Override
     public void init(final Player p, final InventoryContent contents) {
         
@@ -79,8 +77,7 @@ public class AreaEditor implements InventoryProvider{
         if (selected) {
             
             Location loc;
-            @SuppressWarnings("deprecation")
-			Iterator<Location> it = sm.getCuboid().borderIterator(p.getWorld());
+            Iterator<Location> it = sm.getCuboid().borderIterator(p.getWorld());
             while (it.hasNext()) {
                 loc = it.next();
                 if ( AreaManager.getCuboid(loc)!=null && !AreaManager.getCuboid(loc).getName().equals(sm.schemName)) {
@@ -240,7 +237,7 @@ public class AreaEditor implements InventoryProvider{
         
         
         
-    int id = ApiOstrov.getInteger(sm.param);
+    int id = ApiOstrov.getInteger(sm.param, 0);
     final boolean wrongID = id<1 || id>32 || (AreaManager.getCuboid(id)!=null && !AreaManager.getCuboid(id).getName().equals(sm.schemName));
     
     if (wrongID) {

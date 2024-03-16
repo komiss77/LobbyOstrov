@@ -80,7 +80,7 @@ public class Main extends JavaPlugin {
         //botManager = new SpotManager();
         areaManager = new AreaManager();
         
-        world.setStorm((Calendar.getInstance().get(Calendar.DAY_OF_MONTH) & 3) == 0);
+        world.setStorm((Calendar.getInstance().get(Calendar.DAY_OF_MONTH) & 7) == 0);
         if (world.hasStorm()) world.setThundering(false);
         world.setWeatherDuration(10000000);
         
@@ -166,6 +166,7 @@ public class Main extends JavaPlugin {
         }
 
         if (lp.firstJoin || QuestManager.isComplete(lp, Quests.discover)) {
+            oscom.remove(p);
             pipboy.giveForce(p);
         }
         p.updateInventory();
@@ -221,7 +222,7 @@ public class Main extends JavaPlugin {
         final ItemStack pip=new ItemBuilder(Material.CLOCK)
             .name("§6ЛКМ§e-профиль §2ПКМ§a-сервера")
             .setUnbreakable(true)
-            .unsafeEnchantment(Enchantment.LUCK, 1)
+            .addEnchant(Enchantment.LUCK, 1)
             .build();
         pipboy = new MenuItemBuilder("pipboy", pip)
             .slot(4)

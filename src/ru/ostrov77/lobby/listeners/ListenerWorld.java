@@ -7,13 +7,14 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.*;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -95,8 +96,8 @@ public class ListenerWorld implements Listener {
             if (lp.isGuest) {
 
                 Main.giveItems(p); //там justGame получат всё
-                //p.teleport(Main.getLocation(Main.LocType.spawn));
-                e.setLogoutLocation(Main.getLocation(Main.LocType.spawn));
+                p.teleport(Main.getLocation(Main.LocType.spawn));
+//                e.setLogoutLocation(Main.getLocation(Main.LocType.spawn));
                 //lp.tag ("§8(","§8", "§8) §7"+lp.getDataString(Data.FAMILY));
                 p.performCommand("menu");
                 
@@ -105,8 +106,8 @@ public class ListenerWorld implements Listener {
                 Main.giveItems(p);
 
             } else {
-                e.setLogoutLocation(Main.getLocation(Main.LocType.newBieSpawn));
-                //p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
+//                e.setLogoutLocation(Main.getLocation(Main.LocType.newBieSpawn));
+                p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 32, 2));
                 p.setCollidable(false);
                 Main.oscom.giveForce(p);
@@ -242,7 +243,7 @@ public class ListenerWorld implements Listener {
                         p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
                         p.sendMessage("§5[§eСостязание§5] §7>> На старт! Внимание! Вперед!");
                         lp.raceTime = 0;
-                        Main.elytra.takeAway(p);
+                        Main.elytra.remove(p);
                     } else {
                         p.sendMessage("§5[§eСостязание§5] §7>> Найдите §eОазис§7 перед началом!");
                     }
@@ -393,8 +394,8 @@ public class ListenerWorld implements Listener {
                 if (sp != null) {
                     final int pls = Bukkit.getOnlinePlayers().size();
                     if (pls != 0) {
-                        final String nm = ApiOstrov.rndElmt(SpotManager.names);
-                        BotManager.createBot(nm, LobbyBot.class, () -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+                        BotManager.createBot(ApiOstrov.rndElmt(SpotManager.names),
+                            LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
                     }
                 }
                 break;
@@ -550,7 +551,7 @@ public class ListenerWorld implements Listener {
                             final Integer wns = sumo.getAmt(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.setLastDamageCause(new EntityDamageEvent(p, DamageCause.CUSTOM, 0d));
+                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());
                             QuestManager.complete(dp, olp, Quests.sumo);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
@@ -567,7 +568,7 @@ public class ListenerWorld implements Listener {
                             final Integer wns = sumo.getAmt(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.setLastDamageCause(new EntityDamageEvent(p, DamageCause.CUSTOM, 0d));
+                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());
                             QuestManager.complete(dp, olp, Quests.sumo);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
@@ -641,7 +642,6 @@ public class ListenerWorld implements Listener {
                             if (bt != null) {
                                 e.setDamage(0d);
                                 bt.remove();
-                                //return;
                             }
                         default:
                             break;
@@ -655,7 +655,7 @@ public class ListenerWorld implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onScore(final ScoreWorldRecordEvent e) {
-        if (e.getScoreBoard().equals(race)) {
+        if (e.getScoreDis().equals(race)) {
             ApiOstrov.moneyChange(e.getName(), 20, "Состязание");
         }
     }

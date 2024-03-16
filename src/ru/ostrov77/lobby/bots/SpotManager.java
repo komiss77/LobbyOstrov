@@ -44,8 +44,8 @@ public class SpotManager {
             if (sp != null) {
             	final int pls = Bukkit.getOnlinePlayers().size();
             	if (pls != 0 && Main.rnd.nextInt(pls + 1) == 0) {
-            		final String nm = ApiOstrov.rndElmt(names);
-            		BotManager.createBot(nm, LobbyBot.class, () -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+            		BotManager.createBot(ApiOstrov.rndElmt(names),
+                        LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
             	}
             }
         }, 200, 200);

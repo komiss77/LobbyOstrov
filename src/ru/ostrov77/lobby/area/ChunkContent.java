@@ -12,7 +12,7 @@ import org.bukkit.Location;
 public class ChunkContent {
     
     private Set<Integer>cuboids;
-    private Map <Integer,String> nearlyPortalData;
+//    private Map <Integer,String> nearlyPortalData;
     private Map <Integer,XYZ> plate;
     
     
@@ -108,7 +108,7 @@ public class ChunkContent {
     
     
     
-    public boolean hasServerPortal() {
+    /*public boolean hasServerPortal() {
         return nearlyPortalData!=null;
     }
 
@@ -118,7 +118,7 @@ public class ChunkContent {
         if (nearlyPortalData==null) return null;
         final int nearlyLoc = entryLoc.getBlockX() | entryLoc.getBlockZ() | entryLoc.getBlockY();
         return nearlyPortalData.get(nearlyLoc);
-    }
+    }*/
 
 
 

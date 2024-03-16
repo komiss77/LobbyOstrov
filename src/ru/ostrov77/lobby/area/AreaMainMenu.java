@@ -152,7 +152,7 @@ public class AreaMainMenu implements InventoryProvider {
         
         
         
-        pagination.setItems(menuEntry.toArray(new ClickableItem[menuEntry.size()]));
+        pagination.setItems(menuEntry.toArray(new ClickableItem[0]));
         pagination.setItemsPerPage(36);
         
 

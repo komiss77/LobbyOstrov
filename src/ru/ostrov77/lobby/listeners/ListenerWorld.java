@@ -104,6 +104,7 @@ public class ListenerWorld implements Listener {
             } else if (QuestManager.isComplete(lp, Quests.ostrov)) {
 
                 Main.giveItems(p);
+                //без тп, появиться, где вышел
 
             } else {
 //                e.setLogoutLocation(Main.getLocation(Main.LocType.newBieSpawn));
@@ -338,7 +339,7 @@ public class ListenerWorld implements Listener {
 
         switch (b.getType()) {
 
-            case FIRE:
+            case FIRE -> {
                 if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
                     final ItemStack it = e.getItemInHand();
                     if (it.getType() != Material.AIR && it.hasItemMeta()) {
@@ -347,16 +348,16 @@ public class ListenerWorld implements Listener {
                         Main.savePortals();
                     }
                 }
-                break;
+            }
 
-            case HEAVY_WEIGHTED_PRESSURE_PLATE:
+            case HEAVY_WEIGHTED_PRESSURE_PLATE -> {
                 final Player p = e.getPlayer();
                 loc = b.getLocation();
 
                 if (p.hasMetadata("tp")) {
                     final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
                     final XYZ secondPlateXYZ = new XYZ(loc);
-                    //System.out.println("§8log: firstPlateXYZ="+firstPlateXYZ.toString());                    
+                    //System.out.println("§8log: firstPlateXYZ="+firstPlateXYZ.toString());
                     //System.out.println("§8log: secondPlateXYZ="+secondPlateXYZ.toString());    
                     final int cLoc = AreaManager.getcLoc(firstPlateXYZ);
                     final ChunkContent cc = AreaManager.getChunkContent(cLoc, true); //берём чанк по ПЕРВОЙ плите, запоминаем то в первой!
@@ -370,37 +371,37 @@ public class ListenerWorld implements Listener {
                     p.setMetadata("tp", new FixedMetadataValue(Main.instance, new XYZ(loc)));
                     p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
                 }
-                break;
+            }
 
-            case BEDROCK:
+            case BEDROCK -> {
                 Main.loadPortals();
                 e.getPlayer().sendMessage("§eПерезагружено!");
-                break;
+            }
 
-            case DEAD_BRAIN_CORAL:
+            case DEAD_BRAIN_CORAL -> {
                 loc = b.getLocation();
                 SpotManager.addSpot(new XYZ(loc), SpotType.SPAWN);
-                break;
-            case DEAD_TUBE_CORAL:
+            }
+            case DEAD_TUBE_CORAL -> {
                 loc = b.getLocation();
                 SpotManager.addSpot(new XYZ(loc), SpotType.WALK);
-                break;
-            case DEAD_FIRE_CORAL:
+            }
+            case DEAD_FIRE_CORAL -> {
                 loc = b.getLocation();
                 SpotManager.addSpot(new XYZ(loc), SpotType.END);
-                break;
-            case DEAD_BUBBLE_CORAL:
+            }
+            case DEAD_BUBBLE_CORAL -> {
                 final Spot sp = SpotManager.getRndSpot(SpotType.SPAWN);
                 if (sp != null) {
                     final int pls = Bukkit.getOnlinePlayers().size();
                     if (pls != 0) {
                         BotManager.createBot(ApiOstrov.rndElmt(SpotManager.names),
-                            LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+                                LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
                     }
                 }
-                break;
-            default:
-                break;
+            }
+            default -> {
+            }
 
         }
 
@@ -533,7 +534,7 @@ public class ListenerWorld implements Listener {
 
                 case VOID:
                     e.setDamage(0d);
-                    if (lp.hasFlag(LobbyFlag.GinTravelDone)) { //старичков кидаем на спавн
+                    if (QuestManager.isComplete(lp, Quests.ostrov)) {//if (lp.hasFlag(LobbyFlag.GinTravelDone)) { //старичков кидаем на спавн
                         final Location loc = p.getLocation();
                         final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
                         p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);

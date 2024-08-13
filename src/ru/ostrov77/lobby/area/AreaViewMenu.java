@@ -97,8 +97,8 @@ public class AreaViewMenu implements InventoryProvider {
 
                 final ItemStack is = new ItemBuilder(ci.icon)
                         .name(lc.displayName)
-                        .addLore("§7Открыта")
-                        .addLore(ci.canTp ? "§7ЛКМ - тп" : "")
+                        .lore("§7Открыта")
+                        .lore(ci.canTp ? "§7ЛКМ - тп" : "")
                         .build();
 
                 content.set(ci.slot, ClickableItem.of(is, ci.canTp ? e-> 
@@ -111,9 +111,9 @@ public class AreaViewMenu implements InventoryProvider {
 
             final ItemStack is = new ItemBuilder(lp.target == lc.getInfo() ? Material.CLAY_BALL :  Material.GRAY_DYE)
                     .name(lc.displayName)
-                    .addLore("§7Не изучена")
-                    .addLore(lp.target == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
-                    .addLore(lp.target == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
+                    .lore("§7Не изучена")
+                    .lore(lp.target == lc.getInfo() ? "§bЦель для компаса" : "§7ЛКМ - §aнавести компас")
+                    .lore(lp.target == lc.getInfo() ? "§7ПКМ - §6сброс компаса" : "")
                     .build();
 
             content.set(ci.slot, ClickableItem.of(is, e-> {
@@ -180,7 +180,7 @@ public class AreaViewMenu implements InventoryProvider {
         
         
         if (!pagination.isLast()) {
-            content.set(4, 8, ClickableItem.of(ItemUtils.nextPage, e 
+            content.set(4, 8, ClickableItem.of(ItemUtil.nextPage, e 
                     -> {
                 content.getHost().open(p, pagination.next().getPage()) ;
             }
@@ -188,7 +188,7 @@ public class AreaViewMenu implements InventoryProvider {
         }
 
         if (!pagination.isFirst()) {
-            content.set(4, 0, ClickableItem.of(ItemUtils.previosPage, e 
+            content.set(4, 0, ClickableItem.of(ItemUtil.previosPage, e 
                     -> {
                 content.getHost().open(p, pagination.previous().getPage()) ;
                })

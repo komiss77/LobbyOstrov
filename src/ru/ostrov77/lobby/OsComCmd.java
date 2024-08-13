@@ -19,7 +19,7 @@ import ru.komiss77.Timer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.quests.QuestViewMenu;
-import ru.komiss77.utils.TCUtils;
+import ru.komiss77.utils.TCUtil;
 import ru.komiss77.utils.inventory.SmartInventory;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -198,7 +198,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         gin.setGlowing(true);
         gin.setGravity(false);
         gin.setInvulnerable(true);
-        gin.customName(TCUtils.format(JinGoal.GIN_NAME));
+        gin.customName(TCUtil.form(JinGoal.GIN_NAME));
         gin.setCustomNameVisible(true);
         Bukkit.getMobGoals().removeAllGoals(gin);
         return gin;

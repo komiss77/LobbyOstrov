@@ -153,7 +153,7 @@ public class Quests {
                 pi.setItemInOffHand(Main.air);
                 pi.remove(mat);
                 if (progress < quest.ammount) {
-                    it.setAmount(progress);
+                    it.amount(progress);
                     pi.setItemInOffHand(it);
                 }
             }

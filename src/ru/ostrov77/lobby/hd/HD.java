@@ -21,7 +21,7 @@ import ru.ostrov77.lobby.area.AreaManager;
 public class HD {
 	
 //    protected static final ConcurrentHashMap<String,MenuTask> TASKS = new ConcurrentHashMap<>();
-    private static final ItemStack arrow = new ItemBuilder(Material.ARROW).addEnchant(Enchantment.ARROW_INFINITE, 1).build();
+    private static final ItemStack arrow = new ItemBuilder(Material.ARROW).enchant(Enchantment.INFINITY, 1).build();
     private static final ItemStack empty = new ItemStack(Material.GRAY_DYE);
 
     public static void openAreaMenu(final Player p, final LobbyPlayer lp) {

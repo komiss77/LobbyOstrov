@@ -44,8 +44,7 @@ public class SpotManager {
             if (sp != null) {
             	final int pls = Bukkit.getOnlinePlayers().size();
             	if (pls != 0 && Main.rnd.nextInt(pls + 1) == 0) {
-            		BotManager.createBot(ApiOstrov.rndElmt(names),
-                        LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+//bot off            		BotManager.createBot(ApiOstrov.rndElmt(names),LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
             	}
             }
         }, 200, 200);
@@ -101,7 +100,12 @@ public class SpotManager {
         }
         return new String[]{"Bot"};
     }
-    
+ 
+
+}
+   
+
+
 //    public static final HashMap<Integer, Bot> npcs = new HashMap<>();
 //
 //    //заглушки 
@@ -462,6 +466,3 @@ public class SpotManager {
             }
         }
     }*/
-
-
-}

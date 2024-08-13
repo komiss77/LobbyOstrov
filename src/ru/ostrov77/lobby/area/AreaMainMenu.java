@@ -5,11 +5,10 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import ru.komiss77.ApiOstrov;
 import ru.komiss77.builder.BuilderCmd;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.utils.ItemUtils;
+import ru.komiss77.utils.*;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InputButton;
 import ru.komiss77.utils.inventory.InventoryContent;
@@ -53,20 +52,20 @@ public class AreaMainMenu implements InventoryProvider {
                         
                 menuEntry.add(ClickableItem.of(new ItemBuilder( Material.BOOKSHELF )
                     .name(lc.getName())
-                    .addLore("ID: §3"+lc.id)
-                    .addLore("displayName: "+lc.displayName)
-                    .addLore("§7Размер: §b"+lc.sizeX()+"§7x§b"+lc.sizeY()+"§7x§b"+lc.sizeZ())
-                    .addLore("§7Объём: §b"+lc.volume()+" блоков")
-                    .addLore("")
-                    .addLore("ЛКМ - §6тп в точку спавна кубоида")
-                    .addLore("ПКМ - §6редактировать")
-                    .addLore("клав.Q - §cудалить")
-                    .addLore("")
-                    //.addLore("§8редактирование может")
-                    //.addLore("§8когда-нибудь допилю,")
-                    //.addLore("§8пока упор на скорость,")
-                    //.addLore("§8так что можно только")
-                    //.addLore("§8удалить и сделать новый.")
+                    .lore("ID: §3"+lc.id)
+                    .lore("displayName: "+lc.displayName)
+                    .lore("§7Размер: §b"+lc.sizeX()+"§7x§b"+lc.sizeY()+"§7x§b"+lc.sizeZ())
+                    .lore("§7Объём: §b"+lc.volume()+" блоков")
+                    .lore("")
+                    .lore("ЛКМ - §6тп в точку спавна кубоида")
+                    .lore("ПКМ - §6редактировать")
+                    .lore("клав.Q - §cудалить")
+                    .lore("")
+                    //.lore("§8редактирование может")
+                    //.lore("§8когда-нибудь допилю,")
+                    //.lore("§8пока упор на скорость,")
+                    //.lore("§8так что можно только")
+                    //.lore("§8удалить и сделать новый.")
                     .build(), e -> {
                         
                 
@@ -121,13 +120,13 @@ public class AreaMainMenu implements InventoryProvider {
 
         contents.set(5, 2 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.BOOK)
             .name("§fCоздать зону")
-            .addLore("При нажатии нужно будет")
-            .addLore("ввести уникальное название")
-            .addLore("без пробелов для")
-            .addLore("идентификации в плагине.")
+            .lore("При нажатии нужно будет")
+            .lore("ввести уникальное название")
+            .lore("без пробелов для")
+            .lore("идентификации в плагине.")
             .build(), "name", newName -> {
 
-                if(newName.isEmpty() || newName.length()>16 || !ApiOstrov.checkString(newName,true,true) ) {
+                if(newName.isEmpty() || newName.length()>16 || !StringUtil.checkString(newName,true,true) ) {
                     p.sendMessage("§cНедопустимое название!");
                     PM.soundDeny(p);
                     return;
@@ -164,13 +163,13 @@ public class AreaMainMenu implements InventoryProvider {
         
         
         if (!pagination.isLast()) {
-            contents.set(5, 8, ClickableItem.of(ItemUtils.nextPage, e 
+            contents.set(5, 8, ClickableItem.of(ItemUtil.nextPage, e 
                     -> contents.getHost().open(p, pagination.next().getPage()) )
             );
         }
 
         if (!pagination.isFirst()) {
-            contents.set(5, 0, ClickableItem.of(ItemUtils.previosPage, e 
+            contents.set(5, 0, ClickableItem.of(ItemUtil.previosPage, e 
                     -> contents.getHost().open(p, pagination.previous().getPage()) )
             );
         }

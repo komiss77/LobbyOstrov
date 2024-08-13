@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.bots;
-
+/*
 import com.destroystokyo.paper.entity.Pathfinder;
 import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
@@ -13,7 +13,7 @@ import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
 import ru.komiss77.modules.world.AStarPath;
 import ru.komiss77.modules.world.WXYZ;
-import ru.komiss77.utils.LocationUtil;
+import ru.komiss77.utils.LocUtil;
 import ru.komiss77.version.Nms;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
@@ -90,7 +90,7 @@ public class LobbyGoal implements Goal<Mob> {
             }
 
             if (!arp.hasTgt()) {
-                tgtMb = LocationUtil.getClsChEnt(loc, 4d, Mob.class, e -> e.getType() != rplc.getType());
+                tgtMb = LocUtil.getClsChEnt(loc, 4d, Mob.class, e -> e.getType() != rplc.getType());
                 if (tgtMb == null) {
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
@@ -109,7 +109,7 @@ public class LobbyGoal implements Goal<Mob> {
                 //Nms.sendWorldPacket(bot.dI(), new PacketPlayOutAnimation(bot, 0));
                 Nms.sendWorldPacket(loc.getWorld(), new PacketPlayOutAnimation(bot, 0));
                 if (Main.rnd.nextInt(4) == 0) {
-//					Bukkit.broadcast(TCUtils.format("2"));
+//					Bukkit.broadcast(TCUtil.form("2"));
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
                     bot.remove();
@@ -140,3 +140,4 @@ public class LobbyGoal implements Goal<Mob> {
         return EnumSet.of(GoalType.MOVE, GoalType.LOOK);
     }
 }
+*/

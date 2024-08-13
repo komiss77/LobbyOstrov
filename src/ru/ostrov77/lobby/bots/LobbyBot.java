@@ -1,5 +1,5 @@
 package ru.ostrov77.lobby.bots;
-
+/*
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -45,3 +45,4 @@ public class LobbyBot extends BotEntity {
 	}
 	
 }
+*/

@@ -1,8 +1,8 @@
 package ru.ostrov77.lobby.game;
 
-import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.scores.ScoreDis;
 import ru.komiss77.modules.world.WXYZ;
+import ru.komiss77.utils.TimeUtil;
 
 public class RaceBoard extends ScoreDis {
 
@@ -12,7 +12,7 @@ public class RaceBoard extends ScoreDis {
 	
 	@Override
 	public String toDisplay(final Integer amt) {
-		return amt == null ? "--" : ApiOstrov.secondToTime(amt);
+		return amt == null ? "--" : TimeUtil.secondToTime(amt);
 	}
 
 }

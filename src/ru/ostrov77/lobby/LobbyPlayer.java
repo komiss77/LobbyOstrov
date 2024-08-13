@@ -107,7 +107,7 @@ public class LobbyPlayer extends Oplayer {
     
     @Override
     public void preDataSave(final Player p, boolean async) {
-//    	mysqlData.put("logoutLoc", LocationUtil.toDirString(p.getLocation()));
+//    	mysqlData.put("logoutLoc", LocUtil.toDirString(p.getLocation()));
     	mysqlData.put("area", String.valueOf(openedArea));
     	mysqlData.put("flags", String.valueOf(flags));
     	

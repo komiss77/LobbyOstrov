@@ -30,9 +30,9 @@ import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.objects.CaseInsensitiveMap;
-import ru.komiss77.utils.LocationUtil;
-import ru.komiss77.utils.OstrovConfig;
-import ru.komiss77.utils.TCUtils;
+import ru.komiss77.utils.LocUtil;
+import ru.komiss77.OConfig;
+import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
@@ -45,7 +45,7 @@ import ru.ostrov77.lobby.quest.Quests;
 
 public class AreaManager {
     
-    private static OstrovConfig areaConfig;
+    private static OConfig areaConfig;
     private static BukkitTask playerMoveTask;
     private static Map<Integer,ChunkContent>chunkContetnt;
     private static Map<Integer,LCuboid>cuboids;
@@ -67,7 +67,7 @@ public class AreaManager {
                     final String name = areaConfig.getString("areas."+areaID+".name");
                     final String displayName = areaConfig.getString("areas."+areaID+".displayName");
                     final String cuboidAsString = areaConfig.getString("areas."+areaID+".cuboidAsString");
-                    final Location spawnPoint = ApiOstrov.locFromString(areaConfig.getString("areas."+areaID+".spawnPoint"));
+                    final Location spawnPoint = LocUtil.stringToLoc(areaConfig.getString("areas."+areaID+".spawnPoint"), false, true);
                     final LCuboid lc = new LCuboid(id, name, displayName, spawnPoint, cuboidAsString);
                     addCuboid(lc, false);
                 } catch (Exception ex) {
@@ -134,7 +134,7 @@ public class AreaManager {
                                 
                             	final LCuboid previos = cuboids.get(lp.lastCuboidId);
                                 if (previos!=null) { //сработало при удалении? пропускаем
-    //ApiOstrov.sendActionBar(p, "вышел из кубоида "+previos.displayName);
+    //ScreenUtil.sendActionBar(p, "вышел из кубоида "+previos.displayName);
                                     Ostrov.sync(()-> {
                                         Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, previos, null, lp.cuboidEntryTime));
                                         previos.playerNames.remove(lp.nik);
@@ -145,7 +145,7 @@ public class AreaManager {
                                 
                             	final LCuboid current = cuboids.get(currentCuboidId);
                                 if (current!=null) { //сработало при удалении? пропускаем
-    //ApiOstrov.sendActionBar(p, "вошел в кубоид "+current.displayName);
+    //ScreenUtil.sendActionBar(p, "вошел в кубоид "+current.displayName);
                                     Ostrov.sync(()-> {
                                         Bukkit.getPluginManager().callEvent(new CuboidEvent(p, lp, null, current, 0)); 
                                         lp.cuboidEntryTime = Timer.getTime();
@@ -202,7 +202,7 @@ public class AreaManager {
                     if (ship!=null && !ship.playerNames.isEmpty()) {
                         final Location shipLamp = Main.getLocation(Main.LocType.ginLamp);
     //Bukkit.broadcastMessage("ship.playerNames="+ship.playerNames);
-                        shipLamp.getWorld().spawnParticle(Particle.SPELL_WITCH, shipLamp, 2,  0.2, 0.1, 0.2, 0.01);
+                        shipLamp.getWorld().spawnParticle(Particle.WITCH, shipLamp, 2,  0.2, 0.1, 0.2, 0.01);
                     }
             	}
                 
@@ -258,7 +258,7 @@ public class AreaManager {
     protected static void saveCuboid(final LCuboid lc) {
         areaConfig.set("areas."+lc.id+".name", lc.getName());
         areaConfig.set("areas."+lc.id+".displayName", lc.displayName);
-        areaConfig.set("areas."+lc.id+".spawnPoint", LocationUtil.toString(lc.spawnPoint));
+        areaConfig.set("areas."+lc.id+".spawnPoint", LocUtil.toString(lc.spawnPoint));
         areaConfig.set("areas."+lc.id+".cuboidAsString", lc.toString());
         areaConfig.saveConfig();
     }
@@ -275,10 +275,10 @@ public class AreaManager {
     public static void saveSpot(final XYZ loc, final SpotType st) {
         if (st==null) { //удаление
             areaConfig.set("spot." + loc.toString(), null);
-        	Bukkit.broadcast(TCUtils.format("removing-" + loc.toString()));
+        	Bukkit.broadcast(TCUtil.form("removing-" + loc.toString()));
         } else {
             areaConfig.set("spot." + loc.toString(), st.toString());
-        	Bukkit.broadcast(TCUtils.format("created-" + loc.toString()));
+        	Bukkit.broadcast(TCUtil.form("created-" + loc.toString()));
         }
         
         areaConfig.saveConfig();
@@ -416,13 +416,13 @@ public class AreaManager {
             if (im.hasLore()) {
                 final List<Component> lore = new ArrayList<>();
                 for (final String s : compasslore) {
-                	lore.add(TCUtils.format(s));
+                	lore.add(TCUtil.form(s));
                 }
-                lore.add(TCUtils.format(""));
-                lore.add(TCUtils.format("§fНастроен на локацию:"));
-                lore.add(TCUtils.format(lc.displayName));
+                lore.add(TCUtil.form(""));
+                lore.add(TCUtil.form("§fНастроен на локацию:"));
+                lore.add(TCUtil.form(lc.displayName));
                 im.lore(lore);
-                im.addEnchant(Enchantment.LUCK, 1, true);
+                im.addEnchant(Enchantment.LUCK_OF_THE_SEA, 1, true);
                 compass.setItemMeta(im);
                 p.getInventory().setItem(0, compass);
                 //p.updateInventory();
@@ -441,10 +441,10 @@ public class AreaManager {
             if (im.hasLore()) {
                 final List<Component> lore = new ArrayList<>();
                 for (final String s : compasslore) {
-                	lore.add(TCUtils.format(s));
+                	lore.add(TCUtil.form(s));
                 }
                 im.lore(lore);
-                im.removeEnchant(Enchantment.LUCK);
+                im.removeEnchant(Enchantment.LUCK_OF_THE_SEA);
                 compass.setItemMeta(im);
                 p.getInventory().setItem(0, compass);
             }

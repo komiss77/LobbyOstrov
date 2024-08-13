@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.komiss77.Ostrov;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.TCUtils;
+import ru.komiss77.utils.TCUtil;
 
 
 public class JinGoal implements Goal<Blaze> {
@@ -154,7 +154,7 @@ public class JinGoal implements Goal<Blaze> {
             final Player p = (Player) mob.getPassengers().get(0);
             //Main.arriveNewBie(p);
             //final Entity gin = p.getVehicle();
-            mob.customName(TCUtils.format("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
+            mob.customName(TCUtil.form("§яРаб лампы")); //!! сначала сменит имя, или сработает onDismount cancel!!
             p.getVehicle().eject();
             mob.setAI(false);
             final Location fgl = Main.getLocation(Main.LocType.ginArrive);

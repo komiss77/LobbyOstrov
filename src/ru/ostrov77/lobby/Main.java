@@ -15,9 +15,9 @@ import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.utils.OstrovConfig;
-import ru.komiss77.utils.OstrovConfigManager;
-import ru.komiss77.utils.TCUtils;
+import ru.komiss77.OConfig;
+import ru.komiss77.OConfigManager;
+import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -33,11 +33,11 @@ import java.util.*;
 public class Main extends JavaPlugin {
     
     public static Main instance;
-    private static OstrovConfig serverPortalsConfig;
+    private static OConfig serverPortalsConfig;
     //public static RealTime timeManager;
     //public static SpotManager botManager;
     public static AreaManager areaManager;
-    public static OstrovConfigManager configManager;
+    public static OConfigManager configManager;
     public static Random rnd = new Random();
     //public static boolean holo = false;
     private static final EnumMap<LocType,Location>locations;
@@ -56,10 +56,10 @@ public class Main extends JavaPlugin {
     public void onEnable() {
 
         instance = this;
-        configManager = new OstrovConfigManager(this);
+        configManager = new OConfigManager(this);
         
         //OSTROV
-        TCUtils.N = "§7"; TCUtils.P = "§с"; TCUtils.A = "§3";
+        TCUtil.N = "§7"; TCUtil.P = "§с"; TCUtil.A = "§3";
         PM.setOplayerFun(he -> new LobbyPlayer(he), true);
         QuestManager.setOnCloseTab(p -> QuestManager.complete(p, PM.getOplayer(p), Quests.qmenu));
         Quests.load();
@@ -193,9 +193,9 @@ public class Main extends JavaPlugin {
     //public static MenuItem rocket;
         public final static ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
             .name("§7Топливо для §bКрыльев")
-            .addFlags(ItemFlag.HIDE_ATTRIBUTES)
-            .addLore("§7Осторожно,")
-            .addLore("§7иногда взрывается!")
+            .flags(ItemFlag.HIDE_ATTRIBUTES)
+            .lore("§7Осторожно,")
+            .lore("§7иногда взрывается!")
             .build()
         );    
         
@@ -203,9 +203,9 @@ public class Main extends JavaPlugin {
         
         final ItemStack is=new ItemBuilder(Material.ELYTRA)
             .name("§bКрылья Островитянина")
-            .setUnbreakable(true)
-            .addLore("§7Используйте для")
-            .addLore("§7перемещения по §eОстрову§7!")
+            .unbreak(true)
+            .lore("§7Используйте для")
+            .lore("§7перемещения по §eОстрову§7!")
             .build();
         elytra = new MenuItemBuilder("elytra", is)
             .slot(38) //Chestplate
@@ -221,8 +221,8 @@ public class Main extends JavaPlugin {
 
         final ItemStack pip=new ItemBuilder(Material.CLOCK)
             .name("§6ЛКМ§e-профиль §2ПКМ§a-сервера")
-            .setUnbreakable(true)
-            .addEnchant(Enchantment.LUCK, 1)
+            .unbreak(true)
+            .enchant(Enchantment.LUCK_OF_THE_SEA, 1)
             .build();
         pipboy = new MenuItemBuilder("pipboy", pip)
             .slot(4)
@@ -241,11 +241,11 @@ public class Main extends JavaPlugin {
         //COMPASS лучше не ставить, FAWE тэпэшит при клике, сбивает с толку!
         final ItemStack newbie=new ItemBuilder(Material.RECOVERY_COMPASS)
             .name("§3ОСКом")
-            .addLore("§6ЛКМ§e - задачи")
-            .addLore("§2ПКМ§a - локации")
-            .setUnbreakable(true)
-            .addFlags(ItemFlag.HIDE_UNBREAKABLE)
-            .addFlags(ItemFlag.HIDE_ENCHANTS)
+            .lore("§6ЛКМ§e - задачи")
+            .lore("§2ПКМ§a - локации")
+            .unbreak(true)
+            .flags(ItemFlag.HIDE_UNBREAKABLE)
+            .flags(ItemFlag.HIDE_ENCHANTS)
             .build();
         oscom = new MenuItemBuilder("oscom", newbie)
             .slot(4)
@@ -266,7 +266,7 @@ public class Main extends JavaPlugin {
         
         final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
             .name("§aИндивидуальность")
-            .addLore("§7Для Игроманов - всё и сразу!")
+            .lore("§7Для Игроманов - всё и сразу!")
             .build();
         cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
             .slot(8)
@@ -284,8 +284,8 @@ public class Main extends JavaPlugin {
         
         final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
             .name("§bРазрушитель 3000")
-            .addLore("§7Cносит блоки с одного удара!,")
-            .addLore("§7(но только §fБулыжник §7и §bАлмазы§7)")
+            .lore("§7Cносит блоки с одного удара!,")
+            .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
             .build();
         pickaxe = new MenuItemBuilder("pickaxe", pckx)
             .slot(2)
@@ -301,8 +301,8 @@ public class Main extends JavaPlugin {
         
         final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
             .name("§6Заряженый Жезл")
-            .addLore("§7Враги улетят в след. измерение!")
-            .addEnchant(Enchantment.KNOCKBACK, 1)
+            .lore("§7Враги улетят в след. измерение!")
+            .enchant(Enchantment.KNOCKBACK, 1)
             .build();
         stick = new MenuItemBuilder("stick", st)
             .slot(2)

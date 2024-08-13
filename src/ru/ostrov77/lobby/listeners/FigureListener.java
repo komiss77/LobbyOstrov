@@ -126,7 +126,7 @@ public class FigureListener implements Listener {
                     }
                     break;
 
-                case SNOWMAN:
+                case SNOW_GOLEM:
                     if (e.isRightClick()) {
                         fa.set(Arrays.asList(tp + "Бурлит §bадреналин§f в крови? Тогда ты по адресу, ведь на §bПаркурах§f, у тебя есть выбор среди §b60+ карт§f, все из них с интересными темами и прыжками!"))
                                 .sound(Sound.BLOCK_SNOW_BREAK);

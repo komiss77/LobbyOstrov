@@ -56,7 +56,7 @@ public class OsComMenu implements InventoryProvider {
                 };
 
                 final GameInfo gi = GM.getGameInfo(gm);
-                its.set(slot, ClickableItem.of(new ItemBuilder(gi.mat).setAmount(Math.max(gi.getOnline(), 1))
+                its.set(slot, ClickableItem.of(new ItemBuilder(gi.mat).amount(Math.max(gi.getOnline(), 1))
                     .name(gm.displayName).build(), e -> {
                         PM.getOplayer(p, LobbyPlayer.class).transport(p,
                             new XYZ(AreaManager.getCuboid(ci).spawnPoint), false);
@@ -68,15 +68,15 @@ public class OsComMenu implements InventoryProvider {
 
         its.set(22, ClickableItem.of( new ItemBuilder(Material.RECOVERY_COMPASS)
             .name("§a§lМ§d§lИ§c§lН§e§lИ§9§lИ§5§lГ§4§lР§b§lЫ")
-            .addLore("")
-            .addLore("§e§lБедВарс")
-            .addLore("§5§lКонтра")
-            .addLore("§4§lГолодные Игры")
-            .addLore("§5§lСкайВарс")
-            .addLore("§3§lПрятки")
-            .addLore("§b§lКит-ПВП")
-            .addLore("§a§lБитва Строителей")
-            .addLore("§аи другие...").build(), e -> {
+            .lore("")
+            .lore("§e§lБедВарс")
+            .lore("§5§lКонтра")
+            .lore("§4§lГолодные Игры")
+            .lore("§5§lСкайВарс")
+            .lore("§3§lПрятки")
+            .lore("§b§lКит-ПВП")
+            .lore("§a§lБитва Строителей")
+            .lore("§аи другие...").build(), e -> {
                 PM.getOplayer(p, LobbyPlayer.class).transport(p, new XYZ(AreaManager.getCuboid(
                     Main.rnd.nextBoolean() ? CuboidInfo.PVP : CuboidInfo.NOPVP).spawnPoint), false);
                 p.closeInventory();

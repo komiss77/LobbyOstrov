@@ -8,7 +8,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryType;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.utils.ItemUtils;
+import ru.komiss77.utils.*;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
@@ -52,9 +52,9 @@ public class DebugMenu implements InventoryProvider {
 
             menuEntry.add( ClickableItem.of(new ItemBuilder(isSet ? Material.LIME_DYE : Material.GRAY_DYE)
                 .name( "§f"+flag.displayName)
-                .addLore("§7")
-                .addLore( isSet ? "§7ПКМ - §2сброс" : "§7ЛКМ - §4поставить")
-                .addLore("§7")
+                .lore("§7")
+                .lore( isSet ? "§7ПКМ - §2сброс" : "§7ЛКМ - §4поставить")
+                .lore("§7")
                 .build(), e -> {
 //System.out.println("ClaimFlags "+e.getClick()+" isSet="+isSet);
                 if (e.isLeftClick() && !isSet) {
@@ -97,12 +97,12 @@ public class DebugMenu implements InventoryProvider {
         
         contents.set( 2, 4,  ClickableItem.of(new ItemBuilder( Material.REDSTONE)
             .name("§fсброс аккаунта до новичка")
-            .addLore("§7")
-            .addLore("§7Шифт+ПКМ - §cресетнуть")
-            .addLore("§7")
-            .addLore("§7Всё сотрётся, кинет на аркаим.")
-            .addLore("§7После возврата в лобби")
-            .addLore("§7можно начать тестить всё с нуля.")
+            .lore("§7")
+            .lore("§7Шифт+ПКМ - §cресетнуть")
+            .lore("§7")
+            .lore("§7Всё сотрётся, кинет на аркаим.")
+            .lore("§7После возврата в лобби")
+            .lore("§7можно начать тестить всё с нуля.")
             .build(), e -> {
 //System.out.println("ClaimFlags "+e.getClick()+" isSet="+isSet);
             if (e.getClick()==ClickType.SHIFT_RIGHT) {
@@ -133,13 +133,13 @@ public class DebugMenu implements InventoryProvider {
  
         
         if (!pagination.isLast()) {
-            contents.set(2, 8, ClickableItem.of(ItemUtils.nextPage, e 
+            contents.set(2, 8, ClickableItem.of(ItemUtil.nextPage, e 
                     -> contents.getHost().open(p, pagination.next().getPage()) )
             );
         }
 
         if (!pagination.isFirst()) {
-            contents.set(2, 0, ClickableItem.of(ItemUtils.previosPage, e 
+            contents.set(2, 0, ClickableItem.of(ItemUtil.previosPage, e 
                     -> contents.getHost().open(p, pagination.previous().getPage()) )
             );
         }

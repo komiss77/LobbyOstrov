@@ -38,13 +38,14 @@ import ru.komiss77.events.QuestCompleteEvent;
 import ru.komiss77.events.ScoreWorldRecordEvent;
 import ru.komiss77.modules.bots.BotEntity;
 import ru.komiss77.modules.bots.BotManager;
+import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.ItemUtils;
-import ru.komiss77.utils.TCUtils;
+import ru.komiss77.utils.*;
+import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
@@ -53,7 +54,6 @@ import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.ChunkContent;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
-import ru.ostrov77.lobby.bots.LobbyBot;
 import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
@@ -72,7 +72,7 @@ public class ListenerWorld implements Listener {
      @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLaunch(final ProjectileLaunchEvent e) { //PlayerElytraBoostEvent !!!
         final Projectile prj = e.getEntity();
-        if (prj.getShooter() instanceof final Player p && prj.getType() == EntityType.FIREWORK) {
+        if (prj.getShooter() instanceof final Player p && prj.getType() == EntityType.FIREWORK_ROCKET) {
             Ostrov.sync( ()-> p.getInventory().setItem(2, Main.fw), 8);
             //Ostrov.sync( ()-> Main.rocket.giveForce(p), 8);
 //            prj.remove();
@@ -113,7 +113,7 @@ public class ListenerWorld implements Listener {
                 p.setCollidable(false);
                 Main.oscom.giveForce(p);
                 lp.hideScore();
-                ApiOstrov.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS);
+                ScreenUtil.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS);
 
             }
         }
@@ -137,7 +137,7 @@ public class ListenerWorld implements Listener {
                 }
             }
         } else {
-            final BotEntity bt = BotManager.getBot(e.getEntity().getEntityId(), BotEntity.class);
+            final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
             if (bt != null) {
                 bt.remove();
             }
@@ -195,9 +195,9 @@ public class ListenerWorld implements Listener {
                         //Main.rocket.giveForce(p);
                         p.getInventory().setItem(2, Main.fw);
                     } else {
-                        p.getInventory().setItem(2, ItemUtils.air);
+                        p.getInventory().setItem(2, ItemUtil.air);
                     }
-                    e.getPlayer().getInventory().setItem(2, QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor) ? Main.fw : ItemUtils.air);
+                    e.getPlayer().getInventory().setItem(2, QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor) ? Main.fw : ItemUtil.air);
                 }
                 /*case "newbie" -> {//??????? почему именно при прыжке в пустоту????
 //Ostrov.log("------ leave newbie getVehicle="+p.getVehicle());
@@ -213,7 +213,7 @@ public class ListenerWorld implements Listener {
 
         if (e.getCurrent() == null) {
 
-            ApiOstrov.sendActionBarDirect(p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
+            ScreenUtil.sendActionBarDirect(p, "§7§l⟣ §3§lАрхипелаг §7§l⟢");
 
         } else {
 
@@ -228,7 +228,7 @@ public class ListenerWorld implements Listener {
 
             final LobbyPlayer lp = e.getLobbyPlayer();
 
-            ApiOstrov.sendActionBarDirect(p, "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
+            ScreenUtil.sendActionBarDirect(p, "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
 
             if (!lp.isAreaDiscovered(e.getCurrent().id)) {
                 onNewAreaDiscover(p, lp, e.getCurrent()); //новичёк или нет - обработается внутри
@@ -253,7 +253,7 @@ public class ListenerWorld implements Listener {
                 case "end" -> {
                     if (lp.raceTime > 0) {
                         p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
-                        p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + ApiOstrov.secondToTime(lp.raceTime));
+                        p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + TimeUtil.secondToTime(lp.raceTime));
                         QuestManager.complete(p, e.getLobbyPlayer(), Quests.race);
                         race.tryAdd(p.getName(), lp.raceTime);
                         lp.raceTime = -1;
@@ -296,7 +296,7 @@ public class ListenerWorld implements Listener {
         }
 
         if (!ci.hidePlayers) {
-            ApiOstrov.sendBossbar(p, "Открыта Локация: " + cuboid.displayName,
+            ScreenUtil.sendBossbar(p, "Открыта Локация: " + cuboid.displayName,
                 7, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
             sound(p);
         }
@@ -314,7 +314,7 @@ public class ListenerWorld implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDismount(final EntityDismountEvent e) {
         if (e.getEntityType() == EntityType.PLAYER && e.getDismounted().getType() == EntityType.BLAZE) {
-            if (e.getDismounted().isCustomNameVisible() && JinGoal.GIN_NAME.equals(TCUtils.toString(e.getDismounted().customName()))) {
+            if (e.getDismounted().isCustomNameVisible() && JinGoal.GIN_NAME.equals(TCUtil.deform(e.getDismounted().customName()))) {
                 e.setCancelled(true);
                 if (!Timer.has(e.getEntity().getEntityId())) {
                     e.getEntity().sendMessage("§6Погодите, уже скоро будем на месте!");
@@ -395,8 +395,7 @@ public class ListenerWorld implements Listener {
                 if (sp != null) {
                     final int pls = Bukkit.getOnlinePlayers().size();
                     if (pls != 0) {
-                        BotManager.createBot(ApiOstrov.rndElmt(SpotManager.names),
-                                LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+//bot off                        BotManager.createBot(ClassUtil.rndElmt(SpotManager.names),LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
                     }
                 }
             }
@@ -620,7 +619,8 @@ public class ListenerWorld implements Listener {
             if (e.getEntityType() == EntityType.HUSK) {
                 if (e instanceof final EntityDamageByEntityEvent ee) {
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
-                        final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
+                        //final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
+                        final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
                         if (bt != null) {
                             e.setDamage(0d);
                             //bt.remove(true);
@@ -631,7 +631,7 @@ public class ListenerWorld implements Listener {
                         //final LobbyPlayer lp = PM.getOplayer(dp, LobbyPlayer.class);
                         //if (lp!=null) {
                         QuestManager.addProgress(dp, PM.getOplayer(dp), Quests.warrior);
-                        dp.getWorld().spawnParticle(Particle.BLOCK_CRACK, ((LivingEntity) e.getEntity()).getEyeLocation(),
+                        dp.getWorld().spawnParticle(Particle.BLOCK, ((LivingEntity) e.getEntity()).getEyeLocation(),
                                 40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
                         //}
                     }
@@ -639,7 +639,8 @@ public class ListenerWorld implements Listener {
                     //Bukkit.broadcast(Component.text("c=" + e.getCause().toString()));
                     switch (e.getCause()) {
                         case VOID, CRAMMING, CUSTOM, SUFFOCATION:
-                            final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
+                            final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
+                            //final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
                             if (bt != null) {
                                 e.setDamage(0d);
                                 bt.remove();
@@ -665,7 +666,8 @@ public class ListenerWorld implements Listener {
     public void onEntityLoad(final EntitiesUnloadEvent e) {
         for (final Entity en : e.getEntities()) {
             //Bukkit.broadcast(Component.text("u=" + en.getType().toString()));
-            final LobbyBot bt = BotManager.getBot(en.getEntityId(), LobbyBot.class);
+            //final LobbyBot bt = BotManager.getBot(en.getEntityId(), LobbyBot.class);
+            final Botter bt = BotManager.getBot(en.getEntityId());
             if (bt != null) {
                 bt.remove();
             }

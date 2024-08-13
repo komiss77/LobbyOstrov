@@ -18,42 +18,35 @@ import se.file14.procosmetics.api.events.PlayerOpenTreasureEvent;
 import se.file14.procosmetics.api.events.PlayerPreEquipCosmeticEvent;
 import se.file14.procosmetics.user.User;
 
-
-
-
 public class CosmeticListener implements Listener {
- 
-    
+
     //https://github.com/File14/ProCosmetics/wiki/API
-    
-    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTreassure (final PlayerOpenTreasureEvent e) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTreassure(final PlayerOpenTreasureEvent e) {
         final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
         QuestManager.complete(e.getPlayer(), lp, Quests.treasure);
     }
 
-    
-    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public static void onCuboidEvent(final CuboidEvent e) {
         final ProCosmetics api = ProCosmeticsProvider.get();
-        final User us = api.getUserManager().getUser(e.getPlayer());
-        
-        if (e.getLast()!=null && e.getLast().getInfo().unequpCosmetic) {
+        final User us = api.getUserManager().getConnected(e.getPlayer());
+
+        if (e.getLast() != null && e.getLast().getInfo().unequpCosmetic) {
             if (us != null) {
                 us.equipLastCosmetics(true);
             }
-        } 
-        
-        if (e.getCurrent()!=null && e.getCurrent().getInfo().unequpCosmetic) {
+        }
+
+        if (e.getCurrent() != null && e.getCurrent().getInfo().unequpCosmetic) {
             if (us != null) {
                 us.unequipCosmetics(true);
             }
         }
-        
+
     }
-    
-    
-	/*public static void removeCosm(final Player p) {
+
+    /*public static void removeCosm(final Player p) {
 		final User us = ProCosmeticsAPI.getUser(p);
 		if (us != null) {
 			us.unequipCosmetics(true);
@@ -66,9 +59,8 @@ public class CosmeticListener implements Listener {
 			us.equipLastCosmetics(true);
 		}
 	}*/
-    
-    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
-    public void onPreEquip (final PlayerPreEquipCosmeticEvent e) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+    public void onPreEquip(final PlayerPreEquipCosmeticEvent e) {
         final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
 //e.getPlayer().sendMessage("§8log: PlayerOpenTreasureEvent ");
         if (!lp.hasFlag(LobbyFlag.GinTravelDone)) {
@@ -77,60 +69,48 @@ public class CosmeticListener implements Listener {
         }
         if (QuestManager.isComplete(lp, Quests.discover)) {
             final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
-            if (lc!=null && lc.getInfo() != CuboidInfo.SUMO) {
+            if (lc != null && lc.getInfo() != CuboidInfo.SUMO) {
                 return;
-            } 
-        } 
+            }
+        }
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
         //final ProCosmetics api = ProCosmeticsProvider.get();
-
-        if (e.getCosmeticType().getCategoryPath().equals("mounts")) {
-//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-            switch (e.getCosmeticType().getName()) {
-                case "molten-snake":
-                case "ethereal-dragon":
-                case "hype-train":
-                case "pirate-ship":
-                    e.setCancelled(true);
+        switch (e.getCosmeticType().getCategoryPath()) {
+            case "mounts" -> {
+                //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+                switch (e.getCosmeticType().getName()) {
+                    case "molten-snake", "ethereal-dragon", "hype-train", "pirate-ship" ->
+                        e.setCancelled(true);
+                }
             }
-        } else if (e.getCosmeticType().getCategoryPath().equals("gadgets")) {
-
-//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-            switch (e.getCosmeticType().getName()) {
-                case "ethereal-pearl":
-                case "rocket":
-                case "trampoline":
-                case "wither-missile":
-                    e.setCancelled(true);
+            case "gadgets" -> {
+                //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+                switch (e.getCosmeticType().getName()) {
+                    case "ethereal-pearl", "rocket", "trampoline", "wither-missile" ->
+                        e.setCancelled(true);
+                }
             }
-        } else if (e.getCosmeticType().getCategoryPath().equals("morphs")) {
-
-//e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-            switch (e.getCosmeticType().getName()) {
-                case "bat":
-                case "wither":
-                case "blaze":
-                    e.setCancelled(true);
+            case "morphs" -> {
+                //e.getPlayer().sendMessage(" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
+                switch (e.getCosmeticType().getName()) {
+                    case "bat", "wither", "blaze" ->
+                        e.setCancelled(true);
+                }
+            }
+            default -> {
             }
         }
 
         if (e.isCancelled()) {
-            e.getPlayer().sendMessage("§6*Вы не сможете использовать §с"+e.getCosmeticType().getName()+" §6здесь!");
+            e.getPlayer().sendMessage("§6*Вы не сможете использовать §с" + e.getCosmeticType().getName() + " §6здесь!");
         }
 
 //e.getPlayer().sendMessage("§6getConfigPath="+e.getCosmeticType().getConfigPath()+" getVariableName="+e.getCosmeticType().getVariableName()+" getName="+e.getCosmeticType().getName());
-
     }
-    
-    
-    
 
-    
-    
-   //PlayerPreEquipCosmeticEvent.class
+    //PlayerPreEquipCosmeticEvent.class
     //PlayerPurchaseTreasureEvent.class
     //PlayerUnequipCosmeticEvent.class
     //PlayerUseGadgetEvent.class
     //CosmeticEntitySpawnEvent.class
-    
 }

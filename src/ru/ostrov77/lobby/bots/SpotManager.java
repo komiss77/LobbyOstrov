@@ -6,23 +6,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.Waterlogged;
-import net.kyori.adventure.text.Component;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
-import ru.komiss77.ApiOstrov;
 import ru.komiss77.modules.bots.BotManager;
+import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
+import ru.komiss77.utils.ClassUtil;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;
-import ru.ostrov77.lobby.bots.spots.EndSpot;
-import ru.ostrov77.lobby.bots.spots.SpawnSpot;
-import ru.ostrov77.lobby.bots.spots.Spot;
-import ru.ostrov77.lobby.bots.spots.SpotType;
-import ru.ostrov77.lobby.bots.spots.WalkSpot;
+import ru.ostrov77.lobby.bots.spots.*;
 
 
 public class SpotManager {
@@ -37,6 +35,8 @@ public class SpotManager {
         startTask();
     }
 
+    public static final LobbyBot BOT_EXT = new LobbyBot();
+
     public static void startTask() {
         if (task!=null) task.cancel();
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
@@ -44,8 +44,10 @@ public class SpotManager {
             if (sp != null) {
             	final int pls = Bukkit.getOnlinePlayers().size();
             	if (pls != 0 && Main.rnd.nextInt(pls + 1) == 0) {
-//bot off            		BotManager.createBot(ApiOstrov.rndElmt(names),LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
-            	}
+                    final Location loc = new WXYZ(sp.getLoc()).getCenterLoc();
+                    final Botter bt = BotManager.createBot(ClassUtil.rndElmt(names), loc.getWorld(), BOT_EXT);
+                    bt.telespawn(null, loc);
+                }
             }
         }, 200, 200);
     }

@@ -1,25 +1,23 @@
 package ru.ostrov77.lobby.bots;
-/*
+
+import java.util.EnumSet;
 import com.destroystokyo.paper.entity.Pathfinder;
 import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
-import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
+import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.world.AStarPath;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.utils.LocUtil;
-import ru.komiss77.version.Nms;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
 import ru.ostrov77.lobby.bots.spots.SpotType;
-
-import java.util.EnumSet;
 
 public class LobbyGoal implements Goal<Mob> {
 
@@ -27,7 +25,9 @@ public class LobbyGoal implements Goal<Mob> {
     public static final int TALK_TIME = 80;
 
     private static final GoalKey<Mob> key = GoalKey.of(Mob.class, new NamespacedKey(Main.instance, "bot"));
-    private final LobbyBot bot;
+
+    private final LobbyBot ext;
+    private final Botter bt;
     private final Mob rplc;
     private final Pathfinder pth;
     private final AStarPath arp;
@@ -36,9 +36,10 @@ public class LobbyGoal implements Goal<Mob> {
     private Mob tgtMb;
     private int talk;
 
-    public LobbyGoal(final LobbyBot bot, final Mob mb) {
-        this.bot = bot;
+    public LobbyGoal(final LobbyBot ext, final Botter bot, final Mob mb) {
+        this.ext = ext;
         this.rplc = mb;
+        this.bt = bot;
         this.pth = mb.getPathfinder();
         this.arp = new AStarPath(mb, 1000, true);
         this.talk = 0;
@@ -60,13 +61,13 @@ public class LobbyGoal implements Goal<Mob> {
 
     @Override
     public void stop() {
-        bot.remove();
+        ext.remove(bt);
     }
 
     @Override
     public void tick() {
         if (rplc == null || !rplc.isValid() || rplc.getTicksLived() > MAX_LIVE_TICKS) {
-            bot.remove();
+            bt.remove();
             return;
         }
 
@@ -81,7 +82,7 @@ public class LobbyGoal implements Goal<Mob> {
                 if (sp == null) {
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-                    bot.remove();
+                    bt.remove();
                     return;
                 } else {
                     tgt = sp;
@@ -94,7 +95,7 @@ public class LobbyGoal implements Goal<Mob> {
                 if (tgtMb == null) {
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-                    bot.remove();
+                    bt.remove();
                     return;
                 }
                 talk = TALK_TIME;
@@ -106,13 +107,11 @@ public class LobbyGoal implements Goal<Mob> {
             vc = tgtMb.getLocation().subtract(loc).toVector();
             if ((talk & 7) == 0 && Main.rnd.nextBoolean()) {
                 loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_ATTACK_NODAMAGE, 0.6f, 1f);
-                //Nms.sendWorldPacket(bot.dI(), new PacketPlayOutAnimation(bot, 0));
-                Nms.sendWorldPacket(loc.getWorld(), new PacketPlayOutAnimation(bot, 0));
+                bt.swingHand(true);
                 if (Main.rnd.nextInt(4) == 0) {
-//					Bukkit.broadcast(TCUtil.form("2"));
                     loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
-                    bot.remove();
+                    bt.remove();
                     return;
                 }
             }
@@ -121,13 +120,11 @@ public class LobbyGoal implements Goal<Mob> {
             vc = dir == null ? rplc.getEyeLocation().getDirection() : dir.subtract(loc).toVector().setY(0d);
         }
 
-//		attackMelee(ln);
-//		bot.pickupIts(loc);
         if (talk == 0) {
             arp.tickGo(1.4f);
         }
 
-        bot.move(loc, vc, true);
+        bt.move(loc, vc, true);
     }
 
     @Override
@@ -140,4 +137,3 @@ public class LobbyGoal implements Goal<Mob> {
         return EnumSet.of(GoalType.MOVE, GoalType.LOOK);
     }
 }
-*/

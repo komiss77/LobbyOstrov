@@ -21,6 +21,7 @@ import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.LCuboid;
+import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.listeners.CosmeticListener;
 import ru.ostrov77.lobby.listeners.FigureListener;
 import ru.ostrov77.lobby.listeners.InteractListener;
@@ -34,12 +35,10 @@ public class Main extends JavaPlugin {
     
     public static Main instance;
     private static OConfig serverPortalsConfig;
-    //public static RealTime timeManager;
-    //public static SpotManager botManager;
+    public static SpotManager botManager;
     public static AreaManager areaManager;
     public static OConfigManager configManager;
     public static Random rnd = new Random();
-    //public static boolean holo = false;
     private static final EnumMap<LocType,Location>locations;
     public static final HashMap<XYZ, String> serverPortals;//порталы по типу точка портала : сервер
     
@@ -75,9 +74,8 @@ public class Main extends JavaPlugin {
         serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
         loadLocaions(world);
         
-        //new Quests(); 
-        //timeManager = new RealTime();
-        //botManager = new SpotManager();
+        new Quests();//подгрузка
+        botManager = new SpotManager();
         areaManager = new AreaManager();
         
         world.setStorm((Calendar.getInstance().get(Calendar.DAY_OF_MONTH) & 7) == 0);
@@ -147,7 +145,6 @@ public class Main extends JavaPlugin {
     public static void giveItems(final Player p) {
         p.getInventory().clear();
         final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
-//        final boolean justGame = lp.hasSettings(Settings.JustGame);
         
         if (QuestManager.isComplete(lp, Quests.doctor)) {
             p.getInventory().setItem(2, fw); //2

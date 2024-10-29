@@ -9,7 +9,10 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -23,7 +26,6 @@ import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
-import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -36,7 +38,6 @@ import ru.komiss77.enums.StatFlag;
 import ru.komiss77.events.LocalDataLoadEvent;
 import ru.komiss77.events.QuestCompleteEvent;
 import ru.komiss77.events.ScoreWorldRecordEvent;
-import ru.komiss77.modules.bots.BotEntity;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.player.PM;
@@ -45,7 +46,6 @@ import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.*;
-import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
@@ -395,7 +395,10 @@ public class ListenerWorld implements Listener {
                 if (sp != null) {
                     final int pls = Bukkit.getOnlinePlayers().size();
                     if (pls != 0) {
-//bot off                        BotManager.createBot(ClassUtil.rndElmt(SpotManager.names),LobbyBot.class, nm -> new LobbyBot(nm, new WXYZ(sp.getLoc())));
+                        loc = b.getLocation().toCenterLocation();
+                        final Botter bt = BotManager.createBot(ClassUtil.rndElmt(SpotManager.names),
+                            loc.getWorld(), SpotManager.BOT_EXT);
+                        bt.telespawn(null, loc);
                     }
                 }
             }
@@ -528,24 +531,25 @@ public class ListenerWorld implements Listener {
         if (e.getEntityType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
             final Player p = (Player) e.getEntity();
             final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
-            final EntityDamageEvent de;
+            final LivingEntity de;
             switch (e.getCause()) {
 
                 case VOID:
                     e.setDamage(0d);
-                    if (QuestManager.isComplete(lp, Quests.ostrov)) {//if (lp.hasFlag(LobbyFlag.GinTravelDone)) { //старичков кидаем на спавн
-                        final Location loc = p.getLocation();
-                        final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
-                        p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
-                    } else {
-                        p.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-                        p.performCommand("menu");
-                        Main.giveItems(p);
-                    }
+                    Ostrov.sync(() -> {
+                        if (QuestManager.isComplete(lp, Quests.ostrov)) {//старичков кидаем на спавн
+                            final Location loc = p.getLocation();
+                            final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
+                            p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                        } else {
+                            p.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
+                            p.performCommand("menu");
+                            Main.giveItems(p);
+                        }
+                    }, 2);
 
-                    de = p.getLastDamageCause();
-                    if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
-                        final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
+                    de = EntityUtil.lastDamager(p, false);
+                    if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
                             final Integer wns = sumo.getAmt(olp.nik);
@@ -560,9 +564,8 @@ public class ListenerWorld implements Listener {
                     }
                     return;
                 case FALL:
-                    de = p.getLastDamageCause();
-                    if (de instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) de).getDamager().getType() == EntityType.PLAYER) {
-                        final Player dp = (Player) ((EntityDamageByEntityEvent) de).getDamager();
+                    de = EntityUtil.lastDamager(p, false);
+                    if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
                             final Integer wns = sumo.getAmt(olp.nik);
@@ -602,7 +605,6 @@ public class ListenerWorld implements Listener {
                             if (vCub != null && vCub.getInfo() == CuboidInfo.SUMO) {
                                 final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
                                 if (dCub != null && dCub.getInfo() == CuboidInfo.SUMO) {
-//                                    Ostrov.sync(() -> p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), 2);
                                     e.setDamage(0d);
                                     return;//сумо
                                 }
@@ -612,7 +614,6 @@ public class ListenerWorld implements Listener {
                     }
                 default:
                     e.setCancelled(true);
-                //return;
             }
 
         } else {
@@ -662,7 +663,7 @@ public class ListenerWorld implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    /*@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityLoad(final EntitiesUnloadEvent e) {
         for (final Entity en : e.getEntities()) {
             //Bukkit.broadcast(Component.text("u=" + en.getType().toString()));
@@ -672,7 +673,7 @@ public class ListenerWorld implements Listener {
                 bt.remove();
             }
         }
-    }
+    }*/
 
 
     @EventHandler(ignoreCancelled = true)

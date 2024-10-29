@@ -38,7 +38,7 @@ public class HD {
             if (ci==CuboidInfo.DEFAULT || !ci.canTp) continue;
             final Location nlc = eye.clone().add(ci.relX, ci.relY, ci.relZ);
             p.spawnParticle(Particle.GLOW_SQUID_INK, nlc, 2, 0d, 0d, 0d, 0d);
-            if (Nms.getFastMat(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
+            if (Nms.fastType(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
             if (lp.isAreaDiscovered(lc.id)) {
             	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
             	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick((pl, dis) -> {

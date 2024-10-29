@@ -73,7 +73,7 @@ public class LobbyPlayer extends Oplayer {
     
     public void setFlag(final LobbyFlag flag, final boolean state) {
         flags = state ? (flags | (1 << flag.tag)) : flags & ~(1 << flag.tag);
-        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `lobbyData` SET `flags` = '"+flags+"' WHERE `name` = '"+nik+"';");
+        LocalDB.executePstAsync(Bukkit.getConsoleSender(), "UPDATE `playerData` SET `flags` = '"+flags+"' WHERE `name` = '"+nik+"';");
     }
 
     

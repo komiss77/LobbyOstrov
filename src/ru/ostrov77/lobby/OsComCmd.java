@@ -90,7 +90,7 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         QuestManager.resetProgress(p, PM.getOplayer(p));
                         ApiOstrov.sendToServer(p, "arcaim", "");
                         Ostrov.async(()-> {
-                            LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';");
+                            //LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `lobbyData` WHERE `name` = '"+p.getName()+"';");
                             LocalDB.executePstAsync(Bukkit.getConsoleSender(), "DELETE FROM `playerData` WHERE `name` = '"+p.getName()+"';");
                         }, 20);
                     }

@@ -1,11 +1,13 @@
 package ru.ostrov77.lobby.listeners;
 
+import java.util.Set;
 import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockType;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -73,8 +75,8 @@ public class ListenerWorld implements Listener {
     public void onLaunch(final ProjectileLaunchEvent e) { //PlayerElytraBoostEvent !!!
         final Projectile prj = e.getEntity();
         if (prj.getShooter() instanceof final Player p && prj.getType() == EntityType.FIREWORK_ROCKET) {
-            Ostrov.sync( ()-> p.getInventory().setItem(2, Main.fw), 8);
-            //Ostrov.sync( ()-> Main.rocket.giveForce(p), 8);
+            Ostrov.sync( ()-> Main.rocket.give(p), 8);
+            //Ostrov.sync( ()-> Main.rocket.give(p), 8);
 //            prj.remove();
         }
     }
@@ -111,7 +113,7 @@ public class ListenerWorld implements Listener {
                 p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 32, 2));
                 p.setCollidable(false);
-                Main.oscom.giveForce(p);
+                Main.oscom.give(p);
                 lp.hideScore();
                 ScreenUtil.sendBossbar(p, "#3 Остров.", 5, BossBar.Color.PINK, BossBar.Overlay.PROGRESS);
 
@@ -149,7 +151,7 @@ public class ListenerWorld implements Listener {
     public static void onQuest(final QuestCompleteEvent e) {
         final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
         if (e.getQuest().equals(Quests.doctor)) {
-            Main.elytra.giveForce(e.getPlayer());
+            Main.elytra.give(e.getPlayer());
             new CuboidEvent(e.getPlayer(), lp, lp.getCuboid(), lp.getCuboid(), lp.cuboidEntryTime).callEvent();
             return;
         }
@@ -192,22 +194,11 @@ public class ListenerWorld implements Listener {
             switch (e.getLast().getName()) {
                 case "daaria", "skyworld", "sumo" -> {
                     if (QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor)) {
-                        //Main.rocket.giveForce(p);
-                        p.getInventory().setItem(2, Main.fw);
+                        Main.rocket.give(p);
                     } else {
                         p.getInventory().setItem(2, ItemUtil.air);
                     }
-                    e.getPlayer().getInventory().setItem(2, QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor) ? Main.fw : ItemUtil.air);
                 }
-                /*case "newbie" -> {//??????? почему именно при прыжке в пустоту????
-//Ostrov.log("------ leave newbie getVehicle="+p.getVehicle());
-                    if (!e.getLobbyPlayer().isAreaDiscovered(1) && p.getVehicle()==null) { //не был в  §6§lЗона Сбора - ливнул зв борт!
-//Ostrov.log("set JustGame");
-//                        e.getLobbyPlayer().setSettings(Settings.JustGame, true);
-                        p.teleport(Main.getLocation(Main.LocType.Spawn), PlayerTeleportEvent.TeleportCause.COMMAND);
-                        Main.giveItems(p); //там justGame получат всё
-                    }
-                }*/
             }
         }
 
@@ -257,14 +248,14 @@ public class ListenerWorld implements Listener {
                         QuestManager.complete(p, e.getLobbyPlayer(), Quests.race);
                         race.tryAdd(p.getName(), lp.raceTime);
                         lp.raceTime = -1;
-                        Main.elytra.giveForce(p);
+                        Main.elytra.give(p);
                         //lp.questDone(p, quest, true);
                     }
                 }
 
-                case "daaria", "skyworld" -> Main.pickaxe.giveForce(p);
+                case "daaria", "skyworld" -> Main.pickaxe.give(p);
 
-                case "sumo" -> Main.stick.giveForce(p);
+                case "sumo" -> Main.stick.give(p);
 
             }
 
@@ -288,7 +279,7 @@ public class ListenerWorld implements Listener {
 
         if (QuestManager.isComplete(lp, Quests.discover)) {
             QuestManager.complete(p, lp, Quests.navig);
-            Main.pipboy.giveForce(p);
+            Main.pipboy.give(p);
         }
 
         if (lp.target == cuboid.getInfo()) {
@@ -342,7 +333,7 @@ public class ListenerWorld implements Listener {
             case FIRE -> {
                 if (plcAtmpt(b, BlockFace.EAST) || plcAtmpt(b, BlockFace.SOUTH)) {
                     final ItemStack it = e.getItemInHand();
-                    if (it.getType() != Material.AIR && it.hasItemMeta()) {
+                    if (ItemUtil.isBlank(it, true)) {
                         final String servername = ((TextComponent) it.getItemMeta().displayName()).content();
                         Main.serverPortals.put(new XYZ(b.getLocation()), servername);
                         Main.savePortals();
@@ -355,7 +346,7 @@ public class ListenerWorld implements Listener {
                 loc = b.getLocation();
 
                 if (p.hasMetadata("tp")) {
-                    final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").get(0).value();
+                    final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").getFirst().value();
                     final XYZ secondPlateXYZ = new XYZ(loc);
                     //System.out.println("§8log: firstPlateXYZ="+firstPlateXYZ.toString());
                     //System.out.println("§8log: secondPlateXYZ="+secondPlateXYZ.toString());    
@@ -536,6 +527,7 @@ public class ListenerWorld implements Listener {
 
                 case VOID:
                     e.setDamage(0d);
+                    e.setCancelled(true);
                     Ostrov.sync(() -> {
                         if (QuestManager.isComplete(lp, Quests.ostrov)) {//старичков кидаем на спавн
                             final Location loc = p.getLocation();
@@ -546,16 +538,16 @@ public class ListenerWorld implements Listener {
                             p.performCommand("menu");
                             Main.giveItems(p);
                         }
-                    }, 2);
+                    }, 1);
 
                     de = EntityUtil.lastDamager(p, false);
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
-                            final Integer wns = sumo.getAmt(olp.nik);
+                            final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());
+                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
                             QuestManager.complete(dp, olp, Quests.sumo);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
@@ -568,10 +560,11 @@ public class ListenerWorld implements Listener {
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
-                            final Integer wns = sumo.getAmt(olp.nik);
+                            final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());
+                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
+                            p.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                             QuestManager.complete(dp, olp, Quests.sumo);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
@@ -620,28 +613,16 @@ public class ListenerWorld implements Listener {
             if (e.getEntityType() == EntityType.HUSK) {
                 if (e instanceof final EntityDamageByEntityEvent ee) {
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
-                        //final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
-                        final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
-                        if (bt != null) {
-                            e.setDamage(0d);
-                            //bt.remove(true);
-                            return;
-                        }
                         final Player dp = (Player) ee.getDamager();
                         e.setDamage(100d);
-                        //final LobbyPlayer lp = PM.getOplayer(dp, LobbyPlayer.class);
-                        //if (lp!=null) {
                         QuestManager.addProgress(dp, PM.getOplayer(dp), Quests.warrior);
                         dp.getWorld().spawnParticle(Particle.BLOCK, ((LivingEntity) e.getEntity()).getEyeLocation(),
-                                40, 0.4d, 0.4d, 0.4d, 0d, Material.NETHER_WART_BLOCK.createBlockData(), false);
-                        //}
+                                40, 0.4d, 0.4d, 0.4d, 0d, BlockType.NETHER_WART_BLOCK.createBlockData(), false);
                     }
                 } else {
-                    //Bukkit.broadcast(Component.text("c=" + e.getCause().toString()));
                     switch (e.getCause()) {
                         case VOID, CRAMMING, CUSTOM, SUFFOCATION:
                             final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
-                            //final LobbyBot bt = BotManager.getBot(e.getEntity().getEntityId(), LobbyBot.class);
                             if (bt != null) {
                                 e.setDamage(0d);
                                 bt.remove();
@@ -685,22 +666,18 @@ public class ListenerWorld implements Listener {
         e.getEntity().setFoodLevel(20);
     }
 
-
+    private static final Set<BlockType> SNOWY = Set.of(BlockType.ICE, BlockType.PACKED_ICE, BlockType.SNOW, BlockType.SNOW_BLOCK);
     @EventHandler(ignoreCancelled = true)
     public void onBlockFade(final BlockFadeEvent e) {
-        if (!e.getBlock().getWorld().getName().equals("world")) {
-            return;
-        }
-        if (e.getBlock().getType() == Material.ICE || e.getBlock().getType() == Material.PACKED_ICE || e.getBlock().getType() == Material.SNOW || e.getBlock().getType() == Material.SNOW_BLOCK) {
+        if (!e.getBlock().getWorld().getName().equals("world")) return;
+        if (SNOWY.contains(e.getBlock().getType().asBlockType())) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onCreatureSpawnEvent(final CreatureSpawnEvent e) {
-        if (e.getEntity().getWorld().getName().equals("world")) {
-            return;
-        }
+        if (e.getEntity().getWorld().getName().equals("world")) return;
         e.setCancelled(true);
     }
 
@@ -771,6 +748,7 @@ public class ListenerWorld implements Listener {
             }
         }
 
+        final Orientable or = BlockType.NETHER_PORTAL.createBlockData();
         if (bf.getModX() == 0) {
             if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 2)
                     || !ntAirMinBlck(b.getRelative(0, h - 1, 0), (byte) 2)
@@ -810,11 +788,9 @@ public class ListenerWorld implements Listener {
                 }
             }
 
+            or.setAxis(Axis.Z);
             for (final Block pb : pbs) {
-                pb.setType(Material.NETHER_PORTAL);
-                final Orientable or = (Orientable) pb.getBlockData();
-                or.setAxis(Axis.Z);
-                pb.setBlockData(or);
+                pb.setBlockData(or, false);
             }
         } else {
             if (!ntAirMinBlck(b.getRelative(0, 0, 0), (byte) 3)
@@ -856,7 +832,7 @@ public class ListenerWorld implements Listener {
             }
 
             for (final Block pb : pbs) {
-                pb.setType(Material.NETHER_PORTAL);
+                pb.setBlockData(or, false);
             }
         }
         return true;

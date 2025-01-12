@@ -1,8 +1,8 @@
 package ru.ostrov77.lobby.bots.spots;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockType;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.version.Nms;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -26,7 +26,7 @@ public class EndSpot implements Spot {
 			for (int z = -prtlDst; z < prtlDst + 1; z++) {
 				for (int y = -prtlDst; y < prtlDst + 1; y++) {
 					final XYZ tst = new XYZ(loc.worldName, loc.x + x, loc.y + y, loc.z + z);
-					if (Nms.getFastMat(w, tst.x, tst.y, tst.z) == Material.NETHER_PORTAL) {
+					if (BlockType.NETHER_PORTAL.equals(Nms.fastType(w, tst.x, tst.y, tst.z))) {
 						final int d = Math.abs(x) + Math.abs(y) + Math.abs(z);
 						if (d < dst) {
 							portal = tst;

@@ -22,8 +22,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>16</source>
-                    <target>16</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -33,9 +33,9 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals>
+                        <!--<goals>
                             <goal>shade</goal>
-                        </goals>
+                        </goals>-->
                     </execution>
                 </executions>
             </plugin>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -74,21 +74,14 @@
             <artifactId>procosmetics</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>C:/Users/Romindous/Downloads/new_test/pl2/ProCosmetics.jar</systemPath>
+            <systemPath>C:/Users/Rom/Downloads/new_test/pl2/ProCosmetics.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>komiss77</groupId>
             <artifactId>ru.komiss77</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>C:/Users/Romindous/Downloads/new_test/plugins/Ostrov.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>com.gamingmesh</groupId>
-            <artifactId>jobs</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>C:/Users/Romindous/Downloads/new_test/pl2/Jobs.jar</systemPath>
+            <systemPath>C:/Users/Rom/Downloads/new_test/plugins/Ostrov.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

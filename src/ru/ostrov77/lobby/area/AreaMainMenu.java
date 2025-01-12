@@ -1,21 +1,16 @@
 package ru.ostrov77.lobby.area;
 
-import ru.komiss77.builder.SetupMode;
 import java.util.ArrayList;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemType;
 import ru.komiss77.builder.BuilderCmd;
+import ru.komiss77.builder.SetupMode;
+import ru.komiss77.modules.items.ItemBuilder;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.utils.*;
-import ru.komiss77.utils.inventory.ClickableItem;
-import ru.komiss77.utils.inventory.InputButton;
-import ru.komiss77.utils.inventory.InventoryContent;
-import ru.komiss77.utils.inventory.InventoryProvider;
-import ru.komiss77.utils.inventory.Pagination;
-import ru.komiss77.utils.inventory.SlotIterator;
-import ru.komiss77.utils.inventory.SlotPos;
+import ru.komiss77.utils.ItemUtil;
+import ru.komiss77.utils.StringUtil;
+import ru.komiss77.utils.inventory.*;
 
 
 
@@ -50,7 +45,7 @@ public class AreaMainMenu implements InventoryProvider {
                 
                 final LCuboid lc = AreaManager.getCuboid(cuboidId);
                         
-                menuEntry.add(ClickableItem.of(new ItemBuilder( Material.BOOKSHELF )
+                menuEntry.add(ClickableItem.of(new ItemBuilder( ItemType.BOOKSHELF )
                     .name(lc.getName())
                     .lore("ID: §3"+lc.id)
                     .lore("displayName: "+lc.displayName)
@@ -118,7 +113,7 @@ public class AreaMainMenu implements InventoryProvider {
         
         
 
-        contents.set(5, 2 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(Material.BOOK)
+        contents.set(5, 2 , new InputButton( InputButton.InputType.ANVILL, new ItemBuilder(ItemType.BOOK)
             .name("§fCоздать зону")
             .lore("При нажатии нужно будет")
             .lore("ввести уникальное название")
@@ -157,7 +152,7 @@ public class AreaMainMenu implements InventoryProvider {
 
         
         
-        contents.set( 5, 4, ClickableItem.of( new ItemBuilder(Material.OAK_DOOR).name("закончить режим редактора").build(), e 
+        contents.set( 5, 4, ClickableItem.of( new ItemBuilder(ItemType.OAK_DOOR).name("закончить режим редактора").build(), e 
                 ->  p.performCommand("builder end")
         ));
         

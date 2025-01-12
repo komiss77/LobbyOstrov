@@ -1,16 +1,16 @@
 package ru.ostrov77.lobby;
 
 
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import ru.komiss77.enums.Game;
 import ru.komiss77.modules.games.GM;
 import ru.komiss77.modules.games.GameInfo;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.modules.items.ItemBuilder;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
@@ -24,16 +24,16 @@ public class OsComMenu implements InventoryProvider {
 
     private ItemStack[] getEmpty() {
         final ItemStack[] its = new ItemStack[54];
-        final ItemStack rail = new ItemBuilder(Material.ACTIVATOR_RAIL).name("§8.").build();
-        final ItemStack bubble = new ItemBuilder(Material.GLOW_LICHEN).name("§8.").build();
+        final ItemStack rail = new ItemBuilder(ItemType.ACTIVATOR_RAIL).name("§8.").build();
+        final ItemStack bubble = new ItemBuilder(ItemType.GLOW_LICHEN).name("§8.").build();
         for (int i = 0; i != 54; i++) {
             its[i] = switch (i % 9) {
                 case 0, 8 -> rail;
                 default -> bubble;
             };
         }
-        its[53] = its[45] = new ItemBuilder(Material.LODESTONE).name("§8.").build();
-        its[52] = its[46] = new ItemBuilder(Material.SMOOTH_STONE_SLAB).name("§8.").build();
+        its[53] = its[45] = new ItemBuilder(ItemType.LODESTONE).name("§8.").build();
+        its[52] = its[46] = new ItemBuilder(ItemType.SMOOTH_STONE_SLAB).name("§8.").build();
         return its;
     }
 
@@ -56,7 +56,7 @@ public class OsComMenu implements InventoryProvider {
                 };
 
                 final GameInfo gi = GM.getGameInfo(gm);
-                its.set(slot, ClickableItem.of(new ItemBuilder(gi.mat).amount(Math.max(gi.getOnline(), 1))
+                its.set(slot, ClickableItem.of(new ItemBuilder(gi.mat.asItemType()).amount(Math.max(gi.getOnline(), 1))
                     .name(gm.displayName).build(), e -> {
                         PM.getOplayer(p, LobbyPlayer.class).transport(p,
                             new XYZ(AreaManager.getCuboid(ci).spawnPoint), false);
@@ -66,7 +66,7 @@ public class OsComMenu implements InventoryProvider {
             }
         }
 
-        its.set(22, ClickableItem.of( new ItemBuilder(Material.RECOVERY_COMPASS)
+        its.set(22, ClickableItem.of( new ItemBuilder(ItemType.RECOVERY_COMPASS)
             .name("§a§lМ§d§lИ§c§lН§e§lИ§9§lИ§5§lГ§4§lР§b§lЫ")
             .lore("")
             .lore("§e§lБедВарс")

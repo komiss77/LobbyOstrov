@@ -9,7 +9,7 @@ import java.util.List;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.block.BlockType;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
@@ -70,10 +70,10 @@ public class SpotManager {
         }
         Bukkit.broadcast(Component.text("-=-=-=-=-=-=-=-=-"));
         for (final Spot sp : spots) {
-            final Material mt = switch (sp.getType()) {
-                case END -> Material.FIRE_CORAL;
-                case SPAWN -> Material.BRAIN_CORAL;
-                case WALK -> Material.TUBE_CORAL;
+            final BlockType mt = switch (sp.getType()) {
+                case END -> BlockType.FIRE_CORAL;
+                case SPAWN -> BlockType.BRAIN_CORAL;
+                case WALK -> BlockType.TUBE_CORAL;
             };
             final Waterlogged wl = (Waterlogged) mt.createBlockData();
             wl.setWaterlogged(false);
@@ -392,17 +392,17 @@ public class SpotManager {
         }
         Bukkit.broadcast(Component.text("-=-=-=-=-=-=-=-=-"));
         for (final Spot sp : spots) {
-            final Material mt;
+            final ItemType mt;
             switch (sp.getType()) {
                 case END:
-                    mt = Material.FIRE_CORAL;
+                    mt = ItemType.FIRE_CORAL;
                     break;
                 case SPAWN:
-                    mt = Material.BRAIN_CORAL;
+                    mt = ItemType.BRAIN_CORAL;
                     break;
                 case WALK:
                 default:
-                    mt = Material.TUBE_CORAL;
+                    mt = ItemType.TUBE_CORAL;
                     break;
             }
             final Waterlogged wl = (Waterlogged) mt.createBlockData();

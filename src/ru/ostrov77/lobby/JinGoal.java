@@ -136,7 +136,7 @@ public class JinGoal implements Goal<Blaze> {
             }
 
 //final Player p = (Player) mob.getPassengers().get(0);
-//if (p!=null && p.getInventory().getItemInMainHand().getType()==Material.COMPASS) {
+//if (p!=null && p.getInventory().getItemInMainHand().getType()==ItemType.COMPASS) {
             mob.setVelocity(moveVector);
     //log("§6 setVelocity "+moveVector);
 //}

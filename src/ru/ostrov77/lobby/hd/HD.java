@@ -1,16 +1,16 @@
 package ru.ostrov77.lobby.hd;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import ru.komiss77.modules.displays.DisplayManager;
 import ru.komiss77.modules.displays.FakeItemDis;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.ItemBuilder;
+import ru.komiss77.modules.items.ItemBuilder;
 import ru.komiss77.version.Nms;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -21,8 +21,8 @@ import ru.ostrov77.lobby.area.AreaManager;
 public class HD {
 	
 //    protected static final ConcurrentHashMap<String,MenuTask> TASKS = new ConcurrentHashMap<>();
-    private static final ItemStack arrow = new ItemBuilder(Material.ARROW).enchant(Enchantment.INFINITY, 1).build();
-    private static final ItemStack empty = new ItemStack(Material.GRAY_DYE);
+    private static final ItemStack arrow = new ItemBuilder(ItemType.ARROW).enchant(Enchantment.INFINITY, 1).build();
+    private static final ItemStack empty = ItemType.GRAY_DYE.createItemStack();
 
     public static void openAreaMenu(final Player p, final LobbyPlayer lp) {
 
@@ -40,7 +40,7 @@ public class HD {
             p.spawnParticle(Particle.GLOW_SQUID_INK, nlc, 2, 0d, 0d, 0d, 0d);
             if (Nms.fastType(nlc.getWorld(), nlc.getBlockX(), nlc.getBlockY(), nlc.getBlockZ()).isOccluding()) continue;
             if (lp.isAreaDiscovered(lc.id)) {
-            	DisplayManager.fakeItemAnimate(p, nlc).setItem(new ItemStack(ci.icon)).setName(AreaManager.getCuboid(ci).displayName)
+            	DisplayManager.fakeItemAnimate(p, nlc).setItem(ci.icon.createItemStack()).setName(AreaManager.getCuboid(ci).displayName)
             	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick((pl, dis) -> {
                     lp.transport(pl, new XYZ(lc.spawnPoint), true);
                     DisplayManager.rmvDis(pl);

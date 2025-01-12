@@ -1,7 +1,10 @@
 package ru.ostrov77.lobby;
 
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import org.bukkit.*;
+import org.bukkit.block.BlockType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -31,7 +34,7 @@ public class LobbyPlayer extends Oplayer {
     public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime = -1; //таймер гонки
     public int sumoWins = 0; //сумо киллы
-    public final EnumSet<Material> foundBlocks = EnumSet.noneOf(Material.class); //блоки для 50 блок. задания
+    public final Set<BlockType> foundBlocks = new HashSet<>(); //блоки для 50 блок. задания
     public Parkur pkrist;
     public CuboidInfo target = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
     

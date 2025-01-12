@@ -1,22 +1,24 @@
 package ru.ostrov77.lobby;
 
+import java.util.*;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import ru.komiss77.OConfig;
+import ru.komiss77.OConfigManager;
 import ru.komiss77.Ostrov;
+import ru.komiss77.modules.items.ItemBuilder;
 import ru.komiss77.modules.menuItem.MenuItem;
 import ru.komiss77.modules.menuItem.MenuItemBuilder;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
-import ru.komiss77.utils.ItemBuilder;
-import ru.komiss77.OConfig;
-import ru.komiss77.OConfigManager;
 import ru.komiss77.utils.TCUtil;
 import ru.ostrov77.lobby.area.AreaCmd;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -27,9 +29,6 @@ import ru.ostrov77.lobby.listeners.FigureListener;
 import ru.ostrov77.lobby.listeners.InteractListener;
 import ru.ostrov77.lobby.listeners.ListenerWorld;
 import ru.ostrov77.lobby.quest.Quests;
-
-import java.util.*;
-
 
 public class Main extends JavaPlugin {
     
@@ -71,7 +70,7 @@ public class Main extends JavaPlugin {
             return;
         }
 
-        serverPortalsConfig = configManager.getNewConfig("serverPortals.yml");
+        serverPortalsConfig = configManager.config("serverPortals.yml");
         loadLocaions(world);
         
         new Quests();//подгрузка
@@ -147,24 +146,24 @@ public class Main extends JavaPlugin {
         final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
         
         if (QuestManager.isComplete(lp, Quests.doctor)) {
-            p.getInventory().setItem(2, fw); //2
-            elytra.giveForce(p);
+            rocket.give(p);
+            elytra.give(p);
         }
         
         final LCuboid lc = AreaManager.getCuboid(p.getLocation());
         if (lc != null && lc.getName().equals("daaria") && lc.getName().equals("skyworld")) {
-            pickaxe.giveForce(p);
+            pickaxe.give(p);
         }
 
-        oscom.giveForce(p);
+        oscom.give(p);
 
         if (QuestManager.isComplete(lp, Quests.pandora)) {
-            cosmeticMenu.giveForce(p);
+            cosmeticMenu.give(p);
         }
 
         if (lp.firstJoin || QuestManager.isComplete(lp, Quests.discover)) {
             oscom.remove(p);
-            pipboy.giveForce(p);
+            pipboy.give(p);
         }
         p.updateInventory();
         PM.getOplayer(p).showScore();
@@ -184,21 +183,32 @@ public class Main extends JavaPlugin {
     public static MenuItem oscom;
     public static MenuItem pipboy;
     public static MenuItem cosmeticMenu;
+    public static MenuItem rocket;
     public static MenuItem elytra;
     public static MenuItem pickaxe;
     public static MenuItem stick;
-    //public static MenuItem rocket;
-        public final static ItemStack fw = mkFwrk (new ItemBuilder(Material.FIREWORK_ROCKET)
-            .name("§7Топливо для §bКрыльев")
-            .flags(ItemFlag.HIDE_ATTRIBUTES)
-            .lore("§7Осторожно,")
-            .lore("§7иногда взрывается!")
-            .build()
-        );    
         
     private void createMenuItems() {
+
+        final ItemStack fw=mkFwrk(new ItemBuilder(ItemType.FIREWORK_ROCKET)
+            .name("§7Топливо для §bКрыльев")
+            .flags(true, ItemFlag.HIDE_ATTRIBUTES)
+            .lore("§7Осторожно,")
+            .lore("§7иногда взрывается!")
+            .build());
+        rocket = new MenuItemBuilder("firework", fw)
+            .slot(2)
+            .giveOnJoin(false)
+            .giveOnRespavn(false)
+            .giveOnWorld_change(false)
+            .forced(true)
+            .canDrop(false)
+            .canPickup(false)
+            .canMove(false)
+            .canInteract(true)
+            .create();
         
-        final ItemStack is=new ItemBuilder(Material.ELYTRA)
+        final ItemStack is=new ItemBuilder(ItemType.ELYTRA)
             .name("§bКрылья Островитянина")
             .unbreak(true)
             .lore("§7Используйте для")
@@ -209,14 +219,14 @@ public class Main extends JavaPlugin {
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)
             .create();
         
 
-        final ItemStack pip=new ItemBuilder(Material.CLOCK)
+        final ItemStack pip=new ItemBuilder(ItemType.CLOCK)
             .name("§6ЛКМ§e-профиль §2ПКМ§a-сервера")
             .unbreak(true)
             .enchant(Enchantment.LUCK_OF_THE_SEA, 1)
@@ -226,7 +236,7 @@ public class Main extends JavaPlugin {
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)
@@ -236,20 +246,19 @@ public class Main extends JavaPlugin {
             .create();
         
         //COMPASS лучше не ставить, FAWE тэпэшит при клике, сбивает с толку!
-        final ItemStack newbie=new ItemBuilder(Material.RECOVERY_COMPASS)
+        final ItemStack newbie=new ItemBuilder(ItemType.RECOVERY_COMPASS)
             .name("§3ОСКом")
             .lore("§6ЛКМ§e - задачи")
             .lore("§2ПКМ§a - локации")
             .unbreak(true)
-            .flags(ItemFlag.HIDE_UNBREAKABLE)
-            .flags(ItemFlag.HIDE_ENCHANTS)
+            .flags(true, ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS)
             .build();
         oscom = new MenuItemBuilder("oscom", newbie)
             .slot(4)
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)
@@ -261,7 +270,7 @@ public class Main extends JavaPlugin {
             .create();
 
         
-        final ItemStack cosmetic=new ItemBuilder(Material.ENDER_CHEST)
+        final ItemStack cosmetic=new ItemBuilder(ItemType.ENDER_CHEST)
             .name("§aИндивидуальность")
             .lore("§7Для Игроманов - всё и сразу!")
             .build();
@@ -270,7 +279,7 @@ public class Main extends JavaPlugin {
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)
@@ -279,7 +288,7 @@ public class Main extends JavaPlugin {
 //            .leftClickCmd("oscom unequipCosmetics")
             .create();
         
-        final ItemStack pckx = new ItemBuilder(Material.DIAMOND_PICKAXE)
+        final ItemStack pckx = new ItemBuilder(ItemType.DIAMOND_PICKAXE)
             .name("§bРазрушитель 3000")
             .lore("§7Cносит блоки с одного удара!,")
             .lore("§7(но только §fБулыжник §7и §bАлмазы§7)")
@@ -289,14 +298,14 @@ public class Main extends JavaPlugin {
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)
             .duplicate(false)
             .create();
         
-        final ItemStack st = new ItemBuilder(Material.BLAZE_ROD)
+        final ItemStack st = new ItemBuilder(ItemType.BLAZE_ROD)
             .name("§6Заряженый Жезл")
             .lore("§7Враги улетят в след. измерение!")
             .enchant(Enchantment.KNOCKBACK, 1)
@@ -306,7 +315,7 @@ public class Main extends JavaPlugin {
             .giveOnJoin(false)
             .giveOnRespavn(false)
             .giveOnWorld_change(false)
-            .anycase(true)
+            .forced(true)
             .canDrop(false)
             .canPickup(false)
             .canMove(false)

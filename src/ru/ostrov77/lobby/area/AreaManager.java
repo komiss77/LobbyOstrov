@@ -1,28 +1,17 @@
 package ru.ostrov77.lobby.area;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import java.util.*;
+import net.kyori.adventure.text.Component;
+import org.bukkit.*;
+import org.bukkit.block.BlockType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import net.kyori.adventure.text.Component;
-import ru.komiss77.ApiOstrov;
+import ru.komiss77.OConfig;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.Oplayer;
@@ -30,16 +19,16 @@ import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.objects.CaseInsensitiveMap;
+import ru.komiss77.utils.ItemUtil;
 import ru.komiss77.utils.LocUtil;
-import ru.komiss77.OConfig;
 import ru.komiss77.utils.TCUtil;
+import ru.ostrov77.lobby.LobbyFlag;
+import ru.ostrov77.lobby.LobbyPlayer;
+import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.SpotManager;
 import ru.ostrov77.lobby.bots.spots.SpotType;
 import ru.ostrov77.lobby.event.CuboidEvent;
 import ru.ostrov77.lobby.game.Parkur;
-import ru.ostrov77.lobby.LobbyFlag;
-import ru.ostrov77.lobby.LobbyPlayer;
-import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.quest.Quests;
 
 
@@ -58,7 +47,7 @@ public class AreaManager {
         chunkContetnt = new HashMap<>();
         cuboids = new HashMap<>();
         cuboidNames = new CaseInsensitiveMap<>();
-        areaConfig = Main.configManager.getNewConfig("area.yml");
+        areaConfig = Main.configManager.config("area.yml");
         
         if (areaConfig.getConfigurationSection("areas")!=null) {
             for (String areaID : areaConfig.getConfigurationSection("areas").getKeys(false) ) {
@@ -182,8 +171,8 @@ public class AreaManager {
                             if (loc.getY() < pr.bLast.y) { //упал
                                 p.sendMessage("§7[§bМини-Паркур§7] >> Вы упали! Пропрыгано блоков: §b" + pr.jumps);
                                 lp.pkrist = null;
-                                loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setType(Material.AIR, false);
-                                loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setType(Material.AIR, false);
+                                loc.getWorld().getBlockAt(pr.bLast.x, pr.bLast.y, pr.bLast.z).setBlockData(BlockType.AIR.createBlockData(), false);
+                                loc.getWorld().getBlockAt(pr.bNext.x, pr.bNext.y, pr.bNext.z).setBlockData(BlockType.AIR.createBlockData(), false);
                                 p.teleport(getCuboid("parkur").spawnPoint);
                                 lp.pkrist = null;
                                 Ostrov.sync(() -> {
@@ -411,7 +400,7 @@ public class AreaManager {
         p.setCompassTarget(lc.spawnPoint);
         lp.target = lc.getInfo();
         final ItemStack compass = p.getInventory().getItem(0);
-        if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
+        if (ItemUtil.is(compass, ItemType.COMPASS) && compass.hasItemMeta()) {
             final ItemMeta im = compass.getItemMeta();
             if (im.hasLore()) {
                 final List<Component> lore = new ArrayList<>();
@@ -436,7 +425,7 @@ public class AreaManager {
         p.setCompassTarget(p.getLocation());
         lp.target = CuboidInfo.DEFAULT;
         final ItemStack compass = p.getInventory().getItem(0);
-        if (compass!=null && compass.getType()==Material.COMPASS && compass.hasItemMeta()) {
+        if (ItemUtil.is(compass, ItemType.COMPASS) && compass.hasItemMeta()) {
             final ItemMeta im = compass.getItemMeta();
             if (im.hasLore()) {
                 final List<Component> lore = new ArrayList<>();

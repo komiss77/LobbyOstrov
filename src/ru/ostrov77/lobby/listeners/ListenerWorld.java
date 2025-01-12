@@ -303,10 +303,10 @@ public class ListenerWorld implements Listener {
     }
 
     public static void sound(final Player p) {
-        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
-        Ostrov.async(() -> {
+        p.playSound(p.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
+        Ostrov.sync(() -> {
             if (p.isOnline()) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 0.5f);
+                p.playSound(p.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 0.5f);
             }
         }, 5);
     }
@@ -552,7 +552,7 @@ public class ListenerWorld implements Listener {
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
-                            final Integer wns = sumo.getAmt(olp.nik);
+                            final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
                             p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());
@@ -568,7 +568,7 @@ public class ListenerWorld implements Listener {
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
-                            final Integer wns = sumo.getAmt(olp.nik);
+                            final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
                             p.damage(1d, DamageSource.builder(DamageType.MAGIC).build());

@@ -9,9 +9,9 @@ public class SumoBoard extends ScoreDis {
 		super(name, loc, 5, true);
 	}
 	
-	@Override
-	public String toDisplay(final Integer amt) {
-		return amt == null ? "--" : String.valueOf(amt);
-	}
+	//@Override
+	//public String toDisplay(final Integer amt) {
+	//	return amt == null ? "--" : String.valueOf(amt);
+	//}
 
 }

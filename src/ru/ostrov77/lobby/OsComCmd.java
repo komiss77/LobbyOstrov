@@ -68,21 +68,23 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
         if (arg.length==1) {
             
             switch (arg[0]) {
-                    
-                case "debug":
+
+                
+                case "debug" -> {
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
                         SmartInventory
-                            .builder()
-                            .id("flags"+p.getName())
-                            .provider(new DebugMenu())
-                            .size(3, 9)
-                            .title("меню отладки")
-                            .build()
-                            .open(p);
+                                .builder()
+                                .id("flags"+p.getName())
+                                .provider(new DebugMenu())
+                                .size(3, 9)
+                                .title("меню отладки")
+                                .build()
+                                .open(p);
                     }
                     return true;
+                }
                     
-                case "reset":
+                case "reset" -> {
                     if (ApiOstrov.isLocalBuilder(cs, true)) {
                         p.getInventory().clear();
                         p.closeInventory();
@@ -95,32 +97,35 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         }, 20);
                     }
                     return true;
+                }
 
                     
-                case "quest":
+                case "quest" -> {
                     SmartInventory.builder()
-                        .type(InventoryType.CHEST)
-                        .id("quest"+p.getName())
-                        .provider(new QuestViewMenu())
-                        .title("Задания")
-                        .size (5,9)
-                        .build()
-                        .open(p);
+                            .type(InventoryType.CHEST)
+                            .id("quest"+p.getName())
+                            .provider(new QuestViewMenu())
+                            .title("Задания")
+                            .size (5,9)
+                            .build()
+                            .open(p);
                     return true;
+                }
 
-                case "area":
+                case "area" -> {
                     HD.openAreaMenu(p, lp);
                     return true;
+                }
 
-                case "gin":
+                case "gin" -> {
                     /*if (!ApiOstrov.isLocalBuilder(p) && lp.hasFlag(LobbyFlag.GinTravelDone)) {
-                        if (ApiOstrov.canBeBuilder(p)) {
-                            p.sendMessage("§cвключи гм1!");
-                        } else {
-                            p.sendMessage("§cМогут только новички!");
-                        }
-                        //p.sendMessage("§cМогут только новички!");
-                        return true;
+                    if (ApiOstrov.canBeBuilder(p)) {
+                    p.sendMessage("§cвключи гм1!");
+                    } else {
+                    p.sendMessage("§cМогут только новички!");
+                    }
+                    //p.sendMessage("§cМогут только новички!");
+                    return true;
                     }*///а задания как выполнять? раком?
 
                     if (p.getVehicle()!=null) {
@@ -141,8 +146,8 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     JinGoal.showGinHopper(Main.getLocation(Main.LocType.ginLamp).clone(), false);
                     QuestManager.complete(p, PM.getOplayer(p), Quests.lamp);
                     p.playSound(Main.getLocation(Main.LocType.ginLamp), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 5, 1);
-
-
+                    
+                    
                     Ostrov.sync( ()->{
                         if (!p.isOnline() || !AreaManager.getCuboid("newbie").hasPlayer(p)) {
                             Ostrov.log_warn("spawn gin phase 1 : !p.isOnline()");
@@ -170,8 +175,8 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                         }, 40);
 
                     }, 40);
-
-
+                    
+                    
                     for (final Player pl : Bukkit.getOnlinePlayers()) {
                         if (!pl.getName().equals(lp.nik) && QuestManager.isComplete(PM.getOplayer(pl), Quests.greet)) {
                             pl.sendMessage("§6Ожидается прибытие новичка через 15 секунд!");
@@ -179,9 +184,11 @@ public class OsComCmd implements CommandExecutor, TabCompleter {
                     }
 
                     return true;
+                }
 
-                case "t":
+                case "t" -> {
                     return true;
+                }
             }
         }
 

@@ -274,6 +274,9 @@ public class Main extends JavaPlugin {
             .name("§aИндивидуальность")
             .lore("§7Для Игроманов - всё и сразу!")
             .build();
+//по клику на предмет-иеню косметик пашет ошибку   PlayerInteractEvent to ProCosmetics v14.1.4
+//java.lang.IllegalStateException: We don't have CustomModelData! Check hasCustomModelData first!
+//фикс - в настройках косметики cosmetic-menu не юзать ENDER_CHEST !
         cosmeticMenu = new MenuItemBuilder("cosmetic", cosmetic)
             .slot(8)
             .giveOnJoin(false)

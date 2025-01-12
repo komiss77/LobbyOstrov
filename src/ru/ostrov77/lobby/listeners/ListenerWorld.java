@@ -294,10 +294,10 @@ public class ListenerWorld implements Listener {
     }
 
     public static void sound(final Player p) {
-        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
-        Ostrov.async(() -> {
+        p.playSound(p.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 2, 0.5f);
+        Ostrov.sync(() -> {
             if (p.isOnline()) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 0.5f);
+                p.playSound(p.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 0.5f);
             }
         }, 5);
     }

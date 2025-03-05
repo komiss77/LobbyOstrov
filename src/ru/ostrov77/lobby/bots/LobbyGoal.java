@@ -13,7 +13,6 @@ import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
 import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.world.AStarPath;
-import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.utils.LocUtil;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.bots.spots.Spot;
@@ -56,10 +55,6 @@ public class LobbyGoal implements Goal<Mob> {
     }
 
     @Override
-    public void start() {
-    }
-
-    @Override
     public void stop() {
         ext.remove(bt);
     }
@@ -75,7 +70,7 @@ public class LobbyGoal implements Goal<Mob> {
 
         final Vector vc;
         if (talk == 0) {
-            final Location dir = arp.getNextLoc();
+            final Location dir = arp.getNextLoc(loc.getWorld());
             vc = dir == null ? rplc.getEyeLocation().getDirection() : dir.subtract(loc).toVector().setY(0d);
             if (tgt == null) {
                 final Spot sp = SpotManager.getRndSpot(SpotType.END);
@@ -86,7 +81,7 @@ public class LobbyGoal implements Goal<Mob> {
                     return;
                 } else {
                     tgt = sp;
-                    arp.setTgt(new WXYZ(loc.getWorld(), sp.getLoc()));
+                    arp.setTgt(sp.getLoc().w(loc.getWorld()));
                 }
             }
 
@@ -116,15 +111,15 @@ public class LobbyGoal implements Goal<Mob> {
                 }
             }
         } else {
-            final Location dir = arp.getNextLoc();
+            final Location dir = arp.getNextLoc(loc.getWorld());
             vc = dir == null ? rplc.getEyeLocation().getDirection() : dir.subtract(loc).toVector().setY(0d);
         }
 
         if (talk == 0) {
-            arp.tickGo(1.4f);
+            arp.tickGo(1.1f);
         }
 
-        bt.move(loc, vc, true);
+        bt.move(loc, vc);
     }
 
     @Override

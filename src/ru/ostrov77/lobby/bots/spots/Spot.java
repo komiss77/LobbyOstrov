@@ -2,11 +2,12 @@ package ru.ostrov77.lobby.bots.spots;
 
 import org.bukkit.World;
 
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.XYZ;
 
 public interface Spot {
 
-	XYZ getLoc();
+	BVec getLoc();
 	
 	SpotType getType();
 	

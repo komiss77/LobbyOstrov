@@ -1,5 +1,6 @@
 package ru.ostrov77.lobby.area;
 
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.XYZ;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,13 +8,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Location;
+import ru.komiss77.objects.IntHashMap;
 
 
 public class ChunkContent {
     
     private Set<Integer>cuboids;
 //    private Map <Integer,String> nearlyPortalData;
-    private Map <Integer,XYZ> plate;
+    private IntHashMap <BVec> plate;
     
     
  /*
@@ -41,16 +43,16 @@ public class ChunkContent {
         return plate!=null && !plate.isEmpty();
     }
     
-    public void addPlate(final XYZ firstPlateXYZ, final XYZ secondPlateXYZ) {
+    public void addPlate(final BVec firstPlateXYZ, final BVec secondPlateXYZ) {
         if (plate==null) {
-            plate = new HashMap<>();
+            plate = new IntHashMap<>();
         }
         final int ccLoc = getCCloc(firstPlateXYZ.x, firstPlateXYZ.y, firstPlateXYZ.z);//
         plate.put( ccLoc, secondPlateXYZ);
 //System.out.println("++addPlate ccloc="+ccLoc+" second="+secondPlateXYZ);
     }
 
-    public XYZ getPlate(final Location loc) {
+    public BVec getPlate(final Location loc) {
         if (!hasPlate()) return null;
         final int ccLoc = getCCloc(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());//(loc.getBlockX()&0xF)<<16 | loc.getBlockY()<<8 | (loc.getBlockZ()&0xF);
 //System.out.println("++getPlate ccloc="+ccLoc+" plate.get="+plate.get(ccLoc));

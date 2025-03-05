@@ -15,7 +15,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
-import ru.komiss77.modules.world.WXYZ;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ClassUtil;
 import ru.ostrov77.lobby.Main;
@@ -24,11 +24,11 @@ import ru.ostrov77.lobby.bots.spots.*;
 
 
 public class SpotManager {
-	
+
     private static final List<Spot> spots;
     public static final String[] names;
     private static BukkitTask task;
-    
+
     static {
         spots = new ArrayList<>();
         names = readNames();
@@ -41,18 +41,16 @@ public class SpotManager {
         if (task!=null) task.cancel();
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
             final Spot sp = getRndSpot(SpotType.SPAWN);
-            if (sp != null) {
-            	final int pls = Bukkit.getOnlinePlayers().size();
-            	if (pls != 0 && Main.rnd.nextInt(pls + 1) == 0) {
-                    final Location loc = new WXYZ(sp.getLoc()).getCenterLoc();
-                    final Botter bt = BotManager.createBot(ClassUtil.rndElmt(names), loc.getWorld(), BOT_EXT);
-                    bt.telespawn(null, loc);
-                }
-            }
+            if (sp == null) return;
+            final int pls = Bukkit.getOnlinePlayers().size();
+            if (pls == 0 || Main.rnd.nextInt(pls + 1) != 0) return;
+            final Location loc = sp.getLoc().center(sp.getWorld());
+            final Botter bt = BotManager.createBot(ClassUtil.rndElmt(names), loc.getWorld(), BOT_EXT);
+            bt.telespawn(null, loc);
         }, 200, 200);
     }
 
-    public static void addSpot(final XYZ loc, final SpotType st) {
+    public static void addSpot(final BVec loc, final SpotType st) {
         final Spot sp = switch (st) {
             case END -> new EndSpot(loc);
             case SPAWN -> new SpawnSpot(loc);
@@ -62,7 +60,7 @@ public class SpotManager {
         spots.add(sp);
     }
 
-    public static void deleteSpot(final XYZ loc) {
+    public static void deleteSpot(final BVec loc) {
         spots.remove(new WalkSpot(loc));
         AreaManager.saveSpot(loc, null);
         if (spots.isEmpty()) {
@@ -77,16 +75,16 @@ public class SpotManager {
             };
             final Waterlogged wl = (Waterlogged) mt.createBlockData();
             wl.setWaterlogged(false);
-            sp.getLoc().getCenterLoc().getBlock().setBlockData(wl, false);
+            sp.getLoc().block(sp.getWorld()).setBlockData(wl, false);
         }
     }
-    
+
     public static @Nullable Spot getRndSpot(final SpotType tp) {
-    	final ArrayList<Spot> spa = new ArrayList<>();
-    	for (final Spot sp : spots) {
-    		if (sp.getType() == tp) spa.add(sp);
-    	}
-		return spa.isEmpty() ? null :
+        final ArrayList<Spot> spa = new ArrayList<>();
+        for (final Spot sp : spots) {
+            if (sp.getType() == tp) spa.add(sp);
+        }
+        return spa.isEmpty() ? null :
             spa.get(Main.rnd.nextInt(spa.size()));
     }
 
@@ -102,10 +100,10 @@ public class SpotManager {
         }
         return new String[]{"Bot"};
     }
- 
+
 
 }
-   
+
 
 
 //    public static final HashMap<Integer, Bot> npcs = new HashMap<>();

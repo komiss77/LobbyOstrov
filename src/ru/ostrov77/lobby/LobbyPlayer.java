@@ -1,6 +1,5 @@
 package ru.ostrov77.lobby;
 
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import org.bukkit.*;
@@ -13,9 +12,7 @@ import org.bukkit.util.Vector;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.Oplayer;
-import ru.komiss77.modules.quests.QuestManager;
-import ru.komiss77.modules.world.WXYZ;
-import ru.komiss77.modules.world.XYZ;
+import ru.komiss77.modules.world.BVec;
 import ru.ostrov77.lobby.area.AreaManager;
 import ru.ostrov77.lobby.area.CuboidInfo;
 import ru.ostrov77.lobby.area.LCuboid;
@@ -31,7 +28,7 @@ public class LobbyPlayer extends Oplayer {
     
     //служебные
     public int lastCuboidId; //для playerMoveTask
-    public int cuboidEntryTime = Timer.getTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
+    public int cuboidEntryTime = Timer.secTime(); //при входе равно текущему времени - может сразу появиться в кубоиде
     public int raceTime = -1; //таймер гонки
     public int sumoWins = 0; //сумо киллы
     public final Set<BlockType> foundBlocks = new HashSet<>(); //блоки для 50 блок. задания
@@ -126,14 +123,14 @@ public class LobbyPlayer extends Oplayer {
     }
 
     private static final int MAX_DST = 8;
-    public void transport(final Player p, final XYZ to, final boolean inst) {
+    public void transport(final Player p, final BVec to, final boolean inst) {
         final Location loc = p.getLocation();
-        final WXYZ fin = new WXYZ(p.getWorld(), to.x, to.y + ((to.y - loc.getBlockY()) >> 31) + 1, to.z);
+        final BVec fin = BVec.of(p.getWorld(), to.x, to.y + ((to.y - loc.getBlockY()) >> 31) + 1, to.z);
         loc.getWorld().spawnParticle(Particle.SOUL, loc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
         loc.getWorld().playSound(loc, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 1f);
         Timer.add(p, "tp", 1); //от срабатывания предмета в руке при клике по иконке;
         if (inst) {
-            p.teleport(to.getCenterLoc(p.getWorld()), PlayerTeleportEvent.TeleportCause.COMMAND);
+            p.teleport(to.center(p.getWorld()), PlayerTeleportEvent.TeleportCause.COMMAND);
 //Ostrov.log(" getCenterLoc="+to.getCenterLoc(p.getWorld()));
             final Location nlc = p.getLocation();
             nlc.getWorld().spawnParticle(Particle.SOUL, nlc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
@@ -162,14 +159,14 @@ public class LobbyPlayer extends Oplayer {
                     cancel();
                     final Location flc;
                     if (currDist > MAX_DST) {//слишком далеко от точки
-                        p.teleport(flc = fin.getCenterLoc());
+                        p.teleport(flc = fin.center(p.getWorld()));
                     } else flc = crl;
                     flc.getWorld().spawnParticle(Particle.SOUL, flc, 40, 0.6d, 0.6d, 0.6d, 0d, null, false);
                     flc.getWorld().playSound(flc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 2f);
                     p.setGameMode(gm == GameMode.SPECTATOR ? GameMode.SURVIVAL : gm);
                     p.setFlying(false);
                     p.setVelocity(new Vector(0, 0, 0));
-                    QuestManager.complete(p, lp, Quests.plate);
+                    Quests.plate.complete(p, lp, false);
                 } else {
                     previosDistance = currDist;  //запоминаем текущее расстояние для сравнения на в след.раз
                     p.setVelocity(new Vector(fin.x + 0.5d, fin.y + 0.5d, fin.z + 0.5d).subtract(crl.toVector()).multiply(0.1f));

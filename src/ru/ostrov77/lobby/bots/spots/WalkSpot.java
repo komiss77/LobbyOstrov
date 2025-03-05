@@ -2,40 +2,29 @@ package ru.ostrov77.lobby.bots.spots;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-
-import ru.komiss77.modules.world.XYZ;
-import ru.ostrov77.lobby.area.AreaManager;
+import ru.komiss77.modules.world.BVec;
 
 public class WalkSpot implements Spot {
 	
-	private final XYZ loc;
+	private final BVec loc;
 	private final SpotType st;
 	private final World w;
 	
-	public WalkSpot(final XYZ loc) {
+	public WalkSpot(final BVec loc) {
 		this.loc = loc;
 		this.st = SpotType.WALK;
-		this.w = Bukkit.getWorld(loc.worldName);
+		final World tw = loc.w();
+		this.w = tw == null ? Bukkit.getWorlds().getFirst() : tw;
 	}
 
 	@Override
-	public XYZ getLoc() {
+	public BVec getLoc() {
 		return loc;
 	}
 
 	@Override
 	public SpotType getType() {
 		return st;
-	}
-	
-	@Override
-	public boolean equals(final Object o) {
-		return o instanceof Spot && loc.equals(((Spot)o).getLoc());
-	}
-
-	@Override
-	public int hashCode() {
-		return AreaManager.getcLoc(loc);
 	}
 	
 	@Override

@@ -8,9 +8,9 @@ import org.bukkit.inventory.ItemType;
 import ru.komiss77.enums.Game;
 import ru.komiss77.modules.games.GM;
 import ru.komiss77.modules.games.GameInfo;
-import ru.komiss77.modules.player.PM;
-import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.modules.items.ItemBuilder;
+import ru.komiss77.modules.player.PM;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.utils.inventory.ClickableItem;
 import ru.komiss77.utils.inventory.InventoryContent;
 import ru.komiss77.utils.inventory.InventoryProvider;
@@ -59,7 +59,7 @@ public class OsComMenu implements InventoryProvider {
                 its.set(slot, ClickableItem.of(new ItemBuilder(gi.mat.asItemType()).amount(Math.max(gi.getOnline(), 1))
                     .name(gm.displayName).build(), e -> {
                         PM.getOplayer(p, LobbyPlayer.class).transport(p,
-                            new XYZ(AreaManager.getCuboid(ci).spawnPoint), false);
+                            BVec.of(AreaManager.getCuboid(ci).spawnPoint), false);
                         p.closeInventory();
                     }
                 ));
@@ -77,7 +77,7 @@ public class OsComMenu implements InventoryProvider {
             .lore("§b§lКит-ПВП")
             .lore("§a§lБитва Строителей")
             .lore("§аи другие...").build(), e -> {
-                PM.getOplayer(p, LobbyPlayer.class).transport(p, new XYZ(AreaManager.getCuboid(
+                PM.getOplayer(p, LobbyPlayer.class).transport(p, BVec.of(AreaManager.getCuboid(
                     Main.rnd.nextBoolean() ? CuboidInfo.PVP : CuboidInfo.NOPVP).spawnPoint), false);
                 p.closeInventory();
             }

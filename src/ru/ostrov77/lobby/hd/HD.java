@@ -9,13 +9,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import ru.komiss77.modules.displays.DisplayManager;
 import ru.komiss77.modules.displays.FakeItemDis;
-import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.modules.items.ItemBuilder;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.version.Nms;
-import ru.ostrov77.lobby.area.CuboidInfo;
-import ru.ostrov77.lobby.area.LCuboid;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.area.AreaManager;
+import ru.ostrov77.lobby.area.CuboidInfo;
+import ru.ostrov77.lobby.area.LCuboid;
 
 
 public class HD {
@@ -42,7 +42,7 @@ public class HD {
             if (lp.isAreaDiscovered(lc.id)) {
             	DisplayManager.fakeItemAnimate(p, nlc).setItem(ci.icon.createItemStack()).setName(AreaManager.getCuboid(ci).displayName)
             	.setRotate(true).setIsDone(ie -> p.isSneaking() || ie > 1000).setOnClick((pl, dis) -> {
-                    lp.transport(pl, new XYZ(lc.spawnPoint), true);
+                    lp.transport(pl, BVec.of(lc.spawnPoint), true);
                     DisplayManager.rmvDis(pl);
                 }).create();
             } else {

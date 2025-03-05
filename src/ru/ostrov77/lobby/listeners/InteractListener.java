@@ -1,7 +1,10 @@
 package ru.ostrov77.lobby.listeners;
 
 import java.util.Set;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockType;
@@ -19,8 +22,9 @@ import ru.komiss77.ApiOstrov;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.translate.Lang;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ItemUtil;
 import ru.komiss77.utils.NumUtil;
@@ -59,16 +63,17 @@ public class InteractListener implements Listener {
                 if (MINED.contains(b.getType().asBlockType())) {
                     Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), BlockType.AIR.createBlockData()), 2);
                     Ostrov.sync(() -> p.sendBlockChange(b.getLocation(), b.getType().createBlockData()), 40);
-                    QuestManager.addProgress(p, lp, BlockType.COBBLESTONE.equals(b.getType().asBlockType()) ? Quests.cobble : Quests.dims);
+                    final Quest qs = BlockType.COBBLESTONE.equals(b.getType().asBlockType())
+                        ? Quests.cobble : Quests.dims; qs.addProg(p, lp);
                     p.playSound(b.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 0.8f);
                     b.getWorld().spawnParticle(Particle.BLOCK, b.getLocation().add(0.5d, 0.5d, 0.5d), 40, 0.4d, 0.4d, 0.4d, b.getBlockData());
                 }
                 return;
             }
 
-            if (QuestManager.isComplete(lp, Quests.arcaim) && lp.foundBlocks.add(b.getType().asBlockType()) && QuestManager.addProgress(p, lp, Quests.find)) {
+            if (Quests.arcaim.isComplete(lp) && lp.foundBlocks.add(b.getType().asBlockType()) && Quests.find.addProg(p, lp)) {
                 ScreenUtil.sendActionBarDirect(p, "§7Найден блок §e" + TCUtil.deform(Lang.t(b.getType(), p.locale()))
-                        + "§7, осталось: §e" + (Quests.find.amount - QuestManager.getProgress(lp, Quests.find)));
+                        + "§7, осталось: §e" + (Quests.find.amount - Quests.find.getProg(lp)));
             }
 
             //спавн джина для новичка
@@ -100,7 +105,7 @@ public class InteractListener implements Listener {
 
             final ChunkContent cc = AreaManager.getChunkContent(loc);
             if (cc != null && cc.hasPlate()) {
-                final XYZ second = cc.getPlate(loc);
+                final BVec second = cc.getPlate(loc);
                 if (second != null) { //пункт назначения назначен - значит плата есть
                     final LCuboid sCub = AreaManager.getCuboid(second); //кубоид назначения брать после проверки second на null!!!
                     if (sCub == null || lp.isAreaDiscovered(sCub.id)) {  //в точке назначения нет кубоида, или территория уже изучена

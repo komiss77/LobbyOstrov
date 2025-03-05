@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import ru.komiss77.listener.ChatLst;
 import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.modules.quests.QuestManager;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.quest.Quests;
 
@@ -33,7 +32,7 @@ public class LobbyBot implements Botter.Extent {
 
     public void click(Botter botter, PlayerInteractAtEntityEvent e) {
         final Player pl = e.getPlayer();
-        QuestManager.complete(pl, PM.getOplayer(pl, LobbyPlayer.class), Quests.greet);
+        Quests.greet.complete(pl, PM.getOplayer(pl, LobbyPlayer.class), false);
     }
 
     public void death(Botter bt, EntityDeathEvent e) {
@@ -42,12 +41,8 @@ public class LobbyBot implements Botter.Extent {
     }
 
     public void damage(Botter bt, EntityDamageEvent e) {
-        if (e instanceof final EntityDamageByEntityEvent ee) {
-            if (ee.getDamager() instanceof final Player pl) {
-                QuestManager.complete(pl, PM.getOplayer(pl, LobbyPlayer.class), Quests.greet);
-            }
-        }
-        Botter.Extent.super.damage(bt, e);
+        if (e instanceof final EntityDamageByEntityEvent ee && ee.getDamager() instanceof final Player pl)
+            Quests.greet.complete(pl, PM.getOplayer(pl, LobbyPlayer.class), false);
     }
 
     public void pickup(Botter botter, Location location) {}

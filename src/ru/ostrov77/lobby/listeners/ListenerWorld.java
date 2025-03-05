@@ -45,6 +45,7 @@ import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.quests.QuestManager;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.*;
@@ -67,8 +68,8 @@ import ru.ostrov77.lobby.quest.Quests;
 public class ListenerWorld implements Listener {
 
     private static final BlockFace[] NEAREST = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
-    private static final RaceBoard race = new RaceBoard("§б§nСостязание", new WXYZ(Main.getLocation(Main.LocType.raceLoc)));
-    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", new WXYZ(Main.getLocation(Main.LocType.sumoLoc)));
+    private static final RaceBoard race = new RaceBoard("§б§nСостязание", BVec.of(Main.getLocation(Main.LocType.raceLoc)));
+    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", BVec.of(Main.getLocation(Main.LocType.sumoLoc)));
 
 
      @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -103,7 +104,7 @@ public class ListenerWorld implements Listener {
                 //lp.tag ("§8(","§8", "§8) §7"+lp.getDataString(Data.FAMILY));
                 p.performCommand("menu");
                 
-            } else if (QuestManager.isComplete(lp, Quests.ostrov)) {
+            } else if (Quests.ostrov.isComplete(lp)) {
 
                 Main.giveItems(p);
                 //без тп, появиться, где вышел
@@ -157,12 +158,10 @@ public class ListenerWorld implements Listener {
         }
 
         for (final Quest qs : QuestManager.getQuests(q -> !q.equals(Quests.doctor))) {
-            if (!QuestManager.isComplete(lp, qs)) {
-                return;
-            }
+            if (!qs.isComplete(lp)) return;
         }
 
-        QuestManager.complete(e.getPlayer(), lp, Quests.doctor);
+        Quests.doctor.complete(e.getPlayer(), lp, false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -170,7 +169,7 @@ public class ListenerWorld implements Listener {
         if (e.getInventory().getType() == InventoryType.CHEST) {
             final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
             if (PM.getPasportFillPercent(lp) > 20) {
-                QuestManager.complete((Player) e.getPlayer(), lp, Quests.pass);
+                Quests.pass.complete((Player) e.getPlayer(), lp, false);
             }
         }
     }
@@ -193,7 +192,7 @@ public class ListenerWorld implements Listener {
             }
             switch (e.getLast().getName()) {
                 case "daaria", "skyworld", "sumo" -> {
-                    if (QuestManager.isComplete(e.getLobbyPlayer(), Quests.doctor)) {
+                    if (Quests.doctor.isComplete(e.getLobbyPlayer())) {
                         Main.rocket.give(p);
                     } else {
                         p.getInventory().setItem(2, ItemUtil.air);
@@ -245,7 +244,7 @@ public class ListenerWorld implements Listener {
                     if (lp.raceTime > 0) {
                         p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 2f);
                         p.sendMessage("§5[§eСостязание§5] §7>> Хорошо сработано! Время: §e" + TimeUtil.secondToTime(lp.raceTime));
-                        QuestManager.complete(p, e.getLobbyPlayer(), Quests.race);
+                        Quests.race.complete(p, e.getLobbyPlayer(), false);
                         race.tryAdd(p.getName(), lp.raceTime);
                         lp.raceTime = -1;
                         Main.elytra.give(p);
@@ -269,16 +268,16 @@ public class ListenerWorld implements Listener {
 
         final CuboidInfo ci = cuboid.getInfo();
         lp.setAreaDiscovered(cuboid.id);
-        if (QuestManager.complete(p, lp, ci.quest)) {
-            QuestManager.addProgress(p, lp, Quests.discover);
+        if (ci.quest.complete(p, lp, false)) {
+            Quests.discover.addProg(p, lp);
         }
 
         if (ci.quest.equals(Quests.ostrov)) {
             lp.setFlag(LobbyFlag.GinTravelDone, true); //попал на спавн - считаем что ждин пройден
         }
 
-        if (QuestManager.isComplete(lp, Quests.discover)) {
-            QuestManager.complete(p, lp, Quests.navig);
+        if (Quests.discover.isComplete(lp)) {
+            Quests.navig.complete(p, lp, false);
             Main.pipboy.give(p);
         }
 
@@ -346,8 +345,8 @@ public class ListenerWorld implements Listener {
                 loc = b.getLocation();
 
                 if (p.hasMetadata("tp")) {
-                    final XYZ firstPlateXYZ = (XYZ) p.getMetadata("tp").getFirst().value();
-                    final XYZ secondPlateXYZ = new XYZ(loc);
+                    final BVec firstPlateXYZ = (BVec) p.getMetadata("tp").getFirst().value();
+                    final BVec secondPlateXYZ = BVec.of(loc);
                     //System.out.println("§8log: firstPlateXYZ="+firstPlateXYZ.toString());
                     //System.out.println("§8log: secondPlateXYZ="+secondPlateXYZ.toString());    
                     final int cLoc = AreaManager.getcLoc(firstPlateXYZ);
@@ -371,15 +370,15 @@ public class ListenerWorld implements Listener {
 
             case DEAD_BRAIN_CORAL -> {
                 loc = b.getLocation();
-                SpotManager.addSpot(new XYZ(loc), SpotType.SPAWN);
+                SpotManager.addSpot(BVec.of(loc), SpotType.SPAWN);
             }
             case DEAD_TUBE_CORAL -> {
                 loc = b.getLocation();
-                SpotManager.addSpot(new XYZ(loc), SpotType.WALK);
+                SpotManager.addSpot(BVec.of(loc), SpotType.WALK);
             }
             case DEAD_FIRE_CORAL -> {
                 loc = b.getLocation();
-                SpotManager.addSpot(new XYZ(loc), SpotType.END);
+                SpotManager.addSpot(BVec.of(loc), SpotType.END);
             }
             case DEAD_BUBBLE_CORAL -> {
                 final Spot sp = SpotManager.getRndSpot(SpotType.SPAWN);
@@ -429,16 +428,16 @@ public class ListenerWorld implements Listener {
             case LIGHT_WEIGHTED_PRESSURE_PLATE -> {
                 final ChunkContent cc = AreaManager.getChunkContent(loc);
                 if (cc != null && cc.hasPlate()) {
-                    final XYZ second = cc.getPlate(loc);
+                    final BVec second = cc.getPlate(loc);
                     if (second != null) { //пункт назначения назначен - значит плата есть
                         cc.delPlate(loc);
-                        AreaManager.savePlate(new XYZ(loc), null);
+                        AreaManager.savePlate(BVec.of(loc), null);
                         e.getPlayer().sendMessage("§6Плита, ведущаяя к §a" + second + " §6убрана!");
                     }
                 }
             }
             case DEAD_HORN_CORAL ->
-                SpotManager.deleteSpot(new XYZ(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                SpotManager.deleteSpot(BVec.of(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
             case DEAD_BUBBLE_CORAL ->
                 BotManager.clearBots();
             default -> {
@@ -493,8 +492,8 @@ public class ListenerWorld implements Listener {
                 }
                 final LobbyPlayer olp = PM.getOplayer(e.getRightClicked().getUniqueId(), LobbyPlayer.class);
 //p.sendMessage("§8log: ПКМ на игрока, новичёк?"+!clickedLp.questDone.contains(Quest.DiscoverAllArea));
-                if (olp != null && (olp.isGuest || QuestManager.isComplete(olp, Quests.discover))) {
-                    QuestManager.complete(p, lp, Quests.greet);
+                if (olp != null && (olp.isGuest || Quests.discover.isComplete(olp))) {
+                    Quests.greet.complete(p, lp, false);
                 }
             }
             default -> {
@@ -529,9 +528,9 @@ public class ListenerWorld implements Listener {
                     e.setDamage(0d);
                     e.setCancelled(true);
                     Ostrov.sync(() -> {
-                        if (QuestManager.isComplete(lp, Quests.ostrov)) {//старичков кидаем на спавн
+                        if (Quests.ostrov.isComplete(lp)) {//старичков кидаем на спавн
                             final Location loc = p.getLocation();
-                            final LCuboid lc = AreaManager.getCuboid(new XYZ(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
+                            final LCuboid lc = AreaManager.getCuboid(BVec.of(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
                             p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                         } else {
                             p.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
@@ -548,7 +547,7 @@ public class ListenerWorld implements Listener {
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
                             p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
-                            QuestManager.complete(dp, olp, Quests.sumo);
+                            Quests.sumo.complete(dp, olp, false);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
                             }
@@ -565,7 +564,7 @@ public class ListenerWorld implements Listener {
                             sumo.tryAdd(olp.nik, olp.sumoWins);
                             p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
                             p.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
-                            QuestManager.complete(dp, olp, Quests.sumo);
+                            Quests.sumo.complete(dp, olp, false);
                             for (final Player pl : dp.getWorld().getPlayers()) {
                                 pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
                             }
@@ -615,7 +614,7 @@ public class ListenerWorld implements Listener {
                     if (ee.getDamager().getType() == EntityType.PLAYER) {
                         final Player dp = (Player) ee.getDamager();
                         e.setDamage(100d);
-                        QuestManager.addProgress(dp, PM.getOplayer(dp), Quests.warrior);
+                        Quests.warrior.addProg(dp, PM.getOplayer(dp));
                         dp.getWorld().spawnParticle(Particle.BLOCK, ((LivingEntity) e.getEntity()).getEyeLocation(),
                                 40, 0.4d, 0.4d, 0.4d, 0d, BlockType.NETHER_WART_BLOCK.createBlockData(), false);
                     }

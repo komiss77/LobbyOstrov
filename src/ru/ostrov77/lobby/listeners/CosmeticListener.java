@@ -4,7 +4,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import ru.komiss77.modules.player.PM;
-import ru.komiss77.modules.quests.QuestManager;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -24,7 +23,7 @@ public class CosmeticListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTreassure(final PlayerOpenTreasureEvent e) {
         final LobbyPlayer lp = PM.getOplayer(e.getPlayer(), LobbyPlayer.class);
-        QuestManager.complete(e.getPlayer(), lp, Quests.treasure);
+        Quests.treasure.complete(e.getPlayer(), lp, false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -67,7 +66,7 @@ public class CosmeticListener implements Listener {
             e.setCancelled(true);
             return;
         }
-        if (QuestManager.isComplete(lp, Quests.discover)) {
+        if (Quests.discover.isComplete(lp)) {
             final LCuboid lc = AreaManager.getCuboid(e.getPlayer().getLocation());
             if (lc != null && lc.getInfo() != CuboidInfo.SUMO) {
                 return;

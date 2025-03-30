@@ -73,7 +73,7 @@ public class Parkur {
         if (bNext.y > 250) {
             p.sendMessage("§7[§bМини-Паркур§7] >> Вы... прошли до конца??! Пропрыгано блоков: §b" + jumps);
             final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
-        	QuestManager.complete(p, lp, Quests.parkur);
+			Quests.parkur.complete(p, lp, false);
             p.getWorld().getBlockAt(bLast.x, bLast.y, bLast.z).setBlockData(BlockType.AIR.createBlockData(), false);
             p.getWorld().getBlockAt(bNext.x, bNext.y, bNext.z).setBlockData(BlockType.AIR.createBlockData(), false);
             p.teleport(AreaManager.getCuboid("parkur").spawnPoint);

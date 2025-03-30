@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.komiss77.LocalDB;
 import ru.komiss77.Timer;
+import ru.komiss77.boot.OStrap;
 import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.world.BVec;
 import ru.ostrov77.lobby.area.AreaManager;
@@ -23,7 +24,10 @@ import ru.ostrov77.lobby.quest.Quests;
 
 public class LobbyPlayer extends Oplayer {
 
+    public static final NamespacedKey TP_KEY = OStrap.key("tp");
+
     private int flags; //флаги
+
     public int openedArea; //открытые локации
     
     //служебные
@@ -119,7 +123,7 @@ public class LobbyPlayer extends Oplayer {
                 Bukkit.getPluginManager().callEvent(new CuboidEvent(p, this, exitCuboid, null, cuboidEntryTime));
             }
         }
-        p.removeMetadata("tp", Main.instance);
+        p.getPersistentDataContainer().remove(TP_KEY);
     }
 
     private static final int MAX_DST = 8;

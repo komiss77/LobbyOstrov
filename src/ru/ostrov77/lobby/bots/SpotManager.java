@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.world.BVec;
-import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.ClassUtil;
 import ru.ostrov77.lobby.Main;
 import ru.ostrov77.lobby.area.AreaManager;

@@ -30,7 +30,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import ru.komiss77.ApiOstrov;
@@ -46,7 +47,6 @@ import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.BVec;
-import ru.komiss77.modules.world.WXYZ;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.*;
 import ru.ostrov77.lobby.JinGoal;
@@ -344,23 +344,25 @@ public class ListenerWorld implements Listener {
                 final Player p = e.getPlayer();
                 loc = b.getLocation();
 
-                if (p.hasMetadata("tp")) {
-                    final BVec firstPlateXYZ = (BVec) p.getMetadata("tp").getFirst().value();
-                    final BVec secondPlateXYZ = BVec.of(loc);
-                    //System.out.println("§8log: firstPlateXYZ="+firstPlateXYZ.toString());
-                    //System.out.println("§8log: secondPlateXYZ="+secondPlateXYZ.toString());    
-                    final int cLoc = AreaManager.getcLoc(firstPlateXYZ);
-                    final ChunkContent cc = AreaManager.getChunkContent(cLoc, true); //берём чанк по ПЕРВОЙ плите, запоминаем то в первой!
-                    cc.addPlate(firstPlateXYZ, secondPlateXYZ);
-                    AreaManager.savePlate(firstPlateXYZ, secondPlateXYZ);
-                    p.sendMessage("§2Вторая плита поставлена на координатах (§7" + loc.getBlockX() + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
-                    p.removeMetadata("tp", Main.instance);
-                    e.setCancelled(true);
-                    p.sendMessage("§2Плита создана!");
-                } else {
-                    p.setMetadata("tp", new FixedMetadataValue(Main.instance, new XYZ(loc)));
-                    p.sendMessage("§aПервая плита поставлена на координатах (§7" + loc.getBlockX() + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
+                final PersistentDataContainer pdc = p.getPersistentDataContainer();
+                final String bvs = pdc.get(LobbyPlayer.TP_KEY, PersistentDataType.STRING);
+                if (bvs == null) {
+                    pdc.set(LobbyPlayer.TP_KEY, PersistentDataType.STRING, BVec.of(loc).toString());
+                    p.sendMessage("§aНачальная плита поставлена на (§7" + loc.getBlockX()
+                        + "§a, §7" + loc.getBlockY() + "§a, §7" + loc.getBlockZ() + "§a)!");
+                    break;
                 }
+                final BVec first = BVec.parse(bvs);
+                final BVec second = BVec.of(loc);
+                final int cLoc = AreaManager.getcLoc(first);
+                final ChunkContent cc = AreaManager.getChunkContent(cLoc, true);
+                cc.addPlate(first, second);
+                AreaManager.savePlate(first, second);
+                p.sendMessage("§2Конечная плита поставлена на (§7" + loc.getBlockX()
+                    + "§2, §7" + loc.getBlockY() + "§2, §7" + loc.getBlockZ() + "§2)!");
+                pdc.remove(LobbyPlayer.TP_KEY);
+                p.sendMessage("§2Плита создана!");
+                e.setBuild(false);
             }
 
             case BEDROCK -> {
@@ -572,7 +574,6 @@ public class ListenerWorld implements Listener {
                     }
                 case THORNS:        //чары шипы на оружие-ранит нападающего
                 case LIGHTNING:     //молния
-                case DRAGON_BREATH: //дыхание дракона
                 case CONTACT:       //кактусы
                 case FIRE:          //огонь
                 case FIRE_TICK:     //горение

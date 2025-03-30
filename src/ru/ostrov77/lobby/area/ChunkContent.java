@@ -1,13 +1,10 @@
 package ru.ostrov77.lobby.area;
 
-import ru.komiss77.modules.world.BVec;
-import ru.komiss77.modules.world.XYZ;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import org.bukkit.Location;
+import ru.komiss77.modules.world.BVec;
 import ru.komiss77.objects.IntHashMap;
 
 

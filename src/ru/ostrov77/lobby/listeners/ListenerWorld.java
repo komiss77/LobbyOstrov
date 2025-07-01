@@ -26,6 +26,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
@@ -43,6 +44,7 @@ import ru.komiss77.events.QuestCompleteEvent;
 import ru.komiss77.events.ScoreWorldRecordEvent;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
+import ru.komiss77.modules.player.Oplayer;
 import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.quests.Quest;
 import ru.komiss77.modules.quests.QuestManager;
@@ -94,7 +96,7 @@ public class ListenerWorld implements Listener {
             lp.setFlags(flags == null || flags.isEmpty() ? 0 : Integer.parseInt(flags));
             final String areas = lp.mysqlData.get("area");
             lp.setOpenedArea(areas == null || areas.isEmpty() ? 0 : Integer.parseInt(areas));
-
+//Ostrov.log_warn("LocalDataLoadEvent quests="+lp.mysqlData.get("quests"));
             //c флагом JustGame можно придти сразу, а можно получить после прыжка за борт | ??? зачем
             if (lp.isGuest) {
 
@@ -105,10 +107,32 @@ public class ListenerWorld implements Listener {
                 p.performCommand("menu");
                 
             } else if (Quests.ostrov.isComplete(lp)) {
-
-                Main.giveItems(p);
                 //без тп, появиться, где вышел
-
+                Main.giveItems(p);
+                e.setLogoutLocation(null);
+//Ostrov.log_warn("LocalDataLoadEvent Quests.ostrov.isComplete");
+                Location logout = LocUtil.stringToLoc(lp.mysqlData.get("logout"), false, false);
+                if (logout == null) {
+                    p.teleport(Main.getLocation(Main.LocType.spawn));
+                    return;
+                }// else {
+                //    MoveUtil.safeTP(p, logout);//p.teleport(logout);
+                //}
+                for (final XYZ xyzw : Main.serverPortals.keySet()) { //обход афк-остаться в портале и снова кинет на серв
+                    if (xyzw.nearly(logout, 16)) {
+                        LCuboid lc = AreaManager.getCuboid(logout);//lp.getCuboid();
+//Ostrov.log_warn("2 nearly LC = "+lc);
+                        if (lc == null) {
+                            p.teleport(Main.getLocation(Main.LocType.spawn));
+                            return;
+                        } else {
+                            p.teleport(lc.spawnPoint);
+                            return;
+                        }
+                    }
+                }
+                MoveUtil.safeTP(p, logout);//p.teleport(logout);
+                
             } else {
 //                e.setLogoutLocation(Main.getLocation(Main.LocType.newBieSpawn));
                 p.teleport(Main.getLocation(Main.LocType.newBieSpawn));
@@ -121,6 +145,14 @@ public class ListenerWorld implements Listener {
             }
         }
     }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void PlayerQuit(PlayerQuitEvent e) { //до OsPlayerDataStorage
+      e.quitMessage(null);
+      final Oplayer op = PM.getOplayer(e.getPlayer());
+      op.mysqlData.put("logout", LocUtil.toDirString(e.getPlayer().getLocation()));
+    }
+
 
     
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -137,6 +169,7 @@ public class ListenerWorld implements Listener {
             for (final XYZ xyzw : Main.serverPortals.keySet()) {
                 if (xyzw.nearly(e.getLocation(), 16)) {
                     p.performCommand("server " + Main.serverPortals.get(xyzw));
+                    break;
                 }
             }
         } else {

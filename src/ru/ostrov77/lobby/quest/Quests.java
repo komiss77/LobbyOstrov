@@ -10,7 +10,7 @@ import ru.komiss77.modules.quests.QuestManager;
 public class Quests {
 
 	public static final Quest newbie = new Quest('a', ItemType.OAK_CHEST_BOAT, 0, null, null, "§e§lМесто Прибытия",
-		"Наконец-то здесь...", "textures/block/azalea_leaves.png", QuestVis.ALWAYS, QuestFrame.TASK, 0);
+		"Наконец-то здесь...", "block/azalea_leaves", QuestVis.ALWAYS, QuestFrame.TASK, 0);
 	  
 	 public static final Quest locman = new Quest('h', ItemType.GLOBE_BANNER_PATTERN, 0, null, newbie, 
 		"Разговорить Лоцмана", "Выведайте куда вы прибыли у Лоцмана", "", QuestVis.PARENT, QuestFrame.GOAL, 0);

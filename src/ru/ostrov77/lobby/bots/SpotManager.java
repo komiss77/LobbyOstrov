@@ -13,6 +13,7 @@ import org.bukkit.block.BlockType;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
+import ru.komiss77.Cfg;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
 import ru.komiss77.modules.world.BVec;
@@ -38,6 +39,7 @@ public class SpotManager {
 
     public static void startTask() {
         if (task!=null) task.cancel();
+        if (!Cfg.bots) return;
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
             final Spot sp = getRndSpot(SpotType.SPAWN);
             if (sp == null) return;
@@ -50,6 +52,7 @@ public class SpotManager {
     }
 
     public static void addSpot(final BVec loc, final SpotType st) {
+        if (!Cfg.bots) return;
         final Spot sp = switch (st) {
             case END -> new EndSpot(loc);
             case SPAWN -> new SpawnSpot(loc);

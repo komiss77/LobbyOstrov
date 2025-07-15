@@ -482,28 +482,29 @@ public class ListenerWorld implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHangingBreakEvent(final HangingBreakEvent e) {
+        if (e.getCause() != HangingBreakEvent.RemoveCause.ENTITY) { //энтити пропускаем в HangingBreakByEntityEvent
+            if (!e.getEntity().getWorld().getName().equals("world")) {
+                return;
+            }
+        //if (e.getEntity().getType() == EntityType.PLAYER) {
+            //if (!ApiOstrov.isLocalBuilder(e.getEntity())) {
+                e.setCancelled(true);
+            //}
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingBreakByEntityEvent(final HangingBreakByEntityEvent e) {
         if (!e.getEntity().getWorld().getName().equals("world")) {
             return;
         }
-        if (e.getRemover().getType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
+        if (e.getRemover().getType() == EntityType.PLAYER && PM.exist(e.getRemover().getName())) {
             if (!ApiOstrov.isLocalBuilder(e.getRemover())) {
                 e.setCancelled(true);
             }
         }
 
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onHangingBreakEvent(final HangingBreakEvent e) {
-        if (!e.getEntity().getWorld().getName().equals("world")) {
-            return;
-        }
-        if (e.getEntity().getType() == EntityType.PLAYER) {
-            if (!ApiOstrov.isLocalBuilder(e.getEntity())) {
-                e.setCancelled(true);
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
@@ -554,8 +555,8 @@ public class ListenerWorld implements Listener {
         }
 
         if (e.getEntityType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
-            final Player p = (Player) e.getEntity();
-            final LobbyPlayer lp = PM.getOplayer(p, LobbyPlayer.class);
+            final Player target = (Player) e.getEntity();
+            final LobbyPlayer lp = PM.getOplayer(target, LobbyPlayer.class);
             final LivingEntity de;
             switch (e.getCause()) {
 
@@ -564,44 +565,44 @@ public class ListenerWorld implements Listener {
                     e.setCancelled(true);
                     Ostrov.sync(() -> {
                         if (Quests.ostrov.isComplete(lp)) {//старичков кидаем на спавн
-                            final Location loc = p.getLocation();
+                            final Location loc = target.getLocation();
                             final LCuboid lc = AreaManager.getCuboid(BVec.of(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
-                            p.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                            target.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                         } else {
-                            p.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-                            p.performCommand("menu");
-                            Main.giveItems(p);
+                            target.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
+                            target.performCommand("menu");
+                            Main.giveItems(target);
                         }
                     }, 1);
 
-                    de = EntityUtil.lastDamager(p, false);
+                    de = EntityUtil.lastDamager(target, false);
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
                             final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
+                            target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
                             Quests.sumo.complete(dp, olp, false);
                             for (final Player pl : dp.getWorld().getPlayers()) {
-                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
+                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
                             }
                         }
                     }
                     return;
                 case FALL:
-                    de = EntityUtil.lastDamager(p, false);
+                    de = EntityUtil.lastDamager(target, false);
                     if (de instanceof final Player dp) {
                         final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
                         if (olp != null) {
                             final Integer wns = sumo.amount(olp.nik);
                             olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
                             sumo.tryAdd(olp.nik, olp.sumoWins);
-                            p.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(p).withDirectEntity(p).build());
-                            p.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                            target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
+                            target.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
                             Quests.sumo.complete(dp, olp, false);
                             for (final Player pl : dp.getWorld().getPlayers()) {
-                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + p.getName() + "§7 с арены!");
+                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
                             }
                         }
                     }
@@ -619,8 +620,8 @@ public class ListenerWorld implements Listener {
                     return;
                 //break;
                 case SUFFOCATION:   //зажатие в стене
-                    p.teleport(Main.getLocation(Main.LocType.spawn));
-                    p.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
+                    target.teleport(Main.getLocation(Main.LocType.spawn));
+                    target.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
                     e.setCancelled(false);
                     return;
 
@@ -665,7 +666,13 @@ public class ListenerWorld implements Listener {
                     }
                 }
             } else {
-                e.setCancelled(true);
+                if (e instanceof final EntityDamageByEntityEvent ee) { //или не убрать стойки и рамки
+                    if (ee.getDamager().getType() == EntityType.PLAYER) {
+                        if (!ApiOstrov.isLocalBuilder(ee.getDamager(), true)) {
+                            e.setCancelled(true);
+                        }
+                    }
+                }
             }
         }
     }

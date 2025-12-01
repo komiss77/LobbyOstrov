@@ -337,7 +337,7 @@ public class ListenerWorld implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDismount(final EntityDismountEvent e) {
         if (e.getEntityType() == EntityType.PLAYER && e.getDismounted().getType() == EntityType.BLAZE) {
-            if (e.getDismounted().isCustomNameVisible() && JinGoal.GIN_NAME.equals(TCUtil.deform(e.getDismounted().customName()))) {
+            if (e.getDismounted().isCustomNameVisible() ){// && JinGoal.GIN_NAME.equals(TCUtil.deform(e.getDismounted().customName()))) {
                 e.setCancelled(true);
                 if (!Timer.has(e.getEntity().getEntityId())) {
                     e.getEntity().sendMessage("§6Погодите, уже скоро будем на месте!");

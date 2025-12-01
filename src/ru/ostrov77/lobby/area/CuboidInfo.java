@@ -17,7 +17,7 @@ public enum CuboidInfo {
     MISSION        (ItemType.GLOBE_BANNER_PATTERN,  23,  	true,  	Quests.ostrov,	null,   false,  false,      -0.6f, -0.6f, 1.6f),
     PANDORA        (ItemType.SPONGE, 		        21,  	true,  	Quests.ostrov,	null,   false,  false,      1.2f, -0.4f, 1.2f),
     ARCAIM         (ItemType.BEDROCK, 		        4,  	true,  	Quests.arcaim,	    Game.AR,   false,  false,      1.4f, 0f, 3.2f),
-    MIDGARD        (ItemType.LECTERN,		        6,  	true,  	Quests.midgard,	    Game.FA,   false,  false,      -1.4f, 0.4f, 3.2f),
+    MIDGARD        (ItemType.LECTERN,		        6,  	true,  	Quests.midgard,	    Game.MI,   false,  false,      -1.4f, 0.4f, 3.2f),
     DAARIA         (ItemType.OAK_LOG,  		        25,  	true,  	Quests.daaria,	    Game.DA,   false,  false,      -3.2f, 0f, 1.4f),
     SKYWORLD       (ItemType.FLOWERING_AZALEA,      43,  	true,  	Quests.skyworld,    Game.SK,   false,  false,      -3.2f, 0.4f, -1.4f),
     SEDNA          (ItemType.CRIMSON_NYLIUM,        47,  	true,  	Quests.sedna,	    Game.SE,   false,  false,      1.4f, 0.4f, -3.2f),

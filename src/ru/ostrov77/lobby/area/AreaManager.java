@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import ru.komiss77.LocalDB;
 import ru.komiss77.OConfig;
 import ru.komiss77.Ostrov;
 import ru.komiss77.Timer;
@@ -104,7 +105,8 @@ public class AreaManager {
                 for (final Oplayer op : PM.getOplayers()) { //if (lp==null) return; чекать не надо, перебор только созданных лоббиплееров
                 	if (op instanceof final LobbyPlayer lp) {
                         final Player p = lp.getPlayer();
-                        if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                        //if (p==null || p.isDead() || p.getTicksLived()<20) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
+                        if (p==null || p.isDead() || lp.mysqlDataState == LocalDB.MysqlDataState.NONE) continue; //или при входе новичка тп на спавн и сразу на кораблик - и сразу открывается кубоид спавн. 
                         
                     	if (lp.raceTime >= 0) { //>0 значит гонка активна
                             lp.raceTime++;

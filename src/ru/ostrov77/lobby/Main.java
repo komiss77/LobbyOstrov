@@ -155,15 +155,17 @@ public class Main extends JavaPlugin {
             pickaxe.give(p);
         }
 
-        oscom.give(p);
+        //oscom.give(p);
 
         if (QuestManager.isComplete(lp, Quests.pandora)) {
             cosmeticMenu.give(p);
         }
 
-        if (lp.firstJoin || QuestManager.isComplete(lp, Quests.discover)) {
-            oscom.remove(p);
+        if (lp.firstJoin || Quests.discover.isComplete(lp)) {// QuestManager.isComplete(lp, Quests.discover)) {
+            //oscom.remove(p);
             pipboy.give(p);
+        } else {
+            oscom.give(p);
         }
         p.updateInventory();
         PM.getOplayer(p).showScore();

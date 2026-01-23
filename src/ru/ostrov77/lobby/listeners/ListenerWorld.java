@@ -51,7 +51,6 @@ import ru.komiss77.modules.quests.QuestManager;
 import ru.komiss77.modules.world.BVec;
 import ru.komiss77.modules.world.XYZ;
 import ru.komiss77.utils.*;
-import ru.ostrov77.lobby.JinGoal;
 import ru.ostrov77.lobby.LobbyFlag;
 import ru.ostrov77.lobby.LobbyPlayer;
 import ru.ostrov77.lobby.Main;
@@ -71,9 +70,156 @@ public class ListenerWorld implements Listener {
 
     private static final BlockFace[] NEAREST = {BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST};
     private static final RaceBoard race = new RaceBoard("§б§nСостязание", BVec.of(Main.getLocation(Main.LocType.raceLoc)));
-    private static final SumoBoard sumo = new SumoBoard("§c§nАрена Сумо", BVec.of(Main.getLocation(Main.LocType.sumoLoc)));
+    private static final SumoBoard sumoBoard = new SumoBoard("§c§nАрена Сумо", BVec.of(Main.getLocation(Main.LocType.sumoLoc)));
 
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onEntityDamage(final EntityDamageEvent e) {
+        if (!e.getEntity().getWorld().getName().equals("world")) {
+            return;
+        }
+
+        if (e.getEntityType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
+            final Player target = (Player) e.getEntity();
+            final LobbyPlayer lp = PM.getOplayer(target, LobbyPlayer.class);
+            final LivingEntity damagerLe;
+            
+            switch (e.getCause()) {
+
+                case VOID:
+                    e.setDamage(0d);
+                    e.setCancelled(true);
+                    target.setFallDistance(0); //обязательно для сумо
+                    
+                    //сумо-скинул в пустоту
+                    damagerLe = EntityUtil.lastDamager(target, false);
+                    if (lp.sumo && damagerLe instanceof final Player damager) {
+//Ostrov.log_warn("сумо-скинул в пустоту");
+                        final LobbyPlayer olp = PM.getOplayer(damager, LobbyPlayer.class);
+                        if (olp != null) {
+                            final Integer wns = sumoBoard.amount(olp.nik);
+                            olp.sumoWins = (wns == null || wns < olp.sumoWins) ? olp.sumoWins + 1 : wns + 1;
+                            sumoBoard.tryAdd(olp.nik, olp.sumoWins);
+                            //поставить метку ударившего
+                            target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
+                            //Quests.sumo.complete(damager, olp, false);
+                            for (final Player pl : damager.getWorld().getPlayers()) {
+                                pl.sendMessage("§7[§cСумо§7] §a" + damager.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
+                            }
+                        }
+                        Ostrov.sync(() -> {
+                            target.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                        }, 1);
+                        return;
+                    }                 
+                    Ostrov.sync(() -> {
+                        if (Quests.ostrov.isComplete(lp)) {//старичков кидаем на спавн
+                            final Location loc = target.getLocation();
+                            LCuboid lc = AreaManager.getCuboid(BVec.of(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
+                            if (!lp.sumo) lc = null; //битва закончена, не возвращать в сумо
+                            target.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                        } else {
+                            target.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
+                            target.performCommand("menu");
+                            Main.giveItems(target);
+                        }
+                    }, 1);
+                    return;
+                    
+                //сумо-упал на платформу - прыгай в пустоту или уходи через плиту
+                case FALL:
+                    damagerLe = EntityUtil.lastDamager(target, false);
+                    if (lp.sumo && damagerLe instanceof final Player damager) {
+//Ostrov.log_warn("сумо-упал на платформу");
+                        final LobbyPlayer olp = PM.getOplayer(damager, LobbyPlayer.class);
+                        if (olp != null) {
+                            //final Integer wns = sumoBoard.amount(olp.nik);
+                            //olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
+                            //sumoBoard.tryAdd(olp.nik, olp.sumoWins);
+                            //поставить метку ударившего
+                            //target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
+                            //target.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
+                            //Quests.sumo.complete(damager, olp, false);
+                            //for (final Player pl : damager.getWorld().getPlayers()) {
+                            //    pl.sendMessage("§7[§cСумо§7] §a" + damager.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
+                            //}
+                            target.sendMessage("§7[§cСумо§7] §6Плита - закончить битву, Пустота - продолжить.");
+                        }
+                    }
+                case THORNS:        //чары шипы на оружие-ранит нападающего
+                case LIGHTNING:     //молния
+                case CONTACT:       //кактусы
+                case FIRE:          //огонь
+                case FIRE_TICK:     //горение
+                case HOT_FLOOR:     //BlockMagma
+                case CRAMMING:      //EntityVex
+                case DROWNING:      //утопление
+                case STARVATION:    //голод
+                case LAVA:	    	//лава
+                    e.setCancelled(true);
+                    return;
+                //break;
+                case SUFFOCATION:   //зажатие в стене
+                    target.teleport(Main.getLocation(Main.LocType.spawn));
+                    target.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
+                    e.setCancelled(false);
+                    return;
+
+                case ENTITY_ATTACK: //ентити ударяет
+                    if (e instanceof final EntityDamageByEntityEvent ee) {
+                        if (ee.getDamager().getType() == EntityType.PLAYER) {
+                            final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
+                            if (vCub != null && vCub.getInfo() == CuboidInfo.SUMO) {
+                                final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
+                                if (dCub != null && dCub.getInfo() == CuboidInfo.SUMO) {
+                                    e.setDamage(0d);
+                                    return;//сумо
+                                }
+                            }
+
+                        }
+                    }
+                default:
+                    e.setCancelled(true);
+            }
+
+        } else {
+            if (e.getEntityType() == EntityType.HUSK) {
+                if (e instanceof final EntityDamageByEntityEvent ee) {
+                    if (ee.getDamager().getType() == EntityType.PLAYER) {
+                        final Player dp = (Player) ee.getDamager();
+                        e.setDamage(100d);
+                        Quests.warrior.addProg(dp, PM.getOplayer(dp));
+                        dp.getWorld().spawnParticle(Particle.BLOCK, ((LivingEntity) e.getEntity()).getEyeLocation(),
+                                40, 0.4d, 0.4d, 0.4d, 0d, BlockType.NETHER_WART_BLOCK.createBlockData(), false);
+                    }
+                } else {
+                    switch (e.getCause()) {
+                        case VOID, CRAMMING, CUSTOM, SUFFOCATION:
+                            final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
+                            if (bt != null) {
+                                e.setDamage(0d);
+                                bt.remove();
+                            }
+                        default:
+                            break;
+                    }
+                }
+            } else {
+                if (e instanceof final EntityDamageByEntityEvent ee) { //или не убрать стойки и рамки
+                    if (ee.getDamager().getType() == EntityType.PLAYER) {
+                        if (!ApiOstrov.isLocalBuilder(ee.getDamager(), true)) {
+                            e.setCancelled(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    
+    
+    
      @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLaunch(final ProjectileLaunchEvent e) { //PlayerElytraBoostEvent !!!
         final Projectile prj = e.getEntity();
@@ -212,7 +358,8 @@ public class ListenerWorld implements Listener {
     public static void onCuboidEvent(final CuboidEvent e) {  //если лоббиплеер нуль, то сюда никогда не придёт
 
         final Player p = e.getPlayer();
-//Ostrov.log("onCuboidEvent getLast="+e.getLast());
+        final LobbyPlayer lp = e.getLobbyPlayer();
+//Ostrov.log("onCuboidEvent "+e.getLast()+"->"+e.getCurrent());
 
         if (e.getLast() != null) {
             if (e.getLast().getInfo().hidePlayers) { //выход из кубоида со скрытием //if (e.getPrevois()!=null && e.getPrevois().getName().equals("newbie") ) {
@@ -232,6 +379,7 @@ public class ListenerWorld implements Listener {
                     }
                 }
             }
+
         }
 
         if (e.getCurrent() == null) {
@@ -249,7 +397,7 @@ public class ListenerWorld implements Listener {
                 }
             }
 
-            final LobbyPlayer lp = e.getLobbyPlayer();
+           // final LobbyPlayer lp = e.getLobbyPlayer();
 
             ScreenUtil.sendActionBarDirect(p, "§7§l⟣ " + e.getCurrent().displayName + " §7§l⟢");
 
@@ -287,8 +435,28 @@ public class ListenerWorld implements Listener {
 
                 case "daaria", "skyworld" -> Main.pickaxe.give(p);
 
-                case "sumo" -> Main.stick.give(p);
+                case "sumo" -> {
+                    Main.stick.give(p);
+                    lp.sumo = true;
+                }
 
+            }
+            
+            //переход в другой кубоид когда активна битва - конец игры
+            if (lp.sumo && !e.getCurrent().getName().equals("sumo")) {
+            //упасть с высоты на любом из островков,тебя убивает,телепортирует обратно на суммо
+                lp.sumo = false;
+                final LivingEntity damagerLe = EntityUtil.lastDamager(p, false);
+                if (damagerLe instanceof final Player damager) {
+                    final LobbyPlayer olp = PM.getOplayer(damager, LobbyPlayer.class);
+                    if (olp != null) {
+                        olp.sumo = false;
+                        Quests.sumo.complete(damager, olp, false);
+                        for (final Player pl : damager.getWorld().getPlayers()) {
+                            pl.sendMessage("§7[§cСумо§7] §bСчёт §a"+damager.getName()+"§7:§f"+olp.sumoWins+"§7, §c"+p.getName()+"§7:§f"+lp.sumoWins);
+                        }
+                    }
+                }
             }
 
         }
@@ -545,135 +713,6 @@ public class ListenerWorld implements Listener {
 
         if (!ApiOstrov.isLocalBuilder(e.getPlayer())) {
             e.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
-    public void onEntityDamage(final EntityDamageEvent e) {
-        if (!e.getEntity().getWorld().getName().equals("world")) {
-            return;
-        }
-
-        if (e.getEntityType() == EntityType.PLAYER && PM.exist(e.getEntity().getName())) {
-            final Player target = (Player) e.getEntity();
-            final LobbyPlayer lp = PM.getOplayer(target, LobbyPlayer.class);
-            final LivingEntity de;
-            switch (e.getCause()) {
-
-                case VOID:
-                    e.setDamage(0d);
-                    e.setCancelled(true);
-                    Ostrov.sync(() -> {
-                        if (Quests.ostrov.isComplete(lp)) {//старичков кидаем на спавн
-                            final Location loc = target.getLocation();
-                            final LCuboid lc = AreaManager.getCuboid(BVec.of(loc.getWorld().getName(), loc.getBlockX(), 80, loc.getBlockZ()));
-                            target.teleport(lc == null ? Main.getLocation(Main.LocType.spawn) : lc.spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
-                        } else {
-                            target.teleport(Main.getLocation(Main.LocType.newBieArrive), PlayerTeleportEvent.TeleportCause.COMMAND);
-                            target.performCommand("menu");
-                            Main.giveItems(target);
-                        }
-                    }, 1);
-
-                    de = EntityUtil.lastDamager(target, false);
-                    if (de instanceof final Player dp) {
-                        final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
-                        if (olp != null) {
-                            final Integer wns = sumo.amount(olp.nik);
-                            olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
-                            sumo.tryAdd(olp.nik, olp.sumoWins);
-                            target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
-                            Quests.sumo.complete(dp, olp, false);
-                            for (final Player pl : dp.getWorld().getPlayers()) {
-                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
-                            }
-                        }
-                    }
-                    return;
-                case FALL:
-                    de = EntityUtil.lastDamager(target, false);
-                    if (de instanceof final Player dp) {
-                        final LobbyPlayer olp = PM.getOplayer(dp, LobbyPlayer.class);
-                        if (olp != null) {
-                            final Integer wns = sumo.amount(olp.nik);
-                            olp.sumoWins = wns == null || wns < olp.sumoWins ? olp.sumoWins + 1 : wns + 1;
-                            sumo.tryAdd(olp.nik, olp.sumoWins);
-                            target.damage(1d, DamageSource.builder(DamageType.MAGIC).withCausingEntity(target).withDirectEntity(target).build());
-                            target.teleport(AreaManager.getCuboid(CuboidInfo.SUMO).spawnPoint, PlayerTeleportEvent.TeleportCause.COMMAND);
-                            Quests.sumo.complete(dp, olp, false);
-                            for (final Player pl : dp.getWorld().getPlayers()) {
-                                pl.sendMessage("§7[§cСумо§7] Игрок §a" + dp.getName() + "§7 скинул §c" + target.getName() + "§7 с арены!");
-                            }
-                        }
-                    }
-                case THORNS:        //чары шипы на оружие-ранит нападающего
-                case LIGHTNING:     //молния
-                case CONTACT:       //кактусы
-                case FIRE:          //огонь
-                case FIRE_TICK:     //горение
-                case HOT_FLOOR:     //BlockMagma
-                case CRAMMING:      //EntityVex
-                case DROWNING:      //утопление
-                case STARVATION:    //голод
-                case LAVA:	    	//лава
-                    e.setCancelled(true);
-                    return;
-                //break;
-                case SUFFOCATION:   //зажатие в стене
-                    target.teleport(Main.getLocation(Main.LocType.spawn));
-                    target.sendMessage("§6[§eОстров§6] §eТебя зажала стена и переместила обратно на спавн!");
-                    e.setCancelled(false);
-                    return;
-
-                case ENTITY_ATTACK: //ентити ударяет
-                    if (e instanceof final EntityDamageByEntityEvent ee) {
-                        if (ee.getDamager().getType() == EntityType.PLAYER) {
-                            final LCuboid vCub = AreaManager.getCuboid(e.getEntity().getLocation());
-                            if (vCub != null && vCub.getInfo() == CuboidInfo.SUMO) {
-                                final LCuboid dCub = AreaManager.getCuboid(ee.getDamager().getLocation());
-                                if (dCub != null && dCub.getInfo() == CuboidInfo.SUMO) {
-                                    e.setDamage(0d);
-                                    return;//сумо
-                                }
-                            }
-
-                        }
-                    }
-                default:
-                    e.setCancelled(true);
-            }
-
-        } else {
-            if (e.getEntityType() == EntityType.HUSK) {
-                if (e instanceof final EntityDamageByEntityEvent ee) {
-                    if (ee.getDamager().getType() == EntityType.PLAYER) {
-                        final Player dp = (Player) ee.getDamager();
-                        e.setDamage(100d);
-                        Quests.warrior.addProg(dp, PM.getOplayer(dp));
-                        dp.getWorld().spawnParticle(Particle.BLOCK, ((LivingEntity) e.getEntity()).getEyeLocation(),
-                                40, 0.4d, 0.4d, 0.4d, 0d, BlockType.NETHER_WART_BLOCK.createBlockData(), false);
-                    }
-                } else {
-                    switch (e.getCause()) {
-                        case VOID, CRAMMING, CUSTOM, SUFFOCATION:
-                            final Botter bt = BotManager.getBot(e.getEntity().getEntityId());
-                            if (bt != null) {
-                                e.setDamage(0d);
-                                bt.remove();
-                            }
-                        default:
-                            break;
-                    }
-                }
-            } else {
-                if (e instanceof final EntityDamageByEntityEvent ee) { //или не убрать стойки и рамки
-                    if (ee.getDamager().getType() == EntityType.PLAYER) {
-                        if (!ApiOstrov.isLocalBuilder(ee.getDamager(), true)) {
-                            e.setCancelled(true);
-                        }
-                    }
-                }
-            }
         }
     }
 

@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 import ru.komiss77.Cfg;
 import ru.komiss77.modules.bots.BotManager;
 import ru.komiss77.modules.bots.Botter;
+import ru.komiss77.modules.player.Oplayer;
+import ru.komiss77.modules.player.PM;
 import ru.komiss77.modules.world.BVec;
 import ru.komiss77.utils.ClassUtil;
 import ru.ostrov77.lobby.Main;
@@ -43,7 +45,10 @@ public class SpotManager {
         task = Bukkit.getScheduler().runTaskTimer(Main.instance, () -> {
             final Spot sp = getRndSpot(SpotType.SPAWN);
             if (sp == null) return;
-            final int pls = Bukkit.getOnlinePlayers().size();
+            int pls = 0;//Bukkit.getOnlinePlayers().size();
+            for (Oplayer op : PM.getOplayers()) {
+                if (!op.isStaff) pls ++;
+            }
             if (pls == 0 || Main.rnd.nextInt(pls + 1) != 0) return;
             final Location loc = sp.getLoc().center(sp.getWorld());
             final Botter bt = BotManager.createBot(ClassUtil.rndElmt(names), loc.getWorld(), BOT_EXT);
@@ -68,7 +73,7 @@ public class SpotManager {
         if (spots.isEmpty()) {
             return;
         }
-        Bukkit.broadcast(Component.text("-=-=-=-=-=-=-=-=-"));
+//Bukkit.broadcast(Component.text("-=-=-=-=-=-=-=-=-"));
         for (final Spot sp : spots) {
             final BlockType mt = switch (sp.getType()) {
                 case END -> BlockType.FIRE_CORAL;

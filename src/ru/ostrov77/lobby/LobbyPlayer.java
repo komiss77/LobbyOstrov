@@ -38,6 +38,7 @@ public class LobbyPlayer extends Oplayer {
     public final Set<BlockType> foundBlocks = new HashSet<>(); //блоки для 50 блок. задания
     public Parkur pkrist;
     public CuboidInfo target = CuboidInfo.DEFAULT; //ИД кубоида цели для компаса
+    public boolean sumo;
     
 //    public boolean toSave = false;
 //    public boolean updAdv = false;
